@@ -1,0 +1,9 @@
+{
+  "browser": "Chromium headless",
+  "target": "local static prototype",
+  "phase": "launch",
+  "result": "BLOCKED_BEFORE_NAVIGATION",
+  "err": "process_singleton_posix.cc: socket() failed: Operation not permitted",
+  "pages_loaded": 0,
+  "interactions_observed": 0
+}

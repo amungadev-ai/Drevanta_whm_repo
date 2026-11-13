@@ -1,0 +1,112 @@
+source_test_id,source,line,phase,scenario,expected,expanded_id
+SEC-001,Phase-2-Source-Specification.md,1196,05,Viewer calls service restart API,Denied,TC-SOURCE-SEC-001
+SEC-002,Phase-2-Source-Specification.md,1197,05,Hosting manager calls firewall API,Denied without separate server membership,TC-SOURCE-SEC-002
+SEC-003,Phase-2-Source-Specification.md,1198,05,Reseller lists another organization,Denied/no data leak,TC-SOURCE-SEC-003
+SEC-004,Phase-2-Source-Specification.md,1199,05,Website owner accesses another site,Denied,TC-SOURCE-SEC-004
+SEC-005,Phase-2-Source-Specification.md,1200,05,Developer accesses unassigned project,Denied,TC-SOURCE-SEC-005
+SEC-006,Phase-2-Source-Specification.md,1201,05,Stale tab after membership revoke,Mutation denied,TC-SOURCE-SEC-006
+SEC-007,Phase-2-Source-Specification.md,1202,05,Unknown helper operation,Denied,TC-SOURCE-SEC-007
+SEC-008,Phase-2-Source-Specification.md,1203,05,Helper caller with wrong UID,Denied,TC-SOURCE-SEC-008
+SEC-009,Phase-2-Source-Specification.md,1204,05,Restart protected systemd unit,Denied,TC-SOURCE-SEC-009
+SEC-010,Phase-2-Source-Specification.md,1205,05,Path traversal and symlink race,Denied,TC-SOURCE-SEC-010
+SEC-011,Phase-2-Source-Specification.md,1206,05,Invalid SSH config,Rejected before reload,TC-SOURCE-SEC-011
+SEC-012,Phase-2-Source-Specification.md,1207,05,Firewall confirmation lost,Rollback/reconciliation in tested conditions,TC-SOURCE-SEC-012
+SEC-013,Phase-2-Source-Specification.md,1208,05,Malicious module manifest,Rejected by signature/policy checks,TC-SOURCE-SEC-013
+SEC-014,Phase-2-Source-Specification.md,1209,05,Secret in job parameters,Redacted from logs/audit,TC-SOURCE-SEC-014
+SEC-015,Phase-2-Source-Specification.md,1210,05,Oversized API/log request,Bounded or rejected,TC-SOURCE-SEC-015
+SEC-016,Phase-2-Source-Specification.md,1211,05,Invalid role assignment,Denied and audited,TC-SOURCE-SEC-016
+SEC-017,Phase-2-Source-Specification.md,1212,05,Support grant expiry,Access revoked,TC-SOURCE-SEC-017
+SEC-018,Phase-2-Source-Specification.md,1213,05,Panel restart during job,Durable state and safe reconciliation,TC-SOURCE-SEC-018
+SEC-019,Phase-2-Source-Specification.md,1214,05,Planned quota displayed,Explicitly labeled not enforced,TC-SOURCE-SEC-019
+SEC-020,Phase-2-Source-Specification.md,1215,05,Organization suspension,No silent deletion of workloads,TC-SOURCE-SEC-020
+HT-001,Persona-2-Source-PRD.md,1412,20,Create provider/reseller/agency organization,One workspace type; correct business metadata,TC-SOURCE-HT-001
+HT-002,Persona-2-Source-PRD.md,1413,20,Hybrid agency+reseller capabilities,Independent capabilities and permissions,TC-SOURCE-HT-002
+HT-003,Persona-2-Source-PRD.md,1414,20,Switch among two authorized organizations,Correct context and isolated data,TC-SOURCE-HT-003
+HT-004,Persona-2-Source-PRD.md,1415,20,Reseller attempts host firewall action,Denied,TC-SOURCE-HT-004
+HT-005,Persona-2-Source-PRD.md,1416,20,Reseller opens another reseller's customer,Denied without existence leakage,TC-SOURCE-HT-005
+HT-006,Persona-2-Source-PRD.md,1417,20,Agency opens assigned site in Hosting,Only delegated actions available,TC-SOURCE-HT-006
+HT-007,Persona-2-Source-PRD.md,1418,20,Agency switches to Website Owner without membership,Denied,TC-SOURCE-HT-007
+HT-008,Persona-2-Source-PRD.md,1419,20,Customer enters own Website workspace,Only own sites shown,TC-SOURCE-HT-008
+HT-009,Persona-2-Source-PRD.md,1420,20,Developer accesses unassigned project,Denied,TC-SOURCE-HT-009
+HT-010,Persona-2-Source-PRD.md,1421,20,Organization owner removes last owner,Blocked or controlled transfer,TC-SOURCE-HT-010
+HT-011,Persona-2-Source-PRD.md,1422,20,Invite revoked before acceptance,Token unusable,TC-SOURCE-HT-011
+HT-012,Persona-2-Source-PRD.md,1423,20,Member revoked during live log stream,Stream terminated / further data denied,TC-SOURCE-HT-012
+HT-013,Persona-2-Source-PRD.md,1424,20,Customer linked to account from another org,Rejected,TC-SOURCE-HT-013
+HT-014,Persona-2-Source-PRD.md,1425,20,Concurrent account provisioning near quota,No over-reservation,TC-SOURCE-HT-014
+HT-015,Persona-2-Source-PRD.md,1426,20,Advisory storage quota,UI labels as not enforced,TC-SOURCE-HT-015
+HT-016,Persona-2-Source-PRD.md,1427,20,Hard quota exceeded,Provisioning blocked,TC-SOURCE-HT-016
+HT-017,Persona-2-Source-PRD.md,1428,20,Nginx config invalid,Previous valid config retained,TC-SOURCE-HT-017
+HT-018,Persona-2-Source-PRD.md,1429,20,Two customers claim same domain,Conflict and verification workflow,TC-SOURCE-HT-018
+HT-019,Persona-2-Source-PRD.md,1430,20,TLS challenge fails,Job failed with recovery guidance,TC-SOURCE-HT-019
+HT-020,Persona-2-Source-PRD.md,1431,20,Site file symlink escapes root,Denied,TC-SOURCE-HT-020
+HT-021,Persona-2-Source-PRD.md,1432,20,Database user requests another tenant DB,Denied,TC-SOURCE-HT-021
+HT-022,Persona-2-Source-PRD.md,1433,20,Backup restore into other customer site,Denied,TC-SOURCE-HT-022
+HT-023,Persona-2-Source-PRD.md,1434,20,Crash mid-provisioning,Durable job reconciliation,TC-SOURCE-HT-023
+HT-024,Persona-2-Source-PRD.md,1435,20,Upstream grant reduced below commitments,"Impact preview, non-destructive policy",TC-SOURCE-HT-024
+HT-025,Persona-2-Source-PRD.md,1436,20,Reseller suspended,Documented customer-impact behavior; no silent deletion,TC-SOURCE-HT-025
+HT-026,Persona-2-Source-PRD.md,1437,20,Agency offboards client,Access revoked; authorized data handover,TC-SOURCE-HT-026
+HT-027,Persona-2-Source-PRD.md,1438,20,Support grant expires,Access revoked and audited,TC-SOURCE-HT-027
+HT-028,Persona-2-Source-PRD.md,1439,20,Billing webhook replayed,"Idempotent handling, no duplicate charge state",TC-SOURCE-HT-028
+HT-029,Persona-2-Source-PRD.md,1440,20,Billing disabled,Hosting functions remain available,TC-SOURCE-HT-029
+HT-030,Persona-2-Source-PRD.md,1441,20,512 MB server with hosting module disabled,Core remains responsive,TC-SOURCE-HT-030
+HT-031,Persona-2-Source-PRD.md,1442,20,Large customer export,Bounded resource usage and scope,TC-SOURCE-HT-031
+HT-032,Persona-2-Source-PRD.md,1443,20,Custom branding injects script,Sanitized/rejected,TC-SOURCE-HT-032
+HT-033,Persona-2-Source-PRD.md,1444,20,Ownership transfer without approval,Denied,TC-SOURCE-HT-033
+HT-034,Persona-2-Source-PRD.md,1445,20,Server admin opens private customer files without grant,Denied through ordinary app API,TC-SOURCE-HT-034
+HT-035,Persona-2-Source-PRD.md,1446,20,Platform root operator directly accesses host filesystem,Explicitly documented OS trust boundary,TC-SOURCE-HT-035
+HT-036,Persona-2-Source-PRD.md,1447,20,Organization spans two servers in model,Data model supports links without implicit fleet operations,TC-SOURCE-HT-036
+W-001,Persona-3-Source-PRD.md,1186,12,Owner logs in to assigned website,Correct site dashboard,TC-SOURCE-W-001
+W-002,Persona-3-Source-PRD.md,1187,12,Owner switches among two assigned sites,Scoped data and navigation update,TC-SOURCE-W-002
+W-003,Persona-3-Source-PRD.md,1188,12,Owner guesses unrelated site ID,404/403 without disclosure,TC-SOURCE-W-003
+W-004,Persona-3-Source-PRD.md,1189,12,Viewer tries file deletion,Denied,TC-SOURCE-W-004
+W-005,Persona-3-Source-PRD.md,1190,12,Agency operates delegated site in Hosting,Permitted task; no owner impersonation,TC-SOURCE-W-005
+W-006,Persona-3-Source-PRD.md,1191,12,Agency tries unrelated customer site,Denied,TC-SOURCE-W-006
+W-007,Persona-3-Source-PRD.md,1192,12,Developer without website membership opens files,Denied,TC-SOURCE-W-007
+W-008,Persona-3-Source-PRD.md,1193,12,Add domain already claimed by another site,Conflict/verification workflow,TC-SOURCE-W-008
+W-009,Persona-3-Source-PRD.md,1194,12,DNS not propagated,Pending with observed evidence,TC-SOURCE-W-009
+W-010,Persona-3-Source-PRD.md,1195,12,TLS validation fails,Existing config preserved,TC-SOURCE-W-010
+W-011,Persona-3-Source-PRD.md,1196,12,Upload `../` archive entries,Rejected,TC-SOURCE-W-011
+W-012,Persona-3-Source-PRD.md,1197,12,Symlink escape in file browser,Rejected,TC-SOURCE-W-012
+W-013,Persona-3-Source-PRD.md,1198,12,Exceed site storage quota,Safe failure,TC-SOURCE-W-013
+W-014,Persona-3-Source-PRD.md,1199,12,Invalid PHP config,Rejected before activation,TC-SOURCE-W-014
+W-015,Persona-3-Source-PRD.md,1200,12,DB credential rotation,"Scoped, audited, no plaintext logs",TC-SOURCE-W-015
+W-016,Persona-3-Source-PRD.md,1201,12,Restore corrupt backup,Rejected before destructive step,TC-SOURCE-W-016
+W-017,Persona-3-Source-PRD.md,1202,12,Restore interrupted mid-job,Outcome reconciled,TC-SOURCE-W-017
+W-018,Persona-3-Source-PRD.md,1203,12,Revoke collaborator during active stream,Stream terminated,TC-SOURCE-W-018
+W-019,Persona-3-Source-PRD.md,1204,12,Transfer site to another customer,"Approvals, permissions, audit correct",TC-SOURCE-W-019
+W-020,Persona-3-Source-PRD.md,1205,12,Server under 512 MB pressure,Bounded job or safe defer,TC-SOURCE-W-020
+W-021,Persona-3-Source-PRD.md,1206,12,Suspended site owner signs in,"Limited, clearly explained access",TC-SOURCE-W-021
+W-022,Persona-3-Source-PRD.md,1207,12,Browser retries a mutation,Idempotency prevents duplicate effect,TC-SOURCE-W-022
+W-023,Persona-3-Source-PRD.md,1208,12,Cross-site logs query,Denied,TC-SOURCE-W-023
+W-024,Persona-3-Source-PRD.md,1209,12,Site deleted with linked Developer project,Controlled dependency workflow,TC-SOURCE-W-024
+W-025,Persona-3-Source-PRD.md,1210,12,Last site owner attempts self-removal,Block or verified transfer,TC-SOURCE-W-025
+D-001,Persona-4-Source-PRD.md,963,15,Developer sees assigned projects,Correct scoped list,TC-SOURCE-D-001
+D-002,Persona-4-Source-PRD.md,964,15,Developer guesses unrelated project ID,Denied without leakage,TC-SOURCE-D-002
+D-003,Persona-4-Source-PRD.md,965,15,Developer switches workspace,Cache/streams scoped to new context,TC-SOURCE-D-003
+D-004,Persona-4-Source-PRD.md,966,15,Staging-only user triggers production,Denied,TC-SOURCE-D-004
+D-005,Persona-4-Source-PRD.md,967,15,Website Owner without project membership reads repo,Denied,TC-SOURCE-D-005
+D-006,Persona-4-Source-PRD.md,968,15,Hosting manager tries project secrets,Denied absent grant,TC-SOURCE-D-006
+D-007,Persona-4-Source-PRD.md,969,15,Source URL points to metadata endpoint,Blocked,TC-SOURCE-D-007
+D-008,Persona-4-Source-PRD.md,970,15,Forged Git webhook,Rejected,TC-SOURCE-D-008
+D-009,Persona-4-Source-PRD.md,971,15,Duplicate webhook delivery,Idempotent handling,TC-SOURCE-D-009
+D-010,Persona-4-Source-PRD.md,972,15,Build tries helper socket,Inaccessible,TC-SOURCE-D-010
+D-011,Persona-4-Source-PRD.md,973,15,Build exceeds memory limit,Contained failure,TC-SOURCE-D-011
+D-012,Persona-4-Source-PRD.md,974,15,Build fills temporary disk,Contained failure,TC-SOURCE-D-012
+D-013,Persona-4-Source-PRD.md,975,15,Build canceled,Cleanup and accurate status,TC-SOURCE-D-013
+D-014,Persona-4-Source-PRD.md,976,15,Artifact digest altered,Deployment blocked,TC-SOURCE-D-014
+D-015,Persona-4-Source-PRD.md,977,15,Target belongs to another customer,Link denied,TC-SOURCE-D-015
+D-016,Persona-4-Source-PRD.md,978,15,Approval for old artifact reused,Rejected,TC-SOURCE-D-016
+D-017,Persona-4-Source-PRD.md,979,15,Two production deployments race,Durable lock prevents conflict,TC-SOURCE-D-017
+D-018,Persona-4-Source-PRD.md,980,15,Daemon restarts mid-activation,"Reconciliation, no blind retry",TC-SOURCE-D-018
+D-019,Persona-4-Source-PRD.md,981,15,Failed health check after activation,Accurate state and recovery path,TC-SOURCE-D-019
+D-020,Persona-4-Source-PRD.md,982,15,Rollback with irreversible DB migration,Warning/policy gate,TC-SOURCE-D-020
+D-021,Persona-4-Source-PRD.md,983,15,Viewer lists secret variables,Metadata only,TC-SOURCE-D-021
+D-022,Persona-4-Source-PRD.md,984,15,Build logs print secret candidate,Redaction and no exposure policy,TC-SOURCE-D-022
+D-023,Persona-4-Source-PRD.md,985,15,Revoked collaborator tails logs,Stream terminated,TC-SOURCE-D-023
+D-024,Persona-4-Source-PRD.md,986,15,Optional container runtime absent,Clear unavailable state,TC-SOURCE-D-024
+D-025,Persona-4-Source-PRD.md,987,15,Local build on unsupported Nano VPS,Safely denied/deferred,TC-SOURCE-D-025
+D-026,Persona-4-Source-PRD.md,988,15,Hosting allocation suspended,Policy-compliant deployment block,TC-SOURCE-D-026
+D-027,Persona-4-Source-PRD.md,989,15,Project archived,"Releases retained per policy, no orphaned services",TC-SOURCE-D-027
+D-028,Persona-4-Source-PRD.md,990,15,Linked site ownership changes,Reauthorization required,TC-SOURCE-D-028
+D-029,Persona-4-Source-PRD.md,991,15,Multi-project user switches environment,No cross-environment secret bleed,TC-SOURCE-D-029
+D-030,Persona-4-Source-PRD.md,992,15,Untrusted PR requests production secret,Denied,TC-SOURCE-D-030

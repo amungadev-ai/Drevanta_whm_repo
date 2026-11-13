@@ -1,0 +1,14 @@
+{
+  "scope_a": "fixture-scope-a",
+  "scope_b": "fixture-scope-b",
+  "actor_a": "fixture-actor-a",
+  "actor_b": "fixture-actor-b",
+  "resource_a": "fixture-resource-a",
+  "resource_b": "fixture-resource-b",
+  "generation": 7,
+  "owner_revision": 1,
+  "correlation_id": "fixture-correlation-a",
+  "idempotency_key": "fixture-key-001",
+  "clock_utc": "2030-01-01T00:00:00Z",
+  "values_policy": "Illustrative test data only. Per-test overrides take precedence. Never translate into production limits."
+}

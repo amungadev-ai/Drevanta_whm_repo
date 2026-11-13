@@ -1,0 +1,138 @@
+phase,related_phase,kind
+02,01,prior dependency
+03,02,prior dependency
+04,03,prior dependency
+05,03,prior dependency
+05,04,prior dependency
+06,03,prior dependency
+06,04,prior dependency
+06,05,prior dependency
+07,03,prior dependency
+07,05,prior dependency
+07,06,prior dependency
+08,06,prior dependency
+08,07,prior dependency
+09,05,prior dependency
+09,07,prior dependency
+09,08,prior dependency
+10,09,prior dependency
+11,07,prior dependency
+11,08,prior dependency
+11,10,prior dependency
+12,04,prior dependency
+12,10,prior dependency
+12,11,prior dependency
+13,04,prior dependency
+13,07,prior dependency
+13,12,prior dependency
+14,04,prior dependency
+14,12,prior dependency
+14,13,prior dependency
+15,05,prior dependency
+15,11,prior dependency
+15,12,prior dependency
+15,14,prior dependency
+16,05,prior dependency
+16,09,prior dependency
+16,10,prior dependency
+17,05,prior dependency
+17,06,prior dependency
+17,16,prior dependency
+18,04,prior dependency
+18,05,prior dependency
+18,12,prior dependency
+18,15,prior dependency
+18,17,prior dependency
+19,06,prior dependency
+19,17,prior dependency
+19,18,prior dependency
+20,04,prior dependency
+20,12,prior dependency
+20,18,prior dependency
+20,19,prior dependency
+21,05,prior dependency
+21,08,prior dependency
+21,18,prior dependency
+21,19,prior dependency
+22,04,prior dependency
+22,07,prior dependency
+22,18,prior dependency
+22,21,prior dependency
+23,03,prior dependency
+23,05,prior dependency
+23,18,prior dependency
+23,22,prior dependency
+24,14,prior dependency
+24,15,prior dependency
+24,17,prior dependency
+24,18,prior dependency
+24,19,prior dependency
+24,21,prior dependency
+24,22,prior dependency
+24,23,prior dependency
+25,01,prior dependency
+25,02,prior dependency
+25,03,prior dependency
+25,04,prior dependency
+25,05,prior dependency
+25,06,prior dependency
+25,07,prior dependency
+25,08,prior dependency
+25,09,prior dependency
+25,10,prior dependency
+25,11,prior dependency
+25,12,prior dependency
+25,13,prior dependency
+25,14,prior dependency
+25,15,prior dependency
+25,16,prior dependency
+25,17,prior dependency
+25,18,prior dependency
+25,19,prior dependency
+25,20,prior dependency
+25,21,prior dependency
+25,22,prior dependency
+25,23,prior dependency
+25,24,prior dependency
+03,07,forward contract owner
+03,18,forward contract owner
+03,22,forward contract owner
+03,23,forward contract owner
+04,18,forward contract owner
+04,22,forward contract owner
+05,07,forward contract owner
+05,17,forward contract owner
+05,18,forward contract owner
+06,09,forward contract owner
+06,17,forward contract owner
+07,18,forward contract owner
+07,22,forward contract owner
+07,23,forward contract owner
+08,21,forward contract owner
+09,10,forward contract owner
+09,22,forward contract owner
+10,22,forward contract owner
+11,15,forward contract owner
+11,18,forward contract owner
+12,18,forward contract owner
+12,20,forward contract owner
+12,22,forward contract owner
+13,18,forward contract owner
+13,23,forward contract owner
+14,21,forward contract owner
+14,22,forward contract owner
+15,18,forward contract owner
+15,21,forward contract owner
+15,22,forward contract owner
+15,23,forward contract owner
+16,17,forward contract owner
+16,22,forward contract owner
+16,23,forward contract owner
+17,18,forward contract owner
+18,23,forward contract owner
+19,20,forward contract owner
+19,21,forward contract owner
+19,22,forward contract owner
+20,22,forward contract owner
+21,22,forward contract owner
+22,23,forward contract owner

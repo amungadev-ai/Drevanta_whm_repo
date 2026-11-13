@@ -1,0 +1,32 @@
+# Decision Register
+
+Authoritative source: `spec/approval-v4/decision-dossier.md` and
+`spec/registers/decision-register.csv` (19 decisions, all with `human_choice` open).
+
+Per handoff rule, an agent cannot convert a recommended default into owner approval. Accordingly
+every decision below is dispositioned as **`ADOPTED_RECOMMENDED_DEFAULT_FOR_DEVELOPMENT`** — the
+documented recommended candidate governs development work; each remains **pending owner
+ratification** before release certification. Items that materially affect product scope are
+additionally recorded in `docs/BLOCKERS.md` as release-gate blockers.
+
+| ID | Topic | Development disposition | Affects scope? | Owner ratification |
+| --- | --- | --- | --- | --- |
+| DEC-001 | Backend language & service architecture | Modular single unprivileged Go process + separate privileged helper; per REC-02 source candidate (Go/SQLite/static UI) | No (implementation strategy) | Pending |
+| DEC-002 | Database engine & migrations | SQLite WAL, forward-only migrations, restore drill before release | No | Pending |
+| DEC-003 | VPS privileged execution protocol | Local Unix socket helper, root-owned typed allowlist, peer/host/target proof, fences, journals | No | Pending |
+| DEC-004 | Tenant ownership & authorization | Explicit per-workspace membership, ownership edges, default deny everywhere; no wildcard grants | No | Pending |
+| DEC-005 | Supported distributions | Single verified tuple: Debian/Ubuntu apt+systemd (dev target Ubuntu 26.04); preflight fails closed on unsupported | No | Pending |
+| DEC-006 | Web server & runtime matrix | Nginx-first vhost adapter; static hosting milestone; per-site principals | No | Pending |
+| DEC-007 | Mail transport | Separate SMTP recovery transport; native mailbox hosting behind feature boundary | **Yes (MAIL-02 breadth)** | Pending |
+| DEC-008 | Recovery through SSH/console | Installation-local single-use recovery grant preserving MFA | No | Pending |
+| DEC-009 | Jobs, idempotency, reconciliation | Durable transactional jobs + outbox; leases; monotonic fences; observation before replay | No | Pending |
+| DEC-010 | Backup encryption & restore | Encrypted independently restorable backups; off-host copy; staged restore + cutover gates | No | Pending |
+| DEC-011 | Secrets & credential storage | Secret references in data; local scoped broker (envelope encryption) with separate key custody | No | Pending |
+| DEC-012 | API versioning & errors | `/api/v1` canonical namespace; historic 178 paths registered as candidates, not published; strict schema | No | Pending |
+| DEC-013 | Production readiness & support boundaries | Exact tuples, immutable promotion, verified rollback, named ownership before production | No | Pending |
+| DEC-014 | Domain DNS/TLS verification | Domain control proof + DNS target observation + independent HTTPS probe before activation | No | Pending |
+| DEC-015 | Scope & billing module status | Develop BIZ-01..03 (customers/plans/orders/invoices/gateways/tickets) as native modules per full-platform direction; **payment provider credentials and tax rules need owner input** | **Yes (commercial breadth)** | **Required before release** |
+| DEC-016 | Capability commitment | Full-platform directed; all 404 scope rows preserved; duplicates/optional/conflicting items dispositioned explicitly, none silently discarded | **Yes** | Required at scope sign-off |
+| DEC-017 | Atomic source and runtime UI reconciliation | Static prototype exercised in isolation during development; render-state evidence collected against running platform | No | Pending |
+| DEC-018 | Measurable policy targets | Fixture values used as **test** values only; no operating-limit claims without measurement | No | Pending |
+| DEC-019 | Autonomous agent authority | Granted for this assignment in writing by owner: repo `amungadev-ai/Drevanta_whm_repo`, dev branches, tests, CI, PR prep, isolated test environments. NOT granted: protected merges, production infra, production data, destructive host ops, production deploy. Credentials are owner-issued, stored sandbox-only, to be rotated/revoked at completion. | **Yes** | Recorded 2026-11-13 (owner assignment message); revocation at project completion |

@@ -1,0 +1,34 @@
+# Build artifacts
+/bin/
+/dist/
+*.test
+*.out
+coverage.txt
+
+# Local data
+*.db
+*.db-wal
+*.db-shm
+/data/
+/var/
+
+# Toolchains and local env (never commit tooling or credentials)
+/tools/
+.env
+*.env
+!*.example.env
+.sandbox-credentials/
+*_credentials*
+*token*
+*secret*key*
+id_rsa*
+*.pem
+!testdata/**
+
+# Go
+/vendor/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp

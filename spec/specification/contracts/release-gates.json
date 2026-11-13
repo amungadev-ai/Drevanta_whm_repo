@@ -1,0 +1,131 @@
+{
+  "revision": "3.0",
+  "status": "proposed",
+  "evaluation": "Every mandatory predicate and prior gate must pass or promotion is blocked; reviewed scoped not-applicable only when policy permits",
+  "gates": [
+    {
+      "id": "D0",
+      "depends_on": [],
+      "required_evidence": [
+        "sealed_input",
+        "row_coverage",
+        "internal_refs",
+        "checksum"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "id": "I0",
+      "depends_on": [
+        "D0"
+      ],
+      "required_evidence": [
+        "approved_scope",
+        "accepted_adrs",
+        "exact_contracts",
+        "job_authority",
+        "no_critical_high_blockers",
+        "applicable_test_bindings"
+      ],
+      "verdict": "BLOCKED"
+    },
+    {
+      "id": "C1",
+      "depends_on": [
+        "I0"
+      ],
+      "required_evidence": [
+        "protected_review",
+        "secret_scan",
+        "lint_static",
+        "dependency_lock",
+        "unit_contract_authz"
+      ],
+      "verdict": "NOT_RUN"
+    },
+    {
+      "id": "C2",
+      "depends_on": [
+        "C1"
+      ],
+      "required_evidence": [
+        "exact_commit",
+        "immutable_artifact",
+        "provenance",
+        "dependency_inventory",
+        "signature"
+      ],
+      "verdict": "NOT_RUN"
+    },
+    {
+      "id": "C3",
+      "depends_on": [
+        "C2"
+      ],
+      "required_evidence": [
+        "migration",
+        "isolation",
+        "api",
+        "browser",
+        "fault_injection"
+      ],
+      "verdict": "NOT_RUN"
+    },
+    {
+      "id": "C4",
+      "depends_on": [
+        "C3"
+      ],
+      "required_evidence": [
+        "authorized_target",
+        "compatibility",
+        "install_upgrade",
+        "least_privilege",
+        "network_rollback",
+        "key_recovery"
+      ],
+      "verdict": "NOT_RUN"
+    },
+    {
+      "id": "C5",
+      "depends_on": [
+        "C4"
+      ],
+      "required_evidence": [
+        "same_digest",
+        "approved_thresholds",
+        "verified_restore",
+        "verified_rollback",
+        "smoke"
+      ],
+      "verdict": "NOT_RUN"
+    },
+    {
+      "id": "R1",
+      "depends_on": [
+        "C5"
+      ],
+      "required_evidence": [
+        "independent_approver",
+        "commit_and_digest_match",
+        "target_match",
+        "valid_window",
+        "rollback_binding"
+      ],
+      "verdict": "NOT_RUN"
+    },
+    {
+      "id": "R2",
+      "depends_on": [
+        "R1"
+      ],
+      "required_evidence": [
+        "observed_thresholds",
+        "post_action_health",
+        "rollback_or_incident_if_triggered",
+        "release_evidence"
+      ],
+      "verdict": "NOT_RUN"
+    }
+  ]
+}

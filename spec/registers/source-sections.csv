@@ -1,0 +1,340 @@
+section_id,source_file,start_line,end_line,title,owner_phase,disposition,reconciled_family,v4_disposition
+SEC-P1-001,Phase-2-Source-Specification.md,17,32,Executive decision,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-002,Phase-2-Source-Specification.md,33,46,Product mission,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-003,Phase-2-Source-Specification.md,47,64,What Phase 2 must deliver,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-004,Phase-2-Source-Specification.md,65,85,Principles and invariants,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-005,Phase-2-Source-Specification.md,86,103,The four product personas,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P1-006,Phase-2-Source-Specification.md,104,137,Workspace types and business types,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P1-007,Phase-2-Source-Specification.md,138,168,Switching rules — adopted design baseline,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P1-008,Phase-2-Source-Specification.md,169,183,Default workspace roles,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P1-009,Phase-2-Source-Specification.md,184,240,Information architecture,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P1-010,Phase-2-Source-Specification.md,241,271,Global shell and navigation behavior,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P1-011,Phase-2-Source-Specification.md,272,319,Server Overview dashboard — detailed specification,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P1-012,Phase-2-Source-Specification.md,320,342,"Monitoring, metrics and health",21,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P1-013,Phase-2-Source-Specification.md,343,351,Processes and resource consumers,11,Assigned for section-level review; atomic sign-off open,host,Mapped domain source reference
+SEC-P1-014,Phase-2-Source-Specification.md,352,366,Services and workloads,11,Assigned for section-level review; atomic sign-off open,runtime,Mapped domain source reference
+SEC-P1-015,Phase-2-Source-Specification.md,367,376,Logs and diagnostics,21,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P1-016,Phase-2-Source-Specification.md,377,390,Files and storage,13,Assigned for section-level review; atomic sign-off open,files,Mapped domain source reference
+SEC-P1-017,Phase-2-Source-Specification.md,391,400,Networking and port inventory,09,Assigned for section-level review; atomic sign-off open,network,Mapped domain source reference
+SEC-P1-018,Phase-2-Source-Specification.md,401,415,Firewall management,09,Assigned for section-level review; atomic sign-off open,network,Mapped domain source reference
+SEC-P1-019,Phase-2-Source-Specification.md,416,427,SSH security,09,Assigned for section-level review; atomic sign-off open,network,Mapped domain source reference
+SEC-P1-020,Phase-2-Source-Specification.md,428,440,Linux users and groups,08,Assigned for section-level review; atomic sign-off open,host,Mapped domain source reference
+SEC-P1-021,Phase-2-Source-Specification.md,441,453,"Packages, updates and reboot",08,Assigned for section-level review; atomic sign-off open,host,Mapped domain source reference
+SEC-P1-022,Phase-2-Source-Specification.md,454,463,Scheduled tasks and maintenance,22,Assigned for section-level review; atomic sign-off open,jobs,Mapped domain source reference
+SEC-P1-023,Phase-2-Source-Specification.md,464,481,Backups and recovery,14,Assigned for section-level review; atomic sign-off open,backup,Mapped domain source reference
+SEC-P1-024,Phase-2-Source-Specification.md,482,514,Hosting Organizations management,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P1-025,Phase-2-Source-Specification.md,515,524,Customer and resource relationships,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P1-026,Phase-2-Source-Specification.md,525,564,Server allocations and capacity governance,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P1-027,Phase-2-Source-Specification.md,565,577,"Panel users, invitations and membership administration",18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P1-028,Phase-2-Source-Specification.md,578,631,"Roles, policies and support access",18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P1-029,Phase-2-Source-Specification.md,632,681,Module Catalog and Lifecycle,23,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P1-030,Phase-2-Source-Specification.md,682,694,"Platform Health, Updates and Recovery",24,Assigned for section-level review; atomic sign-off open,host,Mapped domain source reference
+SEC-P1-031,Phase-2-Source-Specification.md,695,731,Resource Intelligence Center,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P1-032,Phase-2-Source-Specification.md,732,756,"Jobs, notifications and audit",22,Assigned for section-level review; atomic sign-off open,"observe,jobs",Mapped domain source reference
+SEC-P1-033,Phase-2-Source-Specification.md,757,766,Platform settings and integrations,23,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P1-034,Phase-2-Source-Specification.md,767,808,Runtime components,03,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-035,Phase-2-Source-Specification.md,809,839,Privileged helper contract,07,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-036,Phase-2-Source-Specification.md,840,855,Authorization decision function,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P1-037,Phase-2-Source-Specification.md,856,876,Security threat and control matrix,05,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-038,Phase-2-Source-Specification.md,877,980,Core relational model,04,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-039,Phase-2-Source-Specification.md,981,1062,API map,23,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P1-040,Phase-2-Source-Specification.md,1063,1073,Workflow A — First admin login after Phase 1,06,Assigned for section-level review; atomic sign-off open,setup,Mapped domain source reference
+SEC-P1-041,Phase-2-Source-Specification.md,1074,1084,Workflow B — Create hosting organization,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P1-042,Phase-2-Source-Specification.md,1085,1095,Workflow C — Switch persona,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P1-043,Phase-2-Source-Specification.md,1096,1107,Workflow D — Restart approved service,11,Assigned for section-level review; atomic sign-off open,runtime,Mapped domain source reference
+SEC-P1-044,Phase-2-Source-Specification.md,1108,1119,Workflow E — Change firewall rule,09,Assigned for section-level review; atomic sign-off open,network,Mapped domain source reference
+SEC-P1-045,Phase-2-Source-Specification.md,1120,1130,Workflow F — Install future hosting module,23,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P1-046,Phase-2-Source-Specification.md,1131,1145,Workflow G — Recovery when dashboard is unavailable,17,Assigned for section-level review; atomic sign-off open,identity,Mapped domain source reference
+SEC-P1-047,Phase-2-Source-Specification.md,1146,1169,Resource budgets and compatibility,08,Assigned for section-level review; atomic sign-off open,host,Mapped domain source reference
+SEC-P1-048,Phase-2-Source-Specification.md,1170,1181,Reliability and operability,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-049,Phase-2-Source-Specification.md,1182,1191,Accessibility and usability,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P1-050,Phase-2-Source-Specification.md,1192,1216,Security acceptance matrix,05,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-051,Phase-2-Source-Specification.md,1217,1233,Feature acceptance and definition of done,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-052,Phase-2-Source-Specification.md,1234,1271,Phase 2 milestone sequence,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-053,Phase-2-Source-Specification.md,1272,1288,Detailed implementation sequence,25,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-054,Phase-2-Source-Specification.md,1289,1344,Suggested repository layout,25,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-055,Phase-2-Source-Specification.md,1345,1355,Engineering deliverables per milestone,25,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-056,Phase-2-Source-Specification.md,1356,1374,Open decisions and confirmations,01,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-057,Phase-2-Source-Specification.md,1375,1398,Release readiness checklist,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-058,Phase-2-Source-Specification.md,1399,1404,Phase 3 — Hosting integration,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-059,Phase-2-Source-Specification.md,1405,1408,Phase 4 — Developer integration,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-060,Phase-2-Source-Specification.md,1409,1418,Later modules,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-061,Phase-2-Source-Specification.md,1419,1442,Architecture decision register,01,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-062,Phase-2-Source-Specification.md,1443,1463,Glossary,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P1-063,Phase-2-Source-Specification.md,1464,1472,Final product definition,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-001,Persona-2-Source-PRD.md,17,28,Executive summary,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-002,Persona-2-Source-PRD.md,29,42,Product vision,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-003,Persona-2-Source-PRD.md,43,57,Decision register,01,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-004,Persona-2-Source-PRD.md,58,70,Goals,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-005,Persona-2-Source-PRD.md,71,81,Non-goals and explicit boundaries,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-006,Persona-2-Source-PRD.md,82,104,Release-scope matrix,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-007,Persona-2-Source-PRD.md,105,115,Four-persona system (cross-product),19,Assigned for section-level review; atomic sign-off open,workspace,Phase source obligation; semantic review required
+SEC-P2-008,Persona-2-Source-PRD.md,116,133,Identity and entity taxonomy,18,Assigned for section-level review; atomic sign-off open,access,Phase source obligation; semantic review required
+SEC-P2-009,Persona-2-Source-PRD.md,134,172,Hosting business model behavior,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P2-010,Persona-2-Source-PRD.md,173,186,Workspace switching and organization context,19,Assigned for section-level review; atomic sign-off open,workspace,Phase source obligation; semantic review required
+SEC-P2-011,Persona-2-Source-PRD.md,187,221,Upstream and downstream organization relationships,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P2-012,Persona-2-Source-PRD.md,222,280,Navigation system,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P2-013,Persona-2-Source-PRD.md,281,293,Global Hosting shell,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P2-014,Persona-2-Source-PRD.md,294,333,Dashboard specification,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P2-015,Persona-2-Source-PRD.md,334,359,Organization onboarding,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P2-016,Persona-2-Source-PRD.md,360,382,"Members, invitations and roles",18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P2-017,Persona-2-Source-PRD.md,383,407,Customer directory and CRM-lite,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P2-018,Persona-2-Source-PRD.md,408,424,Customer onboarding journeys,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P2-019,Persona-2-Source-PRD.md,425,439,Hosting account definition,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P2-020,Persona-2-Source-PRD.md,440,452,Service plans and catalog,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P2-021,Persona-2-Source-PRD.md,453,491,Resource accounting and allocation,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P2-022,Persona-2-Source-PRD.md,492,506,Upstream reseller allocation,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P2-023,Persona-2-Source-PRD.md,507,532,Website provisioning,12,Assigned for section-level review; atomic sign-off open,site,Mapped domain source reference
+SEC-P2-024,Persona-2-Source-PRD.md,533,544,Domains and DNS,09,Assigned for section-level review; atomic sign-off open,network,Mapped domain source reference
+SEC-P2-025,Persona-2-Source-PRD.md,545,555,TLS/SSL,10,Assigned for section-level review; atomic sign-off open,web,Mapped domain source reference
+SEC-P2-026,Persona-2-Source-PRD.md,556,565,Web runtimes and PHP,11,Assigned for section-level review; atomic sign-off open,runtime,Mapped domain source reference
+SEC-P2-027,Persona-2-Source-PRD.md,566,577,Databases,13,Assigned for section-level review; atomic sign-off open,files,Mapped domain source reference
+SEC-P2-028,Persona-2-Source-PRD.md,578,589,"Files, SFTP and customer access",13,Assigned for section-level review; atomic sign-off open,files,Mapped domain source reference
+SEC-P2-029,Persona-2-Source-PRD.md,590,600,"Logs, monitoring and diagnostics",21,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P2-030,Persona-2-Source-PRD.md,601,613,Website backups and restores,14,Assigned for section-level review; atomic sign-off open,backup,Mapped domain source reference
+SEC-P2-031,Persona-2-Source-PRD.md,614,628,Site migration and ownership transfer,12,Assigned for section-level review; atomic sign-off open,site,Mapped domain source reference
+SEC-P2-032,Persona-2-Source-PRD.md,629,643,Agency client portfolio,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P2-033,Persona-2-Source-PRD.md,644,654,Reseller business flow,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P2-034,Persona-2-Source-PRD.md,655,664,Hosting provider flow,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P2-035,Persona-2-Source-PRD.md,665,682,Collaboration with Website Owner and Developer,18,Assigned for section-level review; atomic sign-off open,"access,developer,business",Mapped domain source reference
+SEC-P2-036,Persona-2-Source-PRD.md,683,697,Billing and subscriptions,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P2-037,Persona-2-Source-PRD.md,698,708,White-label and customer portal,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P2-038,Persona-2-Source-PRD.md,709,719,Support and ticketing,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P2-039,Persona-2-Source-PRD.md,720,728,Notifications and communications,22,Assigned for section-level review; atomic sign-off open,"mail,business,jobs",Mapped domain source reference
+SEC-P2-040,Persona-2-Source-PRD.md,729,745,Reporting and analytics,21,Assigned for section-level review; atomic sign-off open,"business,observe",Mapped domain source reference
+SEC-P2-041,Persona-2-Source-PRD.md,746,758,Authorization principles,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P2-042,Persona-2-Source-PRD.md,759,817,Permission namespace,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P2-043,Persona-2-Source-PRD.md,818,840,Authorization decision procedure,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P2-044,Persona-2-Source-PRD.md,841,851,Support access model,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P2-045,Persona-2-Source-PRD.md,852,864,Technical isolation requirements,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P2-046,Persona-2-Source-PRD.md,865,884,Threat and control matrix,05,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-047,Persona-2-Source-PRD.md,885,897,Audit and privacy,21,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P2-048,Persona-2-Source-PRD.md,898,930,Runtime architecture,03,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-049,Persona-2-Source-PRD.md,931,945,Module boundaries,03,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P2-050,Persona-2-Source-PRD.md,946,963,Durable provisioning and reconciliation,22,Assigned for section-level review; atomic sign-off open,jobs,Mapped domain source reference
+SEC-P2-051,Persona-2-Source-PRD.md,964,1106,Data model (logical),04,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-052,Persona-2-Source-PRD.md,1107,1119,API design conventions,23,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P2-053,Persona-2-Source-PRD.md,1120,1186,API endpoint catalog,23,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P2-054,Persona-2-Source-PRD.md,1187,1229,Example request/response patterns,23,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P2-055,Persona-2-Source-PRD.md,1230,1279,Key end-to-end journeys,20,Assigned for section-level review; atomic sign-off open,business,Phase source obligation; semantic review required
+SEC-P2-056,Persona-2-Source-PRD.md,1280,1291,Standard page anatomy,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P2-057,Persona-2-Source-PRD.md,1292,1305,Resource efficiency,08,Assigned for section-level review; atomic sign-off open,host,Mapped domain source reference
+SEC-P2-058,Persona-2-Source-PRD.md,1306,1315,Reliability and observability,21,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P2-059,Persona-2-Source-PRD.md,1316,1324,Accessibility and UX quality,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P2-060,Persona-2-Source-PRD.md,1325,1337,Compliance and data governance,05,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-061,Persona-2-Source-PRD.md,1338,1381,Implementation milestones,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-062,Persona-2-Source-PRD.md,1382,1407,Dependencies and critical path,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-063,Persona-2-Source-PRD.md,1408,1448,Acceptance-test matrix,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-064,Persona-2-Source-PRD.md,1449,1452,Definition of done,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-065,Persona-2-Source-PRD.md,1453,1477,Release-readiness checklist,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-066,Persona-2-Source-PRD.md,1478,1498,Open product decisions,01,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-067,Persona-2-Source-PRD.md,1499,1515,Principal risks and mitigations,05,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-068,Persona-2-Source-PRD.md,1516,1528,Recommended implementation order,25,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P2-069,Persona-2-Source-PRD.md,1529,1571,Final product architecture statement,03,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-001,Persona-3-Source-PRD.md,17,31,Executive summary,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-002,Persona-3-Source-PRD.md,32,37,Product vision,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-003,Persona-3-Source-PRD.md,38,49,Target users and jobs-to-be-done,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-004,Persona-3-Source-PRD.md,50,60,Product goals,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-005,Persona-3-Source-PRD.md,61,71,Non-goals and explicit exclusions,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-006,Persona-3-Source-PRD.md,72,89,Delivery and capability matrix,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-007,Persona-3-Source-PRD.md,90,102,Product principles,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-008,Persona-3-Source-PRD.md,103,118,Identity and workspace taxonomy,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P3-009,Persona-3-Source-PRD.md,119,129,Switching matrix,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P3-010,Persona-3-Source-PRD.md,130,142,Website ownership and operational control,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P3-011,Persona-3-Source-PRD.md,143,155,Default website roles,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P3-012,Persona-3-Source-PRD.md,156,165,"Delegation, invitations, and revocation",18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P3-013,Persona-3-Source-PRD.md,166,171,Agency-managed websites,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P3-014,Persona-3-Source-PRD.md,172,183,Support access and emergency access,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P3-015,Persona-3-Source-PRD.md,184,195,Multi-site users,19,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P3-016,Persona-3-Source-PRD.md,196,228,Global website shell,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P3-017,Persona-3-Source-PRD.md,229,239,Navigation and visibility rules,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P3-018,Persona-3-Source-PRD.md,240,279,Overview dashboard,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P3-019,Persona-3-Source-PRD.md,280,283,Quick actions,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P3-020,Persona-3-Source-PRD.md,284,291,Site settings,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P3-021,Persona-3-Source-PRD.md,292,316,Website lifecycle,12,Assigned for section-level review; atomic sign-off open,site,Mapped domain source reference
+SEC-P3-022,Persona-3-Source-PRD.md,317,334,Site creation and assignment,12,Assigned for section-level review; atomic sign-off open,site,Mapped domain source reference
+SEC-P3-023,Persona-3-Source-PRD.md,335,343,"Site suspension, maintenance, and archival",12,Assigned for section-level review; atomic sign-off open,site,Mapped domain source reference
+SEC-P3-024,Persona-3-Source-PRD.md,344,351,Ownership transfer and handover,12,Assigned for section-level review; atomic sign-off open,site,Mapped domain source reference
+SEC-P3-025,Persona-3-Source-PRD.md,352,359,Domain inventory,09,Assigned for section-level review; atomic sign-off open,network,Mapped domain source reference
+SEC-P3-026,Persona-3-Source-PRD.md,360,374,Domain onboarding wizard,09,Assigned for section-level review; atomic sign-off open,network,Mapped domain source reference
+SEC-P3-027,Persona-3-Source-PRD.md,375,385,DNS management and integrations,09,Assigned for section-level review; atomic sign-off open,network,Mapped domain source reference
+SEC-P3-028,Persona-3-Source-PRD.md,386,394,Redirects and canonical hostnames,10,Assigned for section-level review; atomic sign-off open,web,Mapped domain source reference
+SEC-P3-029,Persona-3-Source-PRD.md,395,406,TLS certificate lifecycle,10,Assigned for section-level review; atomic sign-off open,web,Mapped domain source reference
+SEC-P3-030,Persona-3-Source-PRD.md,407,415,Domain and TLS acceptance,10,Assigned for section-level review; atomic sign-off open,web,Mapped domain source reference
+SEC-P3-031,Persona-3-Source-PRD.md,416,429,File manager scope,13,Assigned for section-level review; atomic sign-off open,files,Mapped domain source reference
+SEC-P3-032,Persona-3-Source-PRD.md,430,440,Filesystem isolation and race safety,13,Assigned for section-level review; atomic sign-off open,files,Mapped domain source reference
+SEC-P3-033,Persona-3-Source-PRD.md,441,450,Safe text editor,13,Assigned for section-level review; atomic sign-off open,files,Mapped domain source reference
+SEC-P3-034,Persona-3-Source-PRD.md,451,460,SFTP and external file access,13,Assigned for section-level review; atomic sign-off open,files,Mapped domain source reference
+SEC-P3-035,Persona-3-Source-PRD.md,461,464,Permissions and ownership UI,13,Assigned for section-level review; atomic sign-off open,files,Mapped domain source reference
+SEC-P3-036,Persona-3-Source-PRD.md,465,474,File operations acceptance,13,Assigned for section-level review; atomic sign-off open,files,Mapped domain source reference
+SEC-P3-037,Persona-3-Source-PRD.md,475,478,Runtime overview,11,Assigned for section-level review; atomic sign-off open,runtime,Mapped domain source reference
+SEC-P3-038,Persona-3-Source-PRD.md,479,488,PHP configuration,11,Assigned for section-level review; atomic sign-off open,runtime,Mapped domain source reference
+SEC-P3-039,Persona-3-Source-PRD.md,489,497,Web server configuration,10,Assigned for section-level review; atomic sign-off open,web,Mapped domain source reference
+SEC-P3-040,Persona-3-Source-PRD.md,498,511,Databases,13,Assigned for section-level review; atomic sign-off open,files,Mapped domain source reference
+SEC-P3-041,Persona-3-Source-PRD.md,512,519,Database credentials and secrets,13,Assigned for section-level review; atomic sign-off open,files,Mapped domain source reference
+SEC-P3-042,Persona-3-Source-PRD.md,520,523,CMS and installer integrations,12,Assigned for section-level review; atomic sign-off open,site,Mapped domain source reference
+SEC-P3-043,Persona-3-Source-PRD.md,524,532,Runtime acceptance,11,Assigned for section-level review; atomic sign-off open,runtime,Mapped domain source reference
+SEC-P3-044,Persona-3-Source-PRD.md,533,543,Backup coverage,14,Assigned for section-level review; atomic sign-off open,backup,Mapped domain source reference
+SEC-P3-045,Persona-3-Source-PRD.md,544,554,Backup policy,14,Assigned for section-level review; atomic sign-off open,backup,Mapped domain source reference
+SEC-P3-046,Persona-3-Source-PRD.md,555,570,Restore workflow,14,Assigned for section-level review; atomic sign-off open,backup,Mapped domain source reference
+SEC-P3-047,Persona-3-Source-PRD.md,571,578,Disaster recovery and export,14,Assigned for section-level review; atomic sign-off open,backup,Mapped domain source reference
+SEC-P3-048,Persona-3-Source-PRD.md,579,587,Backup acceptance,14,Assigned for section-level review; atomic sign-off open,backup,Mapped domain source reference
+SEC-P3-049,Persona-3-Source-PRD.md,588,595,Website health,21,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P3-050,Persona-3-Source-PRD.md,596,604,Resource and usage monitoring,21,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P3-051,Persona-3-Source-PRD.md,605,613,Logs,21,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P3-052,Persona-3-Source-PRD.md,614,617,Analytics,21,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P3-053,Persona-3-Source-PRD.md,618,629,Site security center,05,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P3-054,Persona-3-Source-PRD.md,630,633,"Passwords, MFA, and sessions",17,Assigned for section-level review; atomic sign-off open,identity,Mapped domain source reference
+SEC-P3-055,Persona-3-Source-PRD.md,634,641,Security incidents,05,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P3-056,Persona-3-Source-PRD.md,642,650,Team and collaborator management,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P3-057,Persona-3-Source-PRD.md,651,656,Developer project linkage (Phase 4),15,Assigned for section-level review; atomic sign-off open,"access,developer",Mapped domain source reference
+SEC-P3-058,Persona-3-Source-PRD.md,657,664,Agency and hosting provider collaboration,18,Assigned for section-level review; atomic sign-off open,"access,business",Mapped domain source reference
+SEC-P3-059,Persona-3-Source-PRD.md,665,674,"Plan, quotas, and usage",20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P3-060,Persona-3-Source-PRD.md,675,678,Billing integration (optional),20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P3-061,Persona-3-Source-PRD.md,679,684,Notifications and support,22,Assigned for section-level review; atomic sign-off open,"mail,business",Mapped domain source reference
+SEC-P3-062,Persona-3-Source-PRD.md,685,731,Permission namespace,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P3-063,Persona-3-Source-PRD.md,732,745,Authorization decision algorithm,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P3-064,Persona-3-Source-PRD.md,746,763,Isolation model,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P3-065,Persona-3-Source-PRD.md,764,781,Threat model,05,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-066,Persona-3-Source-PRD.md,782,785,Privacy and audit,21,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P3-067,Persona-3-Source-PRD.md,786,791,High-risk action confirmation,05,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-068,Persona-3-Source-PRD.md,792,820,Runtime architecture,03,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-069,Persona-3-Source-PRD.md,821,838,Module contracts,03,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P3-070,Persona-3-Source-PRD.md,839,878,Logical data model,04,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-071,Persona-3-Source-PRD.md,879,947,Representative SQLite schema (illustrative),04,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-072,Persona-3-Source-PRD.md,948,960,API conventions,23,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P3-073,Persona-3-Source-PRD.md,961,1027,API endpoint catalog,23,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P3-074,Persona-3-Source-PRD.md,1028,1052,Example site settings mutation,23,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P3-075,Persona-3-Source-PRD.md,1053,1060,Durable job and reconciliation rules,22,Assigned for section-level review; atomic sign-off open,jobs,Mapped domain source reference
+SEC-P3-076,Persona-3-Source-PRD.md,1061,1066,Site resource preflight,12,Assigned for section-level review; atomic sign-off open,site,Mapped domain source reference
+SEC-P3-077,Persona-3-Source-PRD.md,1067,1077,Small-server behavior,08,Assigned for section-level review; atomic sign-off open,host,Mapped domain source reference
+SEC-P3-078,Persona-3-Source-PRD.md,1078,1083,Quota semantics,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P3-079,Persona-3-Source-PRD.md,1084,1096,Journey A — First website onboarding,12,Assigned for section-level review; atomic sign-off open,site,Mapped domain source reference
+SEC-P3-080,Persona-3-Source-PRD.md,1097,1109,Journey B — Upload a static site,12,Assigned for section-level review; atomic sign-off open,site,Mapped domain source reference
+SEC-P3-081,Persona-3-Source-PRD.md,1110,1121,Journey C — Enable PHP and create database,12,Assigned for section-level review; atomic sign-off open,site,Mapped domain source reference
+SEC-P3-082,Persona-3-Source-PRD.md,1122,1134,Journey D — Restore a broken website,14,Assigned for section-level review; atomic sign-off open,site,Mapped domain source reference
+SEC-P3-083,Persona-3-Source-PRD.md,1135,1145,Journey E — Invite a developer,18,Assigned for section-level review; atomic sign-off open,site,Mapped domain source reference
+SEC-P3-084,Persona-3-Source-PRD.md,1146,1157,Journey F — Agency support,18,Assigned for section-level review; atomic sign-off open,site,Mapped domain source reference
+SEC-P3-085,Persona-3-Source-PRD.md,1158,1169,Journey G — Transfer website ownership,12,Assigned for section-level review; atomic sign-off open,site,Mapped domain source reference
+SEC-P3-086,Persona-3-Source-PRD.md,1170,1181,UX acceptance requirements,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P3-087,Persona-3-Source-PRD.md,1182,1211,Functional test matrix,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-088,Persona-3-Source-PRD.md,1212,1223,Non-functional requirements,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-089,Persona-3-Source-PRD.md,1224,1235,Security release gates,05,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-090,Persona-3-Source-PRD.md,1236,1261,Implementation milestones,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-091,Persona-3-Source-PRD.md,1262,1274,Definition of done,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-092,Persona-3-Source-PRD.md,1275,1291,Product metrics,21,Assigned for section-level review; atomic sign-off open,observe,Phase source obligation; semantic review required
+SEC-P3-093,Persona-3-Source-PRD.md,1292,1309,Decision register,01,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-094,Persona-3-Source-PRD.md,1310,1324,Open product questions,01,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-095,Persona-3-Source-PRD.md,1325,1339,Risks and mitigations,05,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-096,Persona-3-Source-PRD.md,1340,1353,Implementation handoff,25,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-097,Persona-3-Source-PRD.md,1354,1402,Repository/module outline,25,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-098,Persona-3-Source-PRD.md,1403,1421,Release readiness checklist,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P3-099,Persona-3-Source-PRD.md,1422,1461,Phase boundaries and next persona,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-001,Persona-4-Source-PRD.md,15,20,Executive summary,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-002,Persona-4-Source-PRD.md,21,31,Relationship to the other three personas,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-003,Persona-4-Source-PRD.md,32,37,Product vision,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-004,Persona-4-Source-PRD.md,38,50,Goals,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-005,Persona-4-Source-PRD.md,51,62,Non-goals,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-006,Persona-4-Source-PRD.md,63,74,Target users,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-007,Persona-4-Source-PRD.md,75,91,Core vocabulary,02,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-008,Persona-4-Source-PRD.md,92,111,Workspace model,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P4-009,Persona-4-Source-PRD.md,112,122,Persona switching matrix,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P4-010,Persona-4-Source-PRD.md,123,136,Default project roles,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P4-011,Persona-4-Source-PRD.md,137,184,Permission namespace,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P4-012,Persona-4-Source-PRD.md,185,188,Invitations and project collaboration,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P4-013,Persona-4-Source-PRD.md,189,192,Production approval policy,15,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P4-014,Persona-4-Source-PRD.md,193,198,Support access,18,Assigned for section-level review; atomic sign-off open,access,Mapped domain source reference
+SEC-P4-015,Persona-4-Source-PRD.md,199,229,Primary navigation,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P4-016,Persona-4-Source-PRD.md,230,246,Overview dashboard,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P4-017,Persona-4-Source-PRD.md,247,250,Project list,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P4-018,Persona-4-Source-PRD.md,251,254,Project detail tabs,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P4-019,Persona-4-Source-PRD.md,255,258,UX state model,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P4-020,Persona-4-Source-PRD.md,259,264,Accessibility and responsive behavior,19,Assigned for section-level review; atomic sign-off open,workspace,Mapped domain source reference
+SEC-P4-021,Persona-4-Source-PRD.md,265,275,Project lifecycle,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-022,Persona-4-Source-PRD.md,276,288,Create project wizard,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-023,Persona-4-Source-PRD.md,289,292,Repository providers,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-024,Persona-4-Source-PRD.md,293,303,Source connection security,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-025,Persona-4-Source-PRD.md,304,307,Repository settings,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-026,Persona-4-Source-PRD.md,308,311,Webhooks,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-027,Persona-4-Source-PRD.md,312,317,Source history and provenance,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-028,Persona-4-Source-PRD.md,318,329,Build architecture principles,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-029,Persona-4-Source-PRD.md,330,333,Build configuration,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-030,Persona-4-Source-PRD.md,334,347,Supported project types,11,Assigned for section-level review; atomic sign-off open,"runtime,developer",Mapped domain source reference
+SEC-P4-031,Persona-4-Source-PRD.md,348,358,Build state machine,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-032,Persona-4-Source-PRD.md,359,369,Build isolation requirements,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-033,Persona-4-Source-PRD.md,370,373,Artifact registry,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-034,Persona-4-Source-PRD.md,374,377,Build caching,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-035,Persona-4-Source-PRD.md,378,387,Build acceptance criteria,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-036,Persona-4-Source-PRD.md,388,391,Environment model,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-037,Persona-4-Source-PRD.md,392,403,Deployment target authorization,15,Assigned for section-level review; atomic sign-off open,"access,developer",Mapped domain source reference
+SEC-P4-038,Persona-4-Source-PRD.md,404,413,Deployment strategy catalog,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-039,Persona-4-Source-PRD.md,414,423,Deployment state machine,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-040,Persona-4-Source-PRD.md,424,427,Release immutability,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-041,Persona-4-Source-PRD.md,428,440,Deployment preflight,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-042,Persona-4-Source-PRD.md,441,444,Production approvals,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-043,Persona-4-Source-PRD.md,445,448,Rollback semantics,15,Assigned for section-level review; atomic sign-off open,"backup,developer",Mapped domain source reference
+SEC-P4-044,Persona-4-Source-PRD.md,449,452,Deployment locking and idempotency,15,Assigned for section-level review; atomic sign-off open,"developer,jobs",Mapped domain source reference
+SEC-P4-045,Persona-4-Source-PRD.md,453,458,Preview environments,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-046,Persona-4-Source-PRD.md,459,462,Runtime management,11,Assigned for section-level review; atomic sign-off open,runtime,Mapped domain source reference
+SEC-P4-047,Persona-4-Source-PRD.md,463,466,Process supervision,11,Assigned for section-level review; atomic sign-off open,runtime,Mapped domain source reference
+SEC-P4-048,Persona-4-Source-PRD.md,467,475,Ports and routing,09,Assigned for section-level review; atomic sign-off open,network,Mapped domain source reference
+SEC-P4-049,Persona-4-Source-PRD.md,476,479,Domain relationship,10,Assigned for section-level review; atomic sign-off open,network,Mapped domain source reference
+SEC-P4-050,Persona-4-Source-PRD.md,480,483,Databases and managed services,13,Assigned for section-level review; atomic sign-off open,files,Mapped domain source reference
+SEC-P4-051,Persona-4-Source-PRD.md,484,487,Scheduled application jobs,22,Assigned for section-level review; atomic sign-off open,jobs,Mapped domain source reference
+SEC-P4-052,Persona-4-Source-PRD.md,488,493,Optional container runtime,11,Assigned for section-level review; atomic sign-off open,runtime,Mapped domain source reference
+SEC-P4-053,Persona-4-Source-PRD.md,494,497,Environment variable model,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-054,Persona-4-Source-PRD.md,498,501,Secrets storage,05,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-055,Persona-4-Source-PRD.md,502,510,Secrets injection,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-056,Persona-4-Source-PRD.md,511,514,One-time reveal and break-glass,05,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-057,Persona-4-Source-PRD.md,515,520,Supply-chain security,05,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-058,Persona-4-Source-PRD.md,521,524,Application logs,21,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P4-059,Persona-4-Source-PRD.md,525,535,Metrics,21,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P4-060,Persona-4-Source-PRD.md,536,539,Health checks,21,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P4-061,Persona-4-Source-PRD.md,540,543,Alerts,21,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P4-062,Persona-4-Source-PRD.md,544,549,Diagnostics,21,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P4-063,Persona-4-Source-PRD.md,550,559,Capacity and quota model,20,Assigned for section-level review; atomic sign-off open,business,Mapped domain source reference
+SEC-P4-064,Persona-4-Source-PRD.md,560,563,Build scheduling policy,22,Assigned for section-level review; atomic sign-off open,jobs,Mapped domain source reference
+SEC-P4-065,Persona-4-Source-PRD.md,564,575,Suggested deployment profiles,15,Assigned for section-level review; atomic sign-off open,developer,Phase source obligation; semantic review required
+SEC-P4-066,Persona-4-Source-PRD.md,576,581,Failure under pressure,08,Assigned for section-level review; atomic sign-off open,host,Mapped domain source reference
+SEC-P4-067,Persona-4-Source-PRD.md,582,585,API conventions,23,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P4-068,Persona-4-Source-PRD.md,586,599,Project and membership APIs,23,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P4-069,Persona-4-Source-PRD.md,600,613,Source and build APIs,23,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P4-070,Persona-4-Source-PRD.md,614,628,Environment and deployment APIs,23,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P4-071,Persona-4-Source-PRD.md,629,642,"Runtime, secrets, logs, and metrics APIs",23,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P4-072,Persona-4-Source-PRD.md,643,670,Example deployment request,23,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P4-073,Persona-4-Source-PRD.md,671,676,Error taxonomy,23,Assigned for section-level review; atomic sign-off open,interface,Mapped domain source reference
+SEC-P4-074,Persona-4-Source-PRD.md,677,713,Entity inventory,04,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-075,Persona-4-Source-PRD.md,714,804,"Representative schema (illustrative, not production-ready)",04,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-076,Persona-4-Source-PRD.md,805,820,Resource ownership graph,04,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-077,Persona-4-Source-PRD.md,821,824,Privileged helper contract,07,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-078,Persona-4-Source-PRD.md,825,843,Attack surfaces and mitigations,05,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-079,Persona-4-Source-PRD.md,844,856,Trust boundaries,05,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-080,Persona-4-Source-PRD.md,857,862,Audit requirements,21,Assigned for section-level review; atomic sign-off open,observe,Mapped domain source reference
+SEC-P4-081,Persona-4-Source-PRD.md,863,875,Journey A: New developer project,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-082,Persona-4-Source-PRD.md,876,888,Journey B: Git push to staging,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-083,Persona-4-Source-PRD.md,889,900,Journey C: Production promotion,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-084,Persona-4-Source-PRD.md,901,912,Journey D: Failed deployment and rollback,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-085,Persona-4-Source-PRD.md,913,924,Journey E: Secret rotation,15,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-086,Persona-4-Source-PRD.md,925,935,Journey F: Contractor access,18,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-087,Persona-4-Source-PRD.md,936,945,Journey G: Small VPS capacity pressure,08,Assigned for section-level review; atomic sign-off open,developer,Mapped domain source reference
+SEC-P4-088,Persona-4-Source-PRD.md,946,958,Journey H: Website ownership handover,12,Assigned for section-level review; atomic sign-off open,site,Mapped domain source reference
+SEC-P4-089,Persona-4-Source-PRD.md,959,993,Functional acceptance matrix,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-090,Persona-4-Source-PRD.md,994,1006,Non-functional requirements,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-091,Persona-4-Source-PRD.md,1007,1021,Security release gates,05,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-092,Persona-4-Source-PRD.md,1022,1031,Phase dependency map,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-093,Persona-4-Source-PRD.md,1032,1035,Milestone D0 — Developer identity foundation,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-094,Persona-4-Source-PRD.md,1036,1039,Milestone D1 — Project console and source connections,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-095,Persona-4-Source-PRD.md,1040,1043,Milestone D2 — Artifact and build foundation,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-096,Persona-4-Source-PRD.md,1044,1047,Milestone D3 — Environments and deployment engine,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-097,Persona-4-Source-PRD.md,1048,1051,"Milestone D4 — Releases, rollback, and approvals",24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-098,Persona-4-Source-PRD.md,1052,1055,Milestone D5 — Runtime operations and secrets,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-099,Persona-4-Source-PRD.md,1056,1059,Milestone D6 — Production hardening and optional extensions,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-100,Persona-4-Source-PRD.md,1060,1072,Delivery priority and dependency risks,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-101,Persona-4-Source-PRD.md,1073,1089,Architecture decision register,01,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-102,Persona-4-Source-PRD.md,1090,1106,Open decisions,01,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-103,Persona-4-Source-PRD.md,1107,1123,Risks and mitigations,05,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-104,Persona-4-Source-PRD.md,1124,1171,Suggested repository modules,25,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-105,Persona-4-Source-PRD.md,1172,1175,Definition of done,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-106,Persona-4-Source-PRD.md,1176,1194,Release readiness checklist,24,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-107,Persona-4-Source-PRD.md,1195,1198,Recommended first implementation slice,25,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required
+SEC-P4-108,Persona-4-Source-PRD.md,1199,1212,Product architecture completion,03,Assigned for section-level review; atomic sign-off open,,Phase source obligation; semantic review required

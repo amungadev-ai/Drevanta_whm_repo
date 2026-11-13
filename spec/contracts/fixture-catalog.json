@@ -1,0 +1,15 @@
+{
+  "tenant_a": "t-a",
+  "tenant_b": "t-b",
+  "actor_a": "actor-a",
+  "actor_b": "actor-b",
+  "target_a": "resource-a",
+  "target_b": "resource-b",
+  "initial_generation": 7,
+  "owner_revision": 1,
+  "idempotency_key": "key-001",
+  "clock": "2030-01-01T00:00:00Z",
+  "previous_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "candidate_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "policy_values_are_fixtures_only": true
+}

@@ -1,0 +1,7 @@
+DREVANTA WORK STARTER PACKAGE
+
+Contents:
+- drevanta-phase01-v1-3.zip: cumulative Phase 01 baseline, including 25-phase roadmap in 05-documentation-roadmap.csv
+- drevanta-final.zip: UI prototype reference
+
+Extract the two inner ZIP files and inspect their contents. Produce the 25-phase human-first, AI-agent-ready documentation suite; do not implement or deploy. Preserve source provenance and distinguish confirmed vs proposed requirements.

@@ -1,0 +1,357 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:drevanta:closure:3.0:envelopes",
+  "title": "Drevanta candidate v3.0 envelopes",
+  "$defs": {
+    "Id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,128}$"
+    },
+    "Revision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "Digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "Utc": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "Error": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "unauthenticated",
+            "forbidden",
+            "not_found",
+            "conflict",
+            "stale_precondition",
+            "invalid_input",
+            "unavailable"
+          ]
+        },
+        "correlation_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "safe_detail": {
+          "type": "string",
+          "maxLength": 512
+        }
+      },
+      "required": [
+        "code",
+        "correlation_id"
+      ]
+    },
+    "MutationIntent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "action_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "expected_generation": {
+          "$ref": "#/$defs/Revision"
+        },
+        "expected_owner_revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "arguments": {
+          "type": "object",
+          "description": "Must also validate against approved action-specific schema. Unapproved actions are disabled."
+        }
+      },
+      "required": [
+        "action_id",
+        "expected_generation",
+        "expected_owner_revision",
+        "arguments"
+      ]
+    },
+    "OperationAccepted": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operation_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "correlation_id": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "operation_id",
+        "correlation_id"
+      ]
+    },
+    "OperationStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operation_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "correlation_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "queued",
+            "running",
+            "waiting_retry",
+            "reconciling",
+            "cancellation_requested",
+            "canceled",
+            "failed",
+            "succeeded"
+          ]
+        },
+        "observed_generation": {
+          "$ref": "#/$defs/Revision"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/Utc"
+        }
+      },
+      "required": [
+        "operation_id",
+        "correlation_id",
+        "state",
+        "updated_at"
+      ]
+    },
+    "MembershipView": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workspace_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "role_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "revision": {
+          "$ref": "#/$defs/Revision"
+        }
+      },
+      "required": [
+        "workspace_id",
+        "role_id",
+        "revision"
+      ]
+    },
+    "Me": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "principal_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "memberships": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MembershipView"
+          }
+        }
+      },
+      "required": [
+        "principal_id",
+        "memberships"
+      ]
+    },
+    "WorkspacePage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MembershipView"
+          }
+        },
+        "next_cursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ]
+    },
+    "HostRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": 1
+        },
+        "operation_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "installation_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "host_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "resource_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "owner_revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "verb": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]{0,127}$"
+        },
+        "fence": {
+          "$ref": "#/$defs/Revision"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/Utc"
+        },
+        "intent_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "arguments": {
+          "type": "object",
+          "description": "Resolve exact required argument schema by approved verb and version. Deny unknown/unapproved verbs."
+        }
+      },
+      "required": [
+        "protocol_version",
+        "operation_id",
+        "installation_id",
+        "host_id",
+        "resource_id",
+        "owner_revision",
+        "verb",
+        "fence",
+        "expires_at",
+        "intent_digest",
+        "arguments"
+      ]
+    },
+    "HostResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operation_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "fence": {
+          "$ref": "#/$defs/Revision"
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "rejected",
+            "accepted",
+            "verified_success",
+            "verified_failure",
+            "uncertain"
+          ]
+        },
+        "reason_code": {
+          "$ref": "#/$defs/Id"
+        },
+        "observed_generation": {
+          "$ref": "#/$defs/Revision"
+        },
+        "correlation_id": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "operation_id",
+        "fence",
+        "outcome",
+        "reason_code",
+        "correlation_id"
+      ]
+    },
+    "Evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "test_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "acceptance_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "commit_sha": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}([a-f0-9]{24})?$"
+        },
+        "artifact_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "policy_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "fixture_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "environment_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "started_at": {
+          "$ref": "#/$defs/Utc"
+        },
+        "finished_at": {
+          "$ref": "#/$defs/Utc"
+        },
+        "expected": {
+          "type": "string"
+        },
+        "actual": {
+          "type": "string"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "FAIL",
+            "BLOCKED",
+            "NOT_RUN",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "evidence_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "reviewer_id": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "test_id",
+        "acceptance_id",
+        "commit_sha",
+        "artifact_digest",
+        "policy_digest",
+        "fixture_digest",
+        "environment_id",
+        "started_at",
+        "finished_at",
+        "expected",
+        "actual",
+        "verdict",
+        "evidence_digest",
+        "reviewer_id"
+      ]
+    }
+  }
+}

@@ -1,0 +1,13 @@
+id,issue,evidence,disposition,owner_phase,decisions
+REC-01,Historic PRD milestone vs numbered documentation phase,START-HERE and roadmap vs PRD titles,Use roadmap IDs for documentation only. Historic milestones remain source metadata.,01,DEC-016
+REC-02,Stack adopted in historic PRDs vs open baseline ADRs,P1 §§34–39; P4 technology direction; baseline DEC-001/002,Retain Go/SQLite/static UI as strong candidate. Keep implementation authorization and stack decisions open.,03,"DEC-001,DEC-002"
+REC-03,Auth simulation buttons in v2.0 notes vs removed in v2.1 release,AUTHENTICATION-DESIGN-NOTES.md; FINAL-RELEASE-NOTES.md,"Use v2.1 as visual authority. Preserve login, MFA, recovery and reset as simulated flows.",17,DEC-008
+REC-04,Onboarding DNS guidance placement revisions,onboarding/README.md versions 1.3–1.7,"Later v1.6 places failure guidance in main column, technical details in context column. Domain activation requires production proof.",06,DEC-014
+REC-05,Persona codes and switcher visibility vs authorization,Platform_Capability_Registry_v0_2.csv; FOUR-PERSONA-FEATURE-MAP.md,Preserve raw codes. Server evaluates scoped grants and authorization generation.,18,DEC-004
+REC-06,Billing and payments source-listed vs optional commercial modules,BIZ-01 to BIZ-03; P2 §36; P3 §60,Account/customer requirements and commercial module approvals tracked independently.,20,DEC-015
+REC-07,SMTP reset vs mailbox/webmail hosting,Baseline DEC-007; MAIL-01/02; auth design,Recovery transport and optional mail hosting get separate release gates.,16,DEC-007
+REC-08,One topology candidate vs later multi-node placement,P1 §34; ADM-05 S4,Initial topology decision stays open. Multi-node commitments require a separate feature decision.,08,"DEC-005,DEC-016"
+REC-09,Aspirational memory and recovery goals vs validated limits,P1 §47 and P2 §§57–58,Measure idle and peak on supported tuples. Approve targets before using them as release thresholds.,24,"DEC-013,DEC-018"
+REC-10,Prototype simulation vs VPS-backed operations,SPEC-ALIGNMENT.md; v1.3 evidence audit,Use prototype for design and static provenance. New production contracts carry proposed and runtime not run status.,07,DEC-003
+REC-11,Direct PRD route/role proposals vs shared logical contract,P1 §39; P2 §§52–54; P3 §§72–74; P4 §§67–73,Phase 23 owns conventions. Actual schemas and route aliases require DEC-012.,23,DEC-012
+REC-12,Hands-off documentation vs protected future engineering,User brief; baseline 11-AUTONOMOUS-DELIVERY-GOVERNANCE.md,Continue documentation automatically. Future execution is bound by recorded scope and human release authority.,25,DEC-019

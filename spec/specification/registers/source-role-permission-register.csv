@@ -1,0 +1,41 @@
+source,line,section,source_label,source_cells,policy_status,decision,record_id
+Phase-2-Source-Specification.md,171,8,Workspace,Roles | Notes,Source reference; no production grant inferred,DEC-004,POL-001
+Phase-2-Source-Specification.md,173,8,Server,"Owner, Administrator, Operator, Viewer | Owner controls platform governance and delegated host authority",Source reference; no production grant inferred,DEC-004,POL-002
+Phase-2-Source-Specification.md,174,8,Hosting org,"Owner, Manager, Staff, Viewer | No automatic Linux privileges",Source reference; no production grant inferred,DEC-004,POL-003
+Phase-2-Source-Specification.md,175,8,Website,"Owner, Manager, Viewer | Feature permissions activated in Phase 3",Source reference; no production grant inferred,DEC-004,POL-004
+Phase-2-Source-Specification.md,176,8,Developer project,"Owner, Maintainer, Viewer | Feature permissions activated in Phase 4",Source reference; no production grant inferred,DEC-004,POL-005
+Persona-2-Source-PRD.md,364,16,Role,Scope | Intended permissions,Source reference; no production grant inferred,DEC-004,POL-006
+Persona-2-Source-PRD.md,366,16,Organization Owner,"Hosting organization | Organization policy, owner succession, memberships, permitted business settings",Source reference; no production grant inferred,DEC-004,POL-007
+Persona-2-Source-PRD.md,367,16,Hosting Manager,"Hosting organization | Customers, accounts, plans, assigned site operations, team delegation within policy",Source reference; no production grant inferred,DEC-004,POL-008
+Persona-2-Source-PRD.md,368,16,Support Agent,"Hosting organization | Read customer support metadata, approved support actions, no secret access by default",Source reference; no production grant inferred,DEC-004,POL-009
+Persona-2-Source-PRD.md,369,16,Billing Manager,"Billing module | Invoices, subscriptions, refunds within explicit limits; no Linux/hosting root access",Source reference; no production grant inferred,DEC-004,POL-010
+Persona-2-Source-PRD.md,370,16,Technical Operator,"Hosting organization | Assigned sites, backups, SSL, diagnostics, approved operational changes",Source reference; no production grant inferred,DEC-004,POL-011
+Persona-2-Source-PRD.md,371,16,Sales / Account Manager,Hosting organization | Customer and contract metadata; no technical secrets,Source reference; no production grant inferred,DEC-004,POL-012
+Persona-2-Source-PRD.md,372,16,Viewer / Auditor,Hosting organization | Scoped read-only reports and audit views,Source reference; no production grant inferred,DEC-004,POL-013
+Persona-3-Source-PRD.md,145,11,Role,Intent | Typical permissions,Source reference; no production grant inferred,DEC-004,POL-014
+Persona-3-Source-PRD.md,147,11,`owner`,"Site ownership and access governance | All site-level actions, transfers, team management, destructive approvals",Source reference; no production grant inferred,DEC-004,POL-015
+Persona-3-Source-PRD.md,148,11,`manager`,"Day-to-day website operations | Domains, files, runtime, databases, backups, diagnostics; no ownership transfer",Source reference; no production grant inferred,DEC-004,POL-016
+Persona-3-Source-PRD.md,149,11,`maintainer`,"Technical upkeep | Files, logs, approved runtime changes, backups",Source reference; no production grant inferred,DEC-004,POL-017
+Persona-3-Source-PRD.md,150,11,`content_editor`,"Limited content changes | Scoped file/content actions, read-only status",Source reference; no production grant inferred,DEC-004,POL-018
+Persona-3-Source-PRD.md,151,11,`viewer`,"Visibility without changes | Health, selected metrics, non-sensitive configuration",Source reference; no production grant inferred,DEC-004,POL-019
+Persona-3-Source-PRD.md,152,11,`billing_contact`,Optional commercial visibility | Billing/renewal data only when enabled; not technical control,Source reference; no production grant inferred,DEC-004,POL-020
+Persona-3-Source-PRD.md,748,64,Layer,Control,Source reference; no production grant inferred,DEC-004,POL-021
+Persona-3-Source-PRD.md,750,64,Identity,"Sessions, MFA, revocation, rate limits",Source reference; no production grant inferred,DEC-004,POL-022
+Persona-3-Source-PRD.md,751,64,Application,"Scoped authorization, ownership checks, anti-IDOR",Source reference; no production grant inferred,DEC-004,POL-023
+Persona-3-Source-PRD.md,752,64,Database,"Scoped queries, unique constraints, foreign keys, migrations",Source reference; no production grant inferred,DEC-004,POL-024
+Persona-3-Source-PRD.md,753,64,Filesystem,"Site Unix identities, trusted roots, mount/symlink constraints",Source reference; no production grant inferred,DEC-004,POL-025
+Persona-3-Source-PRD.md,754,64,Runtime,Per-site PHP pools/cgroups where supported,Source reference; no production grant inferred,DEC-004,POL-026
+Persona-3-Source-PRD.md,755,64,Database engine,Site-scoped DB accounts and privileges,Source reference; no production grant inferred,DEC-004,POL-027
+Persona-3-Source-PRD.md,756,64,Network,"Explicit vhost routing, no unapproved privileged network access",Source reference; no production grant inferred,DEC-004,POL-028
+Persona-3-Source-PRD.md,757,64,Jobs,"Site-scoped locks, idempotency, resource limits",Source reference; no production grant inferred,DEC-004,POL-029
+Persona-3-Source-PRD.md,758,64,Logs,"Per-site filtering, retention, redaction",Source reference; no production grant inferred,DEC-004,POL-030
+Persona-3-Source-PRD.md,759,64,Backups,"Scoped manifests, encrypted storage, access controls",Source reference; no production grant inferred,DEC-004,POL-031
+Persona-3-Source-PRD.md,760,64,Support,"Time-limited grants, notices, audit",Source reference; no production grant inferred,DEC-004,POL-032
+Persona-4-Source-PRD.md,125,10,Role,Intent | Default capability envelope,Source reference; no production grant inferred,DEC-004,POL-033
+Persona-4-Source-PRD.md,127,10,`project_owner`,"Governance and lifecycle | Project settings, membership, environment policy, deployment, archive/transfer",Source reference; no production grant inferred,DEC-004,POL-034
+Persona-4-Source-PRD.md,128,10,`project_maintainer`,"Technical administration | Source configuration, build settings, releases, scoped secrets, diagnostics",Source reference; no production grant inferred,DEC-004,POL-035
+Persona-4-Source-PRD.md,129,10,`developer`,"Code and nonproduction delivery | View source metadata, trigger approved builds, deploy allowed environments",Source reference; no production grant inferred,DEC-004,POL-036
+Persona-4-Source-PRD.md,130,10,`release_manager`,"Production change control | Approve/promote/rollback production, view release evidence",Source reference; no production grant inferred,DEC-004,POL-037
+Persona-4-Source-PRD.md,131,10,`operator`,"Runtime support | Read metrics/logs, restart approved application processes, no source/secret editing",Source reference; no production grant inferred,DEC-004,POL-038
+Persona-4-Source-PRD.md,132,10,`viewer`,"Read-only | Non-sensitive project status, deployment history, permitted logs",Source reference; no production grant inferred,DEC-004,POL-039
+Persona-4-Source-PRD.md,133,10,`automation_actor`,Machine identity | Narrow workflow operations with expiry and rotation,Source reference; no production grant inferred,DEC-004,POL-040

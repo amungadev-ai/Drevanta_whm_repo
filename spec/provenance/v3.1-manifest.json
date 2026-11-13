@@ -1,0 +1,502 @@
+{
+  "package": "Drevanta consolidated specification and approval v3.1",
+  "inputs": {
+    "specification": "Drevanta-Specification-Closure-v3.0(1).zip",
+    "approval": "Drevanta-v3.1-Human-Approval-Dossier(1).zip",
+    "decision_reference": "Drevanta-Architecture-Decision-Closure-v3.1.zip"
+  },
+  "files": [
+    {
+      "path": "specification/README.md",
+      "bytes": 3028,
+      "sha256": "339a677d83e2324d05b5235be18c61dd7edf11076a251009a04860b970ef42db",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/SHA256SUMS",
+      "bytes": 6060,
+      "sha256": "a12a66d84b27c48dab4413f23d606a3c907865767ae1b64f64580e2eaa10fcf6",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/completion-and-release.md",
+      "bytes": 6123,
+      "sha256": "02d88da96eb4cb5bd641a1dc58783b77d65287ffa71d6bb8d9aa45f2d010ef3a",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/contracts/envelopes.schema.json",
+      "bytes": 7984,
+      "sha256": "562407ed02afd11d4099aec0d109d407c23742ada52106ff980cf82dcb579484",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/contracts/fixture-defaults.json",
+      "bytes": 500,
+      "sha256": "bb3dd47ec757f3735980379db719e2bbd47b47ae5b6c751419bd4250f7b82a88",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/contracts/profile.md",
+      "bytes": 8088,
+      "sha256": "729e45a934db48c3d41eed5a099de1bb03db97913e487fb1c334f5b3f076c106",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/contracts/release-gates.json",
+      "bytes": 2642,
+      "sha256": "4159fb2533105ae99ab565c90698e2c71db1c77c9aab7bef81af93b35044a064",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/contracts/test-specifications.jsonl",
+      "bytes": 1426015,
+      "sha256": "53e47cbbbd6fedcfddaef08d72b1d46aa49dd256c9e714767a9ed25739edcc7a",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/execution-and-release-gates.md",
+      "bytes": 3692,
+      "sha256": "32b59b4493b1107de543aa0986fa70dce642f074f62d3239ab4dcb8fd49a28d5",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/manifest.json",
+      "bytes": 11015,
+      "sha256": "b265c32dc6e8e1fb49b973356c26dce34cfb921bab65e621ccefca46b9ed799a",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/01.md",
+      "bytes": 6386,
+      "sha256": "f3017b2ae46498eef5e2a55437b0e86cc683d20eb9a1474b0c393e0cd39a4586",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/02.md",
+      "bytes": 7992,
+      "sha256": "1943cae63a3399083d06f92b6fb201e5d8abf276962d8f2bb2e072a81bed35b5",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/03.md",
+      "bytes": 6617,
+      "sha256": "b5b41821228c690c1f39acf668499ee5bb09e7b5691abf732fa16db51b20eb05",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/04.md",
+      "bytes": 7163,
+      "sha256": "c9e4bb999f257f42d122a2ad19fe7741e58bc3b97d2fe3509e8de1deed322d03",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/05.md",
+      "bytes": 8092,
+      "sha256": "cde18af2a3b7742faf46d1949c95eb6048083cae1dc558ffe5435d50a23064c7",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/06.md",
+      "bytes": 6208,
+      "sha256": "0da1c583da9ae9c255578ea6071f03c69fc2ef26b26b25e2ea1c8532d656369f",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/07.md",
+      "bytes": 6437,
+      "sha256": "155774f1bdf7a5db526b83fef4d345c69d1a8de18f40133dabc2e4e4abb5cd04",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/08.md",
+      "bytes": 8487,
+      "sha256": "f567aa26b067c9352cdf2b3cda09a486e234939354b67981945bee16b152cd89",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/09.md",
+      "bytes": 7878,
+      "sha256": "42b9c9be81e2907545523ea9a6757cb8505bad03e00a122e0eea31d54a30c206",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/10.md",
+      "bytes": 7566,
+      "sha256": "3d0f0df9125d6d078a008d936579336405f2a9d2286d826b42ac0296fde50db9",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/11.md",
+      "bytes": 10941,
+      "sha256": "e5048a16d58830b39b33d1f25f0054720b1b7c5708b5253a80519b1c9156c08c",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/12.md",
+      "bytes": 9026,
+      "sha256": "36017789911b20cfb9c4187dc7b723ee297e6f213a3b450e0a7097ae1ff429cc",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/13.md",
+      "bytes": 10641,
+      "sha256": "3cee5d0ef00793b3a5f205232ec71f91c277b3dde1890078cc4d6aac5f19da02",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/14.md",
+      "bytes": 7180,
+      "sha256": "189119b26adb5c370251e1f7f378fb2c7d2c3729f1bd5d41a4fa1af15dd0c116",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/15.md",
+      "bytes": 10929,
+      "sha256": "f998209913ced99f5ecbf41c5549a84bbcf3322e9ed87f6d85c7007786a94d4d",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/16.md",
+      "bytes": 7333,
+      "sha256": "0ed5c5277d8d48cb20b5cbe400f3203b1c02e53289abdc1b377b3d31ce780f43",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/17.md",
+      "bytes": 6865,
+      "sha256": "c7ed466bb5c5b42692fd9daecc8e8e7b9ba00bbbe0ffa9dfeec80e404c6c1c3c",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/18.md",
+      "bytes": 10110,
+      "sha256": "09832422be64b0b4b94ddb8c0d91ba1dd98a03f5ef32474763c4d2f83f436966",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/19.md",
+      "bytes": 8084,
+      "sha256": "8fd81a136d0ae4514069b0ec8136205f4db1d2e1a0b77a1af698600b9a8c4b60",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/20.md",
+      "bytes": 11847,
+      "sha256": "cd864ec30de06bbb70cbee5bc5fecfac31f07d37c4d0c62f3edb55b59c686a43",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/21.md",
+      "bytes": 9156,
+      "sha256": "d3733bacde756d8a27fdaf060265b2d1efac50828ae894f903db214b683f3e3c",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/22.md",
+      "bytes": 7854,
+      "sha256": "f77101a2ecf80faf518a73fcfbf731aff08738bc0a6a54570fc805ac5341cc39",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/23.md",
+      "bytes": 9172,
+      "sha256": "75577b1611bd67d49d696ea625bd8ce6ef3ba926af3639ecd24d3a6151519c9c",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/24.md",
+      "bytes": 9637,
+      "sha256": "bc34018791cff0b056718ae267e2e60ca87af54e5be4813ee03513c1520e2c49",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/phases/25.md",
+      "bytes": 7407,
+      "sha256": "e34118dacec26c4e78408bbf2c0fa96e9254b9dbbf99e2ffdc74b0d5ccf74325",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/readiness.md",
+      "bytes": 1798,
+      "sha256": "a8742e4a4bf8725c6870f15154d5ae7efb1c78da644526108509347b138ac069",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/audit-findings.csv",
+      "bytes": 20870,
+      "sha256": "d15c4a52ad6f201017ae01efa7d68dbca305effa7b2ce4ef54378320b78140c3",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/capability-traceability.csv",
+      "bytes": 27375,
+      "sha256": "89aaf733f198ef74eb215c4b29b193d197cd2513a509b24fbb4718d61f6a0094",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/decisions.csv",
+      "bytes": 16544,
+      "sha256": "c3a206feb9e78c7bbc817526ee12192e417ddb8f21be6ad6fbe018a2a04a2a2a",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/expanded-tests.csv",
+      "bytes": 732695,
+      "sha256": "9c80808bfa62ad1502cea174f9e51b6adc3100ccaf8b3b65f4ec1cfbf804d286",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/full-traceability.csv",
+      "bytes": 1007179,
+      "sha256": "a2cfc63d3abde382bcb5e18e1e62a81a231ede0350876f637b71e45e70540642",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/gaps.csv",
+      "bytes": 9833,
+      "sha256": "190fa7e32cad08f6c60aeacb3ae6a874bfddfc49b529f19caacd8c39dae70f36",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/permission-matrix.csv",
+      "bytes": 50143,
+      "sha256": "bf4f27bf64643364c259b182b57c1352de66f3adee18de902205696628fbe8aa",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/phase-dependencies.csv",
+      "bytes": 3566,
+      "sha256": "c0bb02e2f2321c304bf77cd119db0d7fa0a4013fd89d01be29724062b434e724",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/phase-validation.csv",
+      "bytes": 5067,
+      "sha256": "d26644bb9b83245d41d4d2338eb080565e4dcd8ef9b9de0517d9b136482cd5f7",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/prd-id-statements.csv",
+      "bytes": 198854,
+      "sha256": "fca8f7155c6d46c21f119e2d9813e94d561a8a9d75504e10bfaec8935e2e8593",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/prd-sections.csv",
+      "bytes": 44677,
+      "sha256": "5f7a6f42ce23e4a69165cc8ac9b44b10c2c77282c83810c4eab3c9d6fc8aafa5",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/prototype-pages.csv",
+      "bytes": 8655,
+      "sha256": "521125dbdee827c4be544b4bca3af58fe1ee80e71fb75d2a87c0be53eeec90e7",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/reconciliation.csv",
+      "bytes": 2657,
+      "sha256": "bbb544a5e6d8957ad228420f798d0b5212f0e18a48ff3a54dd955b5960944928",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/release-gates.csv",
+      "bytes": 19603,
+      "sha256": "04e81aa7c9160aa9e6f09ba4fb4890fafcdda090299a5a7c324270897bed90f5",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/requirements.csv",
+      "bytes": 30078,
+      "sha256": "b50858e675b63ee36772554b6c9fd3ecde461a003c027210cbb626e2bab2dec0",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/source-acceptance-tests.csv",
+      "bytes": 12688,
+      "sha256": "9e9e028473faaf48058ca76312649dc3b4794a8573bc5512c7af6e3fa722cc23",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/source-api-catalog.csv",
+      "bytes": 50301,
+      "sha256": "cfb7a173f5a31ea3f00428689b19ef8000aaee51c7654cc2504d6e1b7b066e44",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/source-data-register.csv",
+      "bytes": 62388,
+      "sha256": "5b4177bbd060a87c3fb84344781db1c1bd7ea8cd76b00ac0117934f96f2f2b35",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/source-decisions-and-invariants.csv",
+      "bytes": 20691,
+      "sha256": "f3949e17a33accc8c2babcaab6485b240b796d197b46ba9ce5e1018037498735",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/source-heading-crosswalk.csv",
+      "bytes": 112007,
+      "sha256": "940db97008653c693096fbb6277c96e82a21337010ed65b42320c036fcb67d4a",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/source-role-permission-register.csv",
+      "bytes": 7263,
+      "sha256": "3f166376fa108c3137ad44a29eed1a7ecc4777a6d5cf8f883b01332c6e88897a",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/storage-schema.csv",
+      "bytes": 3764,
+      "sha256": "48d005c075a799f170da294c67698614ed4882613fc7978c50e05dc891abc0ad",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/tests.csv",
+      "bytes": 44019,
+      "sha256": "0071097c8aa8a650cfa7457b7f43b244d48918997ba74b3683f33646bddb89f5",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/ui-controls.csv",
+      "bytes": 110218,
+      "sha256": "c8c6d116db28231f9e84e45b72379326ab18a1f1988065bae3dbbe5aec8fd4a4",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/verification-specifications.csv",
+      "bytes": 1222372,
+      "sha256": "cca84a5ad50622b2f8e9c8c94c38da5f8fc421478622f3c6ca8fd79b49f5d8cc",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/registers/vps-operations.csv",
+      "bytes": 11607,
+      "sha256": "04e124cc093970140abf53c4b0dfcab7a5479f0a094cab277578088c5bc06df8",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/shared-contracts.md",
+      "bytes": 5449,
+      "sha256": "a2d675ec54e876d34d7ccc1237c908e28565e0b9b0dcc8d6a77657aee4b5cdd7",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/sources/START-HERE.txt",
+      "bytes": 442,
+      "sha256": "3069df7c2a29db4c6710b0aad11b14c7d3469a9ba9826319485a39bde8e02549",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/sources/audit-v2.0.zip",
+      "bytes": 1010601,
+      "sha256": "5bf33ca192bccf588bb2b8ff88f03165e912d1c791109bd61d1ba5f9e3cc75e3",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/sources/drevanta-final.zip",
+      "bytes": 251587,
+      "sha256": "ac463aa0a04540b58149be1e5859c649c3e5bc017e5dac8308c1acfeafeee9a7",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/sources/drevanta-phase01-v1-3.zip",
+      "bytes": 46630,
+      "sha256": "74e68c709b251d98fb760b8bcb2c4295a49b016fdae3076075b7c7d5e0d80dab",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/sources/prior-documentation.zip",
+      "bytes": 427283,
+      "sha256": "d0bcb303054eb45534697bcf9d6d5d991bfd8bcecdbb0c0e90fc210350a61934",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "specification/validation-report.md",
+      "bytes": 2581,
+      "sha256": "6967cfa0c5437ba2969964efce4d6e13cec3af0d8443b08de67de61273710d94",
+      "source": "Drevanta-Specification-Closure-v3.0(1).zip"
+    },
+    {
+      "path": "approval/README.md",
+      "bytes": 299,
+      "sha256": "df6b15b8f33ab8826ea32d11fc9ccf911235fa304f313b028b3a1ba6486905d1",
+      "source": "Drevanta-v3.1-Human-Approval-Dossier(1).zip"
+    },
+    {
+      "path": "approval/SHA256SUMS",
+      "bytes": 431,
+      "sha256": "6fe956a10a8b02968f16bdaba815b678b4e2c9d237e28f0b17d64cd0931f63d7",
+      "source": "Drevanta-v3.1-Human-Approval-Dossier(1).zip"
+    },
+    {
+      "path": "approval/approval-register.csv",
+      "bytes": 20046,
+      "sha256": "c830c6bf661dc2f36d168e42894d6310c63672d3ad4e942f8f7a29b07eaee3ae",
+      "source": "Drevanta-v3.1-Human-Approval-Dossier(1).zip"
+    },
+    {
+      "path": "approval/decision-dossier.md",
+      "bytes": 22489,
+      "sha256": "35caf04ef589c80a22e9e6daa5b9561434529b74118cfa44811ff0fd652e6cf8",
+      "source": "Drevanta-v3.1-Human-Approval-Dossier(1).zip"
+    },
+    {
+      "path": "approval/decision-test-crosswalk.csv",
+      "bytes": 106251,
+      "sha256": "6a18857463694eb6c5bfb56fb3e159c47962e47fc42964267f57e4807e0220ac",
+      "source": "Drevanta-v3.1-Human-Approval-Dossier(1).zip"
+    },
+    {
+      "path": "approval/handoff-readiness.md",
+      "bytes": 3294,
+      "sha256": "648ff640aad1e9a9fcc2599e329486282ea90af9b99cfa4bc24c07da5406f1db",
+      "source": "Drevanta-v3.1-Human-Approval-Dossier(1).zip"
+    },
+    {
+      "path": "decision_reference/01-decision-approval-register.csv",
+      "bytes": 8141,
+      "sha256": "0915cb1bb1d0188647165669af70620fedff0f906a4547e75e929306d2cf7ec1",
+      "source": "Drevanta-Architecture-Decision-Closure-v3.1.zip"
+    },
+    {
+      "path": "decision_reference/02-decision-briefs.md",
+      "bytes": 13028,
+      "sha256": "efdcbc42a67e6db43be9df0ccaa250cb899cb0e3ff095fc218f5354de073c2dc",
+      "source": "Drevanta-Architecture-Decision-Closure-v3.1.zip"
+    },
+    {
+      "path": "decision_reference/03-implementation-handoff-gates.md",
+      "bytes": 1583,
+      "sha256": "724d6799d201aa9bbd663d5ae1c4477b8440de56a1692bf2738c74b8d6005835",
+      "source": "Drevanta-Architecture-Decision-Closure-v3.1.zip"
+    },
+    {
+      "path": "decision_reference/04-closure-workplan.md",
+      "bytes": 1519,
+      "sha256": "5cc7904c243dee24568a58961e9bf5d93651a3e7d663176ef80941ed4fcd92de",
+      "source": "Drevanta-Architecture-Decision-Closure-v3.1.zip"
+    },
+    {
+      "path": "decision_reference/README.md",
+      "bytes": 618,
+      "sha256": "2fb0fc1e22ba924a9a7179bf97cef9ffbc6583048081d183cc1a787420468b77",
+      "source": "Drevanta-Architecture-Decision-Closure-v3.1.zip"
+    },
+    {
+      "path": "decision_reference/SHA256SUMS",
+      "bytes": 536,
+      "sha256": "40211d01c45f68ca500f9703cb5ec86e6da7ef76025b6b2c9dc10ac1d7dc5fd7",
+      "source": "Drevanta-Architecture-Decision-Closure-v3.1.zip"
+    },
+    {
+      "path": "decision_reference/source-v3.0.zip",
+      "bytes": 2132953,
+      "sha256": "9b33f74efaa211d4da9051ae2fbaf23800de1323e6dcfcec830ca7f5023215b3",
+      "source": "Drevanta-Architecture-Decision-Closure-v3.1.zip"
+    }
+  ]
+}

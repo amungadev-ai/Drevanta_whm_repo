@@ -1,0 +1,48 @@
+ID,Capability,Delivery,Release,Server,Hosting,Website,Developer
+CORE-01,"Identity, MFA, sessions",Native,S0,G,O,W,P
+CORE-02,"Workspaces, memberships, RBAC",Native,S0,G,O,W,P
+CORE-03,"Resource graph, lifecycle, tenancy",Native,S0,G,O,W,P
+CORE-04,Durable jobs and reconciliation,Native,S0,G,O,W,P
+CORE-05,"Audit, notifications, events",Native,S0,G,O,W,P
+CORE-06,Module installer and registry,Native,S0,G,O,-,-
+CORE-07,Resource admission and quotas,Native,S0,G,O,W,P
+ADM-01,"Host health, processes and logs",Native+OS adapter,S0,G,-,-,-
+ADM-02,"OS packages, updates and service units",OS adapter,S0,G,-,-,-
+ADM-03,"Firewall, network, SSH daemon",OS adapter,S0,G,-,-,-
+ADM-04,"Storage, disk and filesystem",OS adapter,S0,G,O,-,-
+ADM-05,Multi-node inventory and placement,Native,S4,G,O,-,-
+WEB-01,Nginx vhosts and reverse proxy,OS adapter,S1,G,O,W,P
+WEB-02,"Domain binding, DNS guidance and TLS",Native+OS adapter,S1,G,O,W,P
+WEB-03,PHP versions and FPM pools,OS adapter,S1,G,O,W,P
+WEB-04,"PHP extensions, CLI, Composer, WP-CLI",Native+OS adapter,S1,G,O,W,P
+WEB-05,"Files, uploads, editor and archives",Native,S1,G,O,W,P
+WEB-06,SFTP accounts and SSH keys,OS adapter,S1,G,O,W,P
+WEB-07,Scoped shell and browser terminal,Native+isolation adapter,S2,G,O,W,P
+WEB-08,Cron and scheduled tasks,Native+systemd adapter,S1,G,O,W,P
+WEB-09,Site backup and restore,Native+backup adapter,S1,G,O,W,P
+WEB-10,Website analytics and access logs,Native+optional adapter,S1,G,O,W,P
+DB-01,MariaDB/MySQL provisioning,OS adapter,S1,G,O,W,P
+DB-02,PostgreSQL provisioning,OS adapter,S2,G,O,W,P
+DB-03,Optional Redis/Valkey cache,OS adapter,S3,G,O,W,P
+APP-01,Managed application abstraction,Native,S1,G,O,W,P
+APP-02,Node.js version and package manager,Runtime adapter,S2,G,O,W,P
+APP-03,"Python versions, venv, WSGI/ASGI",Runtime adapter,S2,G,O,W,P
+APP-04,Custom binaries and process supervision,Runtime+systemd adapter,S2,G,O,W,P
+APP-05,"Git source, webhooks, artifacts",Native+integration,S2,G,O,W,P
+APP-06,Build isolation and release promotion,Native+worker,S2,G,O,W,P
+APP-07,"Environments, secrets, staging, clone",Native,S3,G,O,W,P
+APP-08,Optional OCI containers and images,OCI adapter,S4,G,O,W,P
+MAIL-01,"Mail server, mailbox, alias, forwarding",OS adapter,S3,G,O,W,-
+MAIL-02,"Mail DNS, deliverability and webmail",Native+integration,S3,G,O,W,P
+DNS-01,Optional authoritative DNS zones,OS adapter,S3,G,O,W,-
+BIZ-01,"Customers, plans, orders, subscriptions",Native,S2,G,O,C,C
+BIZ-02,"Invoices, taxes, credits, refunds",Native+integration,S2,G,O,C,C
+BIZ-03,Payment gateways and webhooks,External integration,S2,G,O,C,C
+SUP-01,"Tickets, attachments, SLA, escalations",Native,S2,G,O,C,C
+SUP-02,Knowledge base and notifications,Native+integration,S3,G,O,C,C
+SEC-01,"Security scans, WAF and incident response",Optional adapter,S3,G,O,W,P
+OBS-01,"Metrics, health checks and status pages",Native+integration,S1,G,O,W,P
+MKT-01,Curated app templates and lifecycle,Native,S3,G,O,W,P
+MKT-02,Specialized app categories,Curated templates,S4,G,O,W,P
+INT-01,"API keys, external SSO and webhooks",Native+integration,S3,G,O,W,P
+OPS-01,"Updates, migrations, recovery and support",Native,S0,G,O,W,P

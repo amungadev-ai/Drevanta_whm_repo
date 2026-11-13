@@ -1,0 +1,394 @@
+source,line,section,source_fragment,data_status,decision,record_id
+Phase-2-Source-Specification.md,880,38,users ──< workspace_memberships >── workspaces,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-001
+Phase-2-Source-Specification.md,881,38,               |                      |,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-002
+Phase-2-Source-Specification.md,882,38,              roles                   +── parent_workspace_id,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-003
+Phase-2-Source-Specification.md,883,38,               |                      +── server/hosting_org/website/developer_project,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-004
+Phase-2-Source-Specification.md,884,38,         role_permissions,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-005
+Phase-2-Source-Specification.md,885,38,               |,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-006
+Phase-2-Source-Specification.md,886,38,           permissions,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-007
+Phase-2-Source-Specification.md,888,38,hosting_organizations ──< organization_server_links >── servers,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-008
+Phase-2-Source-Specification.md,889,38,          |,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-009
+Phase-2-Source-Specification.md,890,38,          +──< customer_relationships >── customers,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-010
+Phase-2-Source-Specification.md,892,38,servers ──< resource_allocations >── hosting_organizations,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-011
+Phase-2-Source-Specification.md,893,38,servers ──< managed_service_policies,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-012
+Phase-2-Source-Specification.md,894,38,servers ──< managed_file_roots,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-013
+Phase-2-Source-Specification.md,895,38,servers ──< metric_samples,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-014
+Phase-2-Source-Specification.md,896,38,servers ──< configuration_revisions,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-015
+Phase-2-Source-Specification.md,898,38,workspaces ──< jobs / audit_events / invitations / support_grants,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-016
+Phase-2-Source-Specification.md,899,38,modules ──< module_installations / module_jobs,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-017
+Phase-2-Source-Specification.md,909,38,CREATE TABLE workspaces (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-018
+Phase-2-Source-Specification.md,910,38,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-019
+Phase-2-Source-Specification.md,911,38,  type TEXT NOT NULL CHECK (type IN,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-020
+Phase-2-Source-Specification.md,912,38,"    ('server','hosting_org','website','developer_project')),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-021
+Phase-2-Source-Specification.md,913,38,"  name TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-022
+Phase-2-Source-Specification.md,914,38,"  parent_workspace_id TEXT REFERENCES workspaces(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-023
+Phase-2-Source-Specification.md,915,38,"  state TEXT NOT NULL DEFAULT 'active',","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-024
+Phase-2-Source-Specification.md,916,38,  created_at TEXT NOT NULL,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-025
+Phase-2-Source-Specification.md,917,38,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-026
+Phase-2-Source-Specification.md,919,38,CREATE TABLE roles (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-027
+Phase-2-Source-Specification.md,920,38,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-028
+Phase-2-Source-Specification.md,921,38,"  workspace_type TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-029
+Phase-2-Source-Specification.md,922,38,"  name TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-030
+Phase-2-Source-Specification.md,923,38,"  UNIQUE(workspace_type, name)","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-031
+Phase-2-Source-Specification.md,924,38,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-032
+Phase-2-Source-Specification.md,926,38,CREATE TABLE workspace_memberships (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-033
+Phase-2-Source-Specification.md,927,38,"  user_id TEXT NOT NULL REFERENCES users(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-034
+Phase-2-Source-Specification.md,928,38,"  workspace_id TEXT NOT NULL REFERENCES workspaces(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-035
+Phase-2-Source-Specification.md,929,38,"  role_id TEXT NOT NULL REFERENCES roles(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-036
+Phase-2-Source-Specification.md,930,38,"  state TEXT NOT NULL DEFAULT 'active',","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-037
+Phase-2-Source-Specification.md,931,38,"  expires_at TEXT,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-038
+Phase-2-Source-Specification.md,932,38,"  PRIMARY KEY(user_id, workspace_id)","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-039
+Phase-2-Source-Specification.md,933,38,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-040
+Phase-2-Source-Specification.md,935,38,CREATE TABLE hosting_organizations (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-041
+Phase-2-Source-Specification.md,936,38,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-042
+Phase-2-Source-Specification.md,937,38,"  workspace_id TEXT NOT NULL UNIQUE REFERENCES workspaces(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-043
+Phase-2-Source-Specification.md,938,38,  business_type TEXT NOT NULL CHECK (business_type IN,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-044
+Phase-2-Source-Specification.md,939,38,"    ('hosting_provider','reseller','agency')),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-045
+Phase-2-Source-Specification.md,940,38,  state TEXT NOT NULL DEFAULT 'active',"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-046
+Phase-2-Source-Specification.md,941,38,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-047
+Phase-2-Source-Specification.md,943,38,CREATE TABLE organization_server_links (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-048
+Phase-2-Source-Specification.md,944,38,"  organization_id TEXT NOT NULL REFERENCES hosting_organizations(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-049
+Phase-2-Source-Specification.md,945,38,"  server_id TEXT NOT NULL REFERENCES servers(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-050
+Phase-2-Source-Specification.md,946,38,"  state TEXT NOT NULL DEFAULT 'active',","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-051
+Phase-2-Source-Specification.md,947,38,"  PRIMARY KEY(organization_id, server_id)","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-052
+Phase-2-Source-Specification.md,948,38,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-053
+Phase-2-Source-Specification.md,950,38,CREATE TABLE resource_allocations (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-054
+Phase-2-Source-Specification.md,951,38,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-055
+Phase-2-Source-Specification.md,952,38,"  organization_id TEXT NOT NULL REFERENCES hosting_organizations(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-056
+Phase-2-Source-Specification.md,953,38,"  server_id TEXT NOT NULL REFERENCES servers(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-057
+Phase-2-Source-Specification.md,954,38,"  resource_kind TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-058
+Phase-2-Source-Specification.md,955,38,"  amount INTEGER NOT NULL CHECK(amount >= 0),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-059
+Phase-2-Source-Specification.md,956,38,"  unit TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-060
+Phase-2-Source-Specification.md,957,38,  enforcement_state TEXT NOT NULL CHECK(enforcement_state IN,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-061
+Phase-2-Source-Specification.md,958,38,"    ('planned','observed','enforced','unsupported')),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-062
+Phase-2-Source-Specification.md,959,38,  created_at TEXT NOT NULL,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-063
+Phase-2-Source-Specification.md,960,38,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-064
+Phase-2-Source-Specification.md,962,38,CREATE TABLE jobs (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-065
+Phase-2-Source-Specification.md,963,38,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-066
+Phase-2-Source-Specification.md,964,38,"  workspace_id TEXT NOT NULL REFERENCES workspaces(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-067
+Phase-2-Source-Specification.md,965,38,"  actor_user_id TEXT NOT NULL REFERENCES users(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-068
+Phase-2-Source-Specification.md,966,38,"  operation TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-069
+Phase-2-Source-Specification.md,967,38,"  target_type TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-070
+Phase-2-Source-Specification.md,968,38,"  target_id TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-071
+Phase-2-Source-Specification.md,969,38,"  status TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-072
+Phase-2-Source-Specification.md,970,38,"  idempotency_key TEXT,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-073
+Phase-2-Source-Specification.md,971,38,"  created_at TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-074
+Phase-2-Source-Specification.md,972,38,"  started_at TEXT,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-075
+Phase-2-Source-Specification.md,973,38,"  finished_at TEXT,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-076
+Phase-2-Source-Specification.md,974,38,"  error_code TEXT,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-077
+Phase-2-Source-Specification.md,975,38,"  UNIQUE(workspace_id, idempotency_key)","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-078
+Phase-2-Source-Specification.md,976,38,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-079
+Persona-2-Source-PRD.md,967,51,users -- memberships -- workspaces,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-080
+Persona-2-Source-PRD.md,968,51,                        |,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-081
+Persona-2-Source-PRD.md,969,51,                        +-- hosting_organizations,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-082
+Persona-2-Source-PRD.md,970,51,                                 |-- organization_capabilities,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-083
+Persona-2-Source-PRD.md,971,51,                                 |-- organization_relationships,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-084
+Persona-2-Source-PRD.md,972,51,                                 |-- organization_allocations,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-085
+Persona-2-Source-PRD.md,973,51,                                 |-- customers -- customer_contacts,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-086
+Persona-2-Source-PRD.md,974,51,                                 |-- hosting_plans -- plan_versions,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-087
+Persona-2-Source-PRD.md,975,51,                                 |-- hosting_accounts,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-088
+Persona-2-Source-PRD.md,976,51,                                 |      |-- websites -- domains -- tls_assets,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-089
+Persona-2-Source-PRD.md,977,51,                                 |      |-- databases,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-090
+Persona-2-Source-PRD.md,978,51,                                 |      |-- backups,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-091
+Persona-2-Source-PRD.md,979,51,                                 |      |-- runtime_allocations,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-092
+Persona-2-Source-PRD.md,980,51,                                 |-- support_tickets / support_grants,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-093
+Persona-2-Source-PRD.md,981,51,                                 |-- organization_branding,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-094
+Persona-2-Source-PRD.md,982,51,                                 |-- subscriptions / invoices [optional],"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-095
+Persona-2-Source-PRD.md,984,51,servers -- resource_pools -- hosting_account_placements,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-096
+Persona-2-Source-PRD.md,985,51,jobs -- job_steps -- audit_events,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-097
+Persona-2-Source-PRD.md,991,51,"-- Assumes users, workspaces, memberships, servers, jobs and audit_events","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-098
+Persona-2-Source-PRD.md,992,51,-- already exist from Phase 2 unified platform administration.,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-099
+Persona-2-Source-PRD.md,993,51,CREATE TABLE hosting_organizations (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-100
+Persona-2-Source-PRD.md,994,51,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-101
+Persona-2-Source-PRD.md,995,51,"  workspace_id TEXT NOT NULL UNIQUE REFERENCES workspaces(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-102
+Persona-2-Source-PRD.md,996,51,"  display_name TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-103
+Persona-2-Source-PRD.md,997,51,  primary_business_type TEXT NOT NULL CHECK (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-104
+Persona-2-Source-PRD.md,998,51,"    primary_business_type IN ('hosting_provider','reseller','agency')),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-105
+Persona-2-Source-PRD.md,999,51,"  state TEXT NOT NULL DEFAULT 'draft',","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-106
+Persona-2-Source-PRD.md,1000,51,"  timezone TEXT NOT NULL DEFAULT 'UTC',","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-107
+Persona-2-Source-PRD.md,1001,51,  created_at TEXT NOT NULL,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-108
+Persona-2-Source-PRD.md,1002,51,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-109
+Persona-2-Source-PRD.md,1004,51,CREATE TABLE organization_capabilities (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-110
+Persona-2-Source-PRD.md,1005,51,"  organization_id TEXT NOT NULL REFERENCES hosting_organizations(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-111
+Persona-2-Source-PRD.md,1006,51,"  capability_key TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-112
+Persona-2-Source-PRD.md,1007,51,"  enabled INTEGER NOT NULL CHECK (enabled IN (0,1)),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-113
+Persona-2-Source-PRD.md,1008,51,"  PRIMARY KEY (organization_id, capability_key)","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-114
+Persona-2-Source-PRD.md,1009,51,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-115
+Persona-2-Source-PRD.md,1011,51,CREATE TABLE organization_relationships (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-116
+Persona-2-Source-PRD.md,1012,51,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-117
+Persona-2-Source-PRD.md,1013,51,"  source_organization_id TEXT NOT NULL REFERENCES hosting_organizations(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-118
+Persona-2-Source-PRD.md,1014,51,"  target_organization_id TEXT NOT NULL REFERENCES hosting_organizations(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-119
+Persona-2-Source-PRD.md,1015,51,"  relationship_type TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-120
+Persona-2-Source-PRD.md,1016,51,"  state TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-121
+Persona-2-Source-PRD.md,1017,51,"  created_at TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-122
+Persona-2-Source-PRD.md,1018,51,  CHECK (source_organization_id <> target_organization_id),"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-123
+Persona-2-Source-PRD.md,1019,51,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-124
+Persona-2-Source-PRD.md,1021,51,CREATE TABLE customers (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-125
+Persona-2-Source-PRD.md,1022,51,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-126
+Persona-2-Source-PRD.md,1023,51,"  organization_id TEXT NOT NULL REFERENCES hosting_organizations(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-127
+Persona-2-Source-PRD.md,1024,51,"  kind TEXT NOT NULL CHECK (kind IN ('individual','business')),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-128
+Persona-2-Source-PRD.md,1025,51,"  display_name TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-129
+Persona-2-Source-PRD.md,1026,51,"  state TEXT NOT NULL DEFAULT 'pending',","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-130
+Persona-2-Source-PRD.md,1027,51,  created_at TEXT NOT NULL,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-131
+Persona-2-Source-PRD.md,1028,51,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-132
+Persona-2-Source-PRD.md,1030,51,CREATE TABLE customer_contacts (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-133
+Persona-2-Source-PRD.md,1031,51,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-134
+Persona-2-Source-PRD.md,1032,51,"  customer_id TEXT NOT NULL REFERENCES customers(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-135
+Persona-2-Source-PRD.md,1033,51,"  user_id TEXT REFERENCES users(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-136
+Persona-2-Source-PRD.md,1034,51,"  contact_role TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-137
+Persona-2-Source-PRD.md,1035,51,"  email TEXT,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-138
+Persona-2-Source-PRD.md,1036,51,  created_at TEXT NOT NULL,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-139
+Persona-2-Source-PRD.md,1037,51,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-140
+Persona-2-Source-PRD.md,1039,51,CREATE TABLE hosting_plans (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-141
+Persona-2-Source-PRD.md,1040,51,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-142
+Persona-2-Source-PRD.md,1041,51,"  organization_id TEXT NOT NULL REFERENCES hosting_organizations(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-143
+Persona-2-Source-PRD.md,1042,51,"  name TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-144
+Persona-2-Source-PRD.md,1043,51,  state TEXT NOT NULL DEFAULT 'draft',"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-145
+Persona-2-Source-PRD.md,1044,51,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-146
+Persona-2-Source-PRD.md,1046,51,CREATE TABLE hosting_plan_versions (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-147
+Persona-2-Source-PRD.md,1047,51,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-148
+Persona-2-Source-PRD.md,1048,51,"  plan_id TEXT NOT NULL REFERENCES hosting_plans(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-149
+Persona-2-Source-PRD.md,1049,51,"  revision INTEGER NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-150
+Persona-2-Source-PRD.md,1050,51,"  limits_json TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-151
+Persona-2-Source-PRD.md,1051,51,"  created_at TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-152
+Persona-2-Source-PRD.md,1052,51,"  UNIQUE (plan_id, revision)","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-153
+Persona-2-Source-PRD.md,1053,51,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-154
+Persona-2-Source-PRD.md,1055,51,CREATE TABLE hosting_accounts (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-155
+Persona-2-Source-PRD.md,1056,51,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-156
+Persona-2-Source-PRD.md,1057,51,"  organization_id TEXT NOT NULL REFERENCES hosting_organizations(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-157
+Persona-2-Source-PRD.md,1058,51,"  customer_id TEXT NOT NULL REFERENCES customers(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-158
+Persona-2-Source-PRD.md,1059,51,"  plan_version_id TEXT REFERENCES hosting_plan_versions(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-159
+Persona-2-Source-PRD.md,1060,51,"  state TEXT NOT NULL DEFAULT 'draft',","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-160
+Persona-2-Source-PRD.md,1061,51,  created_at TEXT NOT NULL,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-161
+Persona-2-Source-PRD.md,1062,51,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-162
+Persona-2-Source-PRD.md,1064,51,CREATE TABLE hosting_account_placements (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-163
+Persona-2-Source-PRD.md,1065,51,"  account_id TEXT PRIMARY KEY REFERENCES hosting_accounts(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-164
+Persona-2-Source-PRD.md,1066,51,"  server_id TEXT NOT NULL REFERENCES servers(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-165
+Persona-2-Source-PRD.md,1067,51,"  state TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-166
+Persona-2-Source-PRD.md,1068,51,  assigned_at TEXT NOT NULL,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-167
+Persona-2-Source-PRD.md,1069,51,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-168
+Persona-2-Source-PRD.md,1071,51,CREATE TABLE hosting_allocations (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-169
+Persona-2-Source-PRD.md,1072,51,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-170
+Persona-2-Source-PRD.md,1073,51,"  organization_id TEXT NOT NULL REFERENCES hosting_organizations(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-171
+Persona-2-Source-PRD.md,1074,51,"  account_id TEXT REFERENCES hosting_accounts(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-172
+Persona-2-Source-PRD.md,1075,51,"  dimension TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-173
+Persona-2-Source-PRD.md,1076,51,"  quantity INTEGER NOT NULL CHECK (quantity >= 0),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-174
+Persona-2-Source-PRD.md,1077,51,"  unit TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-175
+Persona-2-Source-PRD.md,1078,51,  enforcement TEXT NOT NULL CHECK (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-176
+Persona-2-Source-PRD.md,1079,51,"    enforcement IN ('advisory','measured','enforced')),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-177
+Persona-2-Source-PRD.md,1080,51,"  state TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-178
+Persona-2-Source-PRD.md,1081,51,  created_at TEXT NOT NULL,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-179
+Persona-2-Source-PRD.md,1082,51,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-180
+Persona-2-Source-PRD.md,1084,51,CREATE TABLE hosting_websites (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-181
+Persona-2-Source-PRD.md,1085,51,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-182
+Persona-2-Source-PRD.md,1086,51,"  account_id TEXT NOT NULL REFERENCES hosting_accounts(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-183
+Persona-2-Source-PRD.md,1087,51,"  website_workspace_id TEXT NOT NULL UNIQUE REFERENCES workspaces(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-184
+Persona-2-Source-PRD.md,1088,51,"  primary_domain TEXT,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-185
+Persona-2-Source-PRD.md,1089,51,"  runtime_kind TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-186
+Persona-2-Source-PRD.md,1090,51,"  state TEXT NOT NULL DEFAULT 'pending',","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-187
+Persona-2-Source-PRD.md,1091,51,  created_at TEXT NOT NULL,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-188
+Persona-2-Source-PRD.md,1092,51,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-189
+Persona-2-Source-PRD.md,1094,51,CREATE TABLE hosting_resource_grants (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-190
+Persona-2-Source-PRD.md,1095,51,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-191
+Persona-2-Source-PRD.md,1096,51,"  organization_id TEXT NOT NULL REFERENCES hosting_organizations(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-192
+Persona-2-Source-PRD.md,1097,51,"  resource_type TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-193
+Persona-2-Source-PRD.md,1098,51,"  resource_id TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-194
+Persona-2-Source-PRD.md,1099,51,"  permission_key TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-195
+Persona-2-Source-PRD.md,1100,51,"  expires_at TEXT,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-196
+Persona-2-Source-PRD.md,1101,51,  state TEXT NOT NULL DEFAULT 'active',"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-197
+Persona-2-Source-PRD.md,1102,51,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-198
+Persona-3-Source-PRD.md,842,70,users,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-199
+Persona-3-Source-PRD.md,843,70,workspaces,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-200
+Persona-3-Source-PRD.md,844,70,workspace_memberships,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-201
+Persona-3-Source-PRD.md,845,70,roles,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-202
+Persona-3-Source-PRD.md,846,70,permissions,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-203
+Persona-3-Source-PRD.md,847,70,role_permissions,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-204
+Persona-3-Source-PRD.md,848,70,support_grants,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-205
+Persona-3-Source-PRD.md,849,70,hosting_organizations,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-206
+Persona-3-Source-PRD.md,850,70,hosting_accounts,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-207
+Persona-3-Source-PRD.md,851,70,hosting_entitlements,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-208
+Persona-3-Source-PRD.md,852,70,hosting_allocations,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-209
+Persona-3-Source-PRD.md,853,70,websites,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-210
+Persona-3-Source-PRD.md,854,70,website_workspace_links,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-211
+Persona-3-Source-PRD.md,855,70,website_hosting_links,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-212
+Persona-3-Source-PRD.md,856,70,website_domains,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-213
+Persona-3-Source-PRD.md,857,70,domain_verifications,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-214
+Persona-3-Source-PRD.md,858,70,dns_observations,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-215
+Persona-3-Source-PRD.md,859,70,tls_certificates,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-216
+Persona-3-Source-PRD.md,860,70,site_runtime_configs,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-217
+Persona-3-Source-PRD.md,861,70,site_file_roots,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-218
+Persona-3-Source-PRD.md,862,70,site_sftp_credentials,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-219
+Persona-3-Source-PRD.md,863,70,site_databases,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-220
+Persona-3-Source-PRD.md,864,70,site_database_credentials,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-221
+Persona-3-Source-PRD.md,865,70,site_backup_manifests,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-222
+Persona-3-Source-PRD.md,866,70,site_backup_policies,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-223
+Persona-3-Source-PRD.md,867,70,site_health_checks,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-224
+Persona-3-Source-PRD.md,868,70,site_metric_samples,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-225
+Persona-3-Source-PRD.md,869,70,site_alerts,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-226
+Persona-3-Source-PRD.md,870,70,site_developer_links,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-227
+Persona-3-Source-PRD.md,871,70,site_configuration_revisions,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-228
+Persona-3-Source-PRD.md,872,70,jobs,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-229
+Persona-3-Source-PRD.md,873,70,job_attempts,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-230
+Persona-3-Source-PRD.md,874,70,audit_events,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-231
+Persona-3-Source-PRD.md,882,71,CREATE TABLE websites (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-232
+Persona-3-Source-PRD.md,883,71,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-233
+Persona-3-Source-PRD.md,884,71,"  display_name TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-234
+Persona-3-Source-PRD.md,885,71,"  lifecycle_state TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-235
+Persona-3-Source-PRD.md,886,71,"  primary_domain_id TEXT,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-236
+Persona-3-Source-PRD.md,887,71,"  created_at TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-237
+Persona-3-Source-PRD.md,888,71,  updated_at TEXT NOT NULL,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-238
+Persona-3-Source-PRD.md,889,71,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-239
+Persona-3-Source-PRD.md,891,71,CREATE TABLE website_workspace_links (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-240
+Persona-3-Source-PRD.md,892,71,"  workspace_id TEXT NOT NULL REFERENCES workspaces(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-241
+Persona-3-Source-PRD.md,893,71,"  site_id TEXT NOT NULL REFERENCES websites(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-242
+Persona-3-Source-PRD.md,894,71,"  relationship TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-243
+Persona-3-Source-PRD.md,895,71,"  PRIMARY KEY (workspace_id, site_id)","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-244
+Persona-3-Source-PRD.md,896,71,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-245
+Persona-3-Source-PRD.md,898,71,CREATE TABLE website_hosting_links (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-246
+Persona-3-Source-PRD.md,899,71,"  site_id TEXT NOT NULL REFERENCES websites(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-247
+Persona-3-Source-PRD.md,900,71,"  hosting_account_id TEXT NOT NULL REFERENCES hosting_accounts(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-248
+Persona-3-Source-PRD.md,901,71,"  relationship TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-249
+Persona-3-Source-PRD.md,902,71,"  active INTEGER NOT NULL DEFAULT 1,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-250
+Persona-3-Source-PRD.md,903,71,"  PRIMARY KEY (site_id, hosting_account_id)","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-251
+Persona-3-Source-PRD.md,904,71,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-252
+Persona-3-Source-PRD.md,906,71,CREATE TABLE website_domains (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-253
+Persona-3-Source-PRD.md,907,71,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-254
+Persona-3-Source-PRD.md,908,71,"  site_id TEXT NOT NULL REFERENCES websites(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-255
+Persona-3-Source-PRD.md,909,71,"  normalized_fqdn TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-256
+Persona-3-Source-PRD.md,910,71,"  role TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-257
+Persona-3-Source-PRD.md,911,71,"  verification_state TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-258
+Persona-3-Source-PRD.md,912,71,  created_at TEXT NOT NULL,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-259
+Persona-3-Source-PRD.md,913,71,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-260
+Persona-3-Source-PRD.md,915,71,CREATE UNIQUE INDEX website_domains_unique_active,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-261
+Persona-3-Source-PRD.md,916,71,ON website_domains(normalized_fqdn);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-262
+Persona-3-Source-PRD.md,918,71,CREATE TABLE site_runtime_configs (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-263
+Persona-3-Source-PRD.md,919,71,"  site_id TEXT PRIMARY KEY REFERENCES websites(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-264
+Persona-3-Source-PRD.md,920,71,"  runtime_type TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-265
+Persona-3-Source-PRD.md,921,71,"  runtime_version TEXT,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-266
+Persona-3-Source-PRD.md,922,71,"  config_revision INTEGER NOT NULL DEFAULT 1,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-267
+Persona-3-Source-PRD.md,923,71,  config_json TEXT NOT NULL,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-268
+Persona-3-Source-PRD.md,924,71,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-269
+Persona-3-Source-PRD.md,926,71,CREATE TABLE site_backup_manifests (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-270
+Persona-3-Source-PRD.md,927,71,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-271
+Persona-3-Source-PRD.md,928,71,"  site_id TEXT NOT NULL REFERENCES websites(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-272
+Persona-3-Source-PRD.md,929,71,"  scope TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-273
+Persona-3-Source-PRD.md,930,71,"  state TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-274
+Persona-3-Source-PRD.md,931,71,"  manifest_location TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-275
+Persona-3-Source-PRD.md,932,71,"  checksum TEXT,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-276
+Persona-3-Source-PRD.md,933,71,"  created_at TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-277
+Persona-3-Source-PRD.md,934,71,  verified_at TEXT,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-278
+Persona-3-Source-PRD.md,935,71,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-279
+Persona-3-Source-PRD.md,937,71,CREATE TABLE site_developer_links (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-280
+Persona-3-Source-PRD.md,938,71,"  site_id TEXT NOT NULL REFERENCES websites(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-281
+Persona-3-Source-PRD.md,939,71,"  project_workspace_id TEXT NOT NULL REFERENCES workspaces(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-282
+Persona-3-Source-PRD.md,940,71,"  environment TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-283
+Persona-3-Source-PRD.md,941,71,"  state TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-284
+Persona-3-Source-PRD.md,942,71,"  PRIMARY KEY (site_id, project_workspace_id, environment)","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-285
+Persona-3-Source-PRD.md,943,71,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-286
+Persona-4-Source-PRD.md,684,74,developer_projects,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-287
+Persona-4-Source-PRD.md,685,74,project_workspace_links,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-288
+Persona-4-Source-PRD.md,686,74,project_hosting_links,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-289
+Persona-4-Source-PRD.md,687,74,project_membership_scopes,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-290
+Persona-4-Source-PRD.md,688,74,source_connections,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-291
+Persona-4-Source-PRD.md,689,74,source_repositories,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-292
+Persona-4-Source-PRD.md,690,74,source_webhook_events,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-293
+Persona-4-Source-PRD.md,691,74,build_recipes,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-294
+Persona-4-Source-PRD.md,692,74,build_runs,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-295
+Persona-4-Source-PRD.md,693,74,build_artifacts,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-296
+Persona-4-Source-PRD.md,694,74,artifact_references,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-297
+Persona-4-Source-PRD.md,695,74,project_environments,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-298
+Persona-4-Source-PRD.md,696,74,environment_target_links,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-299
+Persona-4-Source-PRD.md,697,74,environment_config_revisions,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-300
+Persona-4-Source-PRD.md,698,74,environment_variables,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-301
+Persona-4-Source-PRD.md,699,74,secret_references,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-302
+Persona-4-Source-PRD.md,700,74,releases,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-303
+Persona-4-Source-PRD.md,701,74,deployments,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-304
+Persona-4-Source-PRD.md,702,74,deployment_approvals,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-305
+Persona-4-Source-PRD.md,703,74,deployment_health_checks,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-306
+Persona-4-Source-PRD.md,704,74,runtime_instances,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-307
+Persona-4-Source-PRD.md,705,74,project_metric_samples,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-308
+Persona-4-Source-PRD.md,706,74,project_alerts,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-309
+Persona-4-Source-PRD.md,707,74,project_integration_connections,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-310
+Persona-4-Source-PRD.md,708,74,project_schedule_definitions,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-311
+Persona-4-Source-PRD.md,709,74,project_developer_audit_context,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-312
+Persona-4-Source-PRD.md,717,75,PRAGMA foreign_keys = ON;,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-313
+Persona-4-Source-PRD.md,719,75,CREATE TABLE developer_projects (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-314
+Persona-4-Source-PRD.md,720,75,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-315
+Persona-4-Source-PRD.md,721,75,"  display_name TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-316
+Persona-4-Source-PRD.md,722,75,"  lifecycle_state TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-317
+Persona-4-Source-PRD.md,723,75,"  created_at TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-318
+Persona-4-Source-PRD.md,724,75,  updated_at TEXT NOT NULL,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-319
+Persona-4-Source-PRD.md,725,75,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-320
+Persona-4-Source-PRD.md,727,75,CREATE TABLE project_workspace_links (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-321
+Persona-4-Source-PRD.md,728,75,"  project_id TEXT NOT NULL REFERENCES developer_projects(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-322
+Persona-4-Source-PRD.md,729,75,"  workspace_id TEXT NOT NULL REFERENCES workspaces(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-323
+Persona-4-Source-PRD.md,730,75,"  relationship TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-324
+Persona-4-Source-PRD.md,731,75,"  PRIMARY KEY (project_id, workspace_id)","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-325
+Persona-4-Source-PRD.md,732,75,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-326
+Persona-4-Source-PRD.md,734,75,CREATE TABLE project_hosting_links (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-327
+Persona-4-Source-PRD.md,735,75,"  project_id TEXT NOT NULL REFERENCES developer_projects(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-328
+Persona-4-Source-PRD.md,736,75,"  hosting_account_id TEXT NOT NULL REFERENCES hosting_accounts(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-329
+Persona-4-Source-PRD.md,737,75,"  active INTEGER NOT NULL DEFAULT 1,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-330
+Persona-4-Source-PRD.md,738,75,"  PRIMARY KEY (project_id, hosting_account_id)","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-331
+Persona-4-Source-PRD.md,739,75,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-332
+Persona-4-Source-PRD.md,741,75,CREATE TABLE source_connections (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-333
+Persona-4-Source-PRD.md,742,75,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-334
+Persona-4-Source-PRD.md,743,75,"  project_id TEXT NOT NULL REFERENCES developer_projects(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-335
+Persona-4-Source-PRD.md,744,75,"  provider TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-336
+Persona-4-Source-PRD.md,745,75,"  repository_identifier TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-337
+Persona-4-Source-PRD.md,746,75,"  credential_reference TEXT,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-338
+Persona-4-Source-PRD.md,747,75,"  connection_state TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-339
+Persona-4-Source-PRD.md,748,75,  created_at TEXT NOT NULL,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-340
+Persona-4-Source-PRD.md,749,75,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-341
+Persona-4-Source-PRD.md,751,75,CREATE TABLE build_artifacts (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-342
+Persona-4-Source-PRD.md,752,75,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-343
+Persona-4-Source-PRD.md,753,75,"  project_id TEXT NOT NULL REFERENCES developer_projects(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-344
+Persona-4-Source-PRD.md,754,75,"  build_id TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-345
+Persona-4-Source-PRD.md,755,75,"  digest_sha256 TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-346
+Persona-4-Source-PRD.md,756,75,"  byte_size INTEGER NOT NULL CHECK(byte_size >= 0),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-347
+Persona-4-Source-PRD.md,757,75,"  storage_reference TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-348
+Persona-4-Source-PRD.md,758,75,  created_at TEXT NOT NULL,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-349
+Persona-4-Source-PRD.md,759,75,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-350
+Persona-4-Source-PRD.md,761,75,CREATE TABLE project_environments (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-351
+Persona-4-Source-PRD.md,762,75,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-352
+Persona-4-Source-PRD.md,763,75,"  project_id TEXT NOT NULL REFERENCES developer_projects(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-353
+Persona-4-Source-PRD.md,764,75,"  name TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-354
+Persona-4-Source-PRD.md,765,75,"  environment_class TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-355
+Persona-4-Source-PRD.md,766,75,"  config_revision INTEGER NOT NULL DEFAULT 1,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-356
+Persona-4-Source-PRD.md,767,75,"  state TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-357
+Persona-4-Source-PRD.md,768,75,"  UNIQUE(project_id, name)","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-358
+Persona-4-Source-PRD.md,769,75,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-359
+Persona-4-Source-PRD.md,771,75,CREATE TABLE environment_target_links (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-360
+Persona-4-Source-PRD.md,772,75,"  environment_id TEXT NOT NULL REFERENCES project_environments(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-361
+Persona-4-Source-PRD.md,773,75,"  target_type TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-362
+Persona-4-Source-PRD.md,774,75,"  target_id TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-363
+Persona-4-Source-PRD.md,775,75,"  authorization_state TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-364
+Persona-4-Source-PRD.md,776,75,"  PRIMARY KEY (environment_id, target_type, target_id)","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-365
+Persona-4-Source-PRD.md,777,75,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-366
+Persona-4-Source-PRD.md,779,75,CREATE TABLE releases (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-367
+Persona-4-Source-PRD.md,780,75,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-368
+Persona-4-Source-PRD.md,781,75,"  environment_id TEXT NOT NULL REFERENCES project_environments(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-369
+Persona-4-Source-PRD.md,782,75,"  artifact_id TEXT NOT NULL REFERENCES build_artifacts(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-370
+Persona-4-Source-PRD.md,783,75,"  config_revision INTEGER NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-371
+Persona-4-Source-PRD.md,784,75,"  source_revision TEXT,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-372
+Persona-4-Source-PRD.md,785,75,  created_at TEXT NOT NULL,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-373
+Persona-4-Source-PRD.md,786,75,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-374
+Persona-4-Source-PRD.md,788,75,CREATE TABLE deployments (,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-375
+Persona-4-Source-PRD.md,789,75,"  id TEXT PRIMARY KEY,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-376
+Persona-4-Source-PRD.md,790,75,"  release_id TEXT NOT NULL REFERENCES releases(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-377
+Persona-4-Source-PRD.md,791,75,"  environment_id TEXT NOT NULL REFERENCES project_environments(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-378
+Persona-4-Source-PRD.md,792,75,"  job_id TEXT NOT NULL REFERENCES jobs(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-379
+Persona-4-Source-PRD.md,793,75,"  state TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-380
+Persona-4-Source-PRD.md,794,75,"  requested_by TEXT NOT NULL REFERENCES users(id),","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-381
+Persona-4-Source-PRD.md,795,75,"  requested_at TEXT NOT NULL,","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-382
+Persona-4-Source-PRD.md,796,75,  activated_at TEXT,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-383
+Persona-4-Source-PRD.md,797,75,);,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-384
+Persona-4-Source-PRD.md,799,75,CREATE INDEX deployments_environment_time,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-385
+Persona-4-Source-PRD.md,800,75,"ON deployments(environment_id, requested_at DESC);","Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-386
+Persona-4-Source-PRD.md,808,76,hosting_org ──> hosting_account ──> resource allocation,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-387
+Persona-4-Source-PRD.md,809,76,                                      |,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-388
+Persona-4-Source-PRD.md,810,76,                                      +──> website ──> domain/TLS,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-389
+Persona-4-Source-PRD.md,811,76,                                      |       ^,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-390
+Persona-4-Source-PRD.md,812,76,                                      |       |,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-391
+Persona-4-Source-PRD.md,813,76,                                      +──> project ──> environment ──> target link,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-392
+Persona-4-Source-PRD.md,814,76,                                                 └──> build ──> artifact ──> release,"Illustrative; reconcile ownership, constraints and migration","DEC-002,DEC-004",DATA-393
