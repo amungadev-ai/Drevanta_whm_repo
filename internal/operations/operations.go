@@ -264,6 +264,30 @@ func (e *Engine) Transition(ctx context.Context, opID, from, to string, resultJS
 	return nil
 }
 
+// DispatchGuard rechecks authorization immediately before dispatch (phase 18:
+// "recheck delayed work before dispatch"; a revoked actor's queued operation
+// never reaches the agent). It moves an accepted/scheduled operation to
+// dispatched and records the fenced attempt. The reauthorize callback must
+// perform the full predicate (membership/grant/revision) against CURRENT
+// state; a denial cancels the operation as an observed postcondition.
+func (e *Engine) DispatchGuard(ctx context.Context, opID string, leaseUntil time.Time, reauthorize func(ctx context.Context, op *Operation) error) (int64, error) {
+	op, err := e.Get(ctx, opID)
+	if err != nil {
+		return 0, err
+	}
+	if op.State != "accepted" && op.State != "scheduled" {
+		return 0, ErrConflict
+	}
+	if err := reauthorize(ctx, op); err != nil {
+		_ = e.Transition(ctx, opID, op.State, "cancelled", nil)
+		return 0, err
+	}
+	if err := e.Transition(ctx, opID, op.State, "dispatched", nil); err != nil {
+		return 0, err
+	}
+	return e.FenceAttempt(ctx, opID, leaseUntil)
+}
+
 // FenceAttempt records a dispatch attempt with a monotonically increasing
 // fence; stale fences (lower than max existing) are rejected before effects.
 func (e *Engine) FenceAttempt(ctx context.Context, opID string, leaseUntil time.Time) (int64, error) {

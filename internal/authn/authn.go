@@ -293,7 +293,8 @@ func (s *Service) Login(ctx context.Context, email, password string) (*IssuedSes
 }
 
 // VerifyMFA completes login for MFA-enrolled principals: the most recent
-// unconsumed mfa_verify challenge is consumed atomically.
+// unconsumed mfa_verify challenge is consumed atomically. A valid recovery
+// code is accepted as the second factor and burned (single use).
 func (s *Service) VerifyMFA(ctx context.Context, principalID, code string) (*IssuedSession, error) {
 	p, err := s.db.PrincipalByID(ctx, principalID)
 	if err != nil {
@@ -301,6 +302,14 @@ func (s *Service) VerifyMFA(ctx context.Context, principalID, code string) (*Iss
 	}
 	if p.Status != "active" {
 		return nil, ErrPrincipalDisabled
+	}
+	// Try a recovery code first (single use, hashed comparison).
+	if used, err := s.ConsumeRecoveryCode(ctx, principalID, code); err == nil && used {
+		// Burn any pending mfa_verify challenges and issue the session.
+		_, _ = s.db.ExecContext(ctx,
+			`UPDATE challenge SET consumed_at=? WHERE principal_id=? AND purpose='mfa_verify' AND consumed_at IS NULL`,
+			store.Now(), principalID)
+		return s.issueSession(ctx, p, true)
 	}
 	secret, err := s.MFASecret(ctx, principalID)
 	if err != nil {
@@ -442,3 +451,65 @@ func (s *Service) ConsumeChallenge(ctx context.Context, principalID, purpose, ve
 
 // dummyHash is a fixed Argon2id PHC string used for timing-equal denial.
 var dummyHash = "$argon2id$v=19$m=19456,t=2,p=1$AAAAAAAAAAAAAAAAAAAAAQQAAAAAAQ$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+
+// ---- Password reset (phase 17: binds account, purpose, expiry, unique
+// token digest; reset revokes sessions, preserves MFA, requires fresh sign-in) ----
+
+// IssuePasswordReset creates a single-use password_reset challenge for the
+// principal. The raw token is the verifier (returned once for the delivery
+// adapter); only its hash is stored.
+func (s *Service) IssuePasswordReset(ctx context.Context, principalID string) (string, error) {
+	return s.IssueChallenge(ctx, principalID, "password_reset")
+}
+
+// ConfirmPasswordReset atomically consumes the challenge and rotates the
+// password. Credential epoch advances, denying every prior session at their
+// next request (epoch mismatch). MFA enrollment is preserved by design:
+// credentials of purpose mfa_totp are untouched.
+func (s *Service) ConfirmPasswordReset(ctx context.Context, principalID, token, newPassword string) error {
+	if err := s.ConsumeChallenge(ctx, principalID, "password_reset", token); err != nil {
+		return err // ErrNotFound → single-use/expiry/mismatch all deny uniformly
+	}
+	return s.SetPrimaryPassword(ctx, principalID, newPassword)
+}
+
+// ---- Recovery codes (phase 17: one consumption, rotate on regeneration,
+// only verifier material stored) ----
+
+// GenerateRecoveryCodes revokes any prior codes and returns 10 fresh raw
+// codes (shown once). Hashes are stored as credential rows.
+func (s *Service) GenerateRecoveryCodes(ctx context.Context, principalID string) ([]string, error) {
+	if _, err := s.db.ExecContext(ctx,
+		`UPDATE credential SET state='revoked', revoked_at=? WHERE principal_id=? AND purpose='recovery_code' AND state='active'`,
+		store.Now(), principalID); err != nil {
+		return nil, err
+	}
+	codes := make([]string, 0, 10)
+	for i := 0; i < 10; i++ {
+		raw, err := randomToken(8) // 16 hex chars
+		if err != nil {
+			return nil, err
+		}
+		if _, err := s.db.ExecContext(ctx,
+			`INSERT INTO credential(credential_id, principal_id, purpose, state, material, created_at)
+			 VALUES(?,?,?,?,?,?)`,
+			store.NewID("crd"), principalID, "recovery_code", "active", HashToken(raw), store.Now()); err != nil {
+			return nil, err
+		}
+		codes = append(codes, raw)
+	}
+	return codes, nil
+}
+
+// ConsumeRecoveryCode validates and burns one recovery code (atomic single
+// use). Recovery codes satisfy the MFA step; they never bypass password proof.
+func (s *Service) ConsumeRecoveryCode(ctx context.Context, principalID, code string) (bool, error) {
+	res, err := s.db.ExecContext(ctx,
+		`UPDATE credential SET state='revoked', revoked_at=? WHERE principal_id=? AND purpose='recovery_code' AND state='active' AND material=?`,
+		store.Now(), principalID, HashToken(code))
+	if err != nil {
+		return false, err
+	}
+	n, _ := res.RowsAffected()
+	return n > 0, nil
+}

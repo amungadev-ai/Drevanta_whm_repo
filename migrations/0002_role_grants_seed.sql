@@ -61,7 +61,7 @@ INSERT INTO grant_rule(role_id, action_id, resource_type, scope_rule) VALUES
  ('hosting.owner','support.article.publish','knowledge article','same_scope'),
  ('hosting.owner','audit.read','audit event','same_scope'),
  ('hosting.owner','monitor.read','health observation','same_scope'),
- ('hosting.owner','membership.grant','membership','same_scope'),
+
  ('hosting.owner','template.install','app template','same_scope'),
  ('hosting.administrator','account.provision','hosting account','same_scope'),
  ('hosting.administrator','allocation.reserve','quota reservation','same_scope'),
@@ -120,3 +120,9 @@ INSERT INTO grant_rule(role_id, action_id, resource_type, scope_rule) VALUES
  ('developer.developer','source.connect','source connection','same_scope'),
  ('developer.developer','monitor.read','health observation','same_scope'),
  ('developer.viewer','monitor.read','health observation','same_scope');
+
+-- Workspace owners administer memberships in their own kind (phase 18).
+INSERT INTO grant_rule(role_id, action_id, resource_type, scope_rule) VALUES
+ ('website.owner','membership.grant','membership','same_scope'),
+ ('developer.owner','membership.grant','membership','same_scope'),
+ ('server.owner','membership.grant','membership','same_scope');

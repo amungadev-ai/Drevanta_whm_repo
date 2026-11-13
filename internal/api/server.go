@@ -18,13 +18,15 @@ type Server struct {
 	Authz   *authz.Checker
 	Ops     *operations.Engine
 	Audit   *audit.Writer
+	Mailer  Mailer           // recovery delivery seam (tests may capture)
 	Clock   func() time.Time // injectable for tests
 	MaxBody int64
 }
 
 // NewServer wires a Server with defaults.
 func NewServer(db *store.DB, authnSvc *authn.Service, checker *authz.Checker, eng *operations.Engine, aw *audit.Writer) *Server {
-	return &Server{DB: db, Authn: authnSvc, Authz: checker, Ops: eng, Audit: aw, Clock: time.Now, MaxBody: 1 << 20}
+	return &Server{DB: db, Authn: authnSvc, Authz: checker, Ops: eng, Audit: aw,
+		Mailer: LogMailer{}, Clock: time.Now, MaxBody: 1 << 20}
 }
 
 // Handler builds the full route tree.
@@ -36,10 +38,17 @@ func (s *Server) Handler() http.Handler {
 	protected.HandleFunc("POST /api/v1/resources/{resourceID}/intents", s.handleIntents)
 	protected.HandleFunc("GET /api/v1/operations/{operationID}", s.handleOperation)
 	protected.HandleFunc("GET /api/v1/scopes/{scopeID}/audit", s.handleScopeAudit)
+	protected.HandleFunc("POST /api/v1/identity/logout", s.handleLogout)
+	protected.HandleFunc("POST /api/v1/identity/recovery-codes", s.handleRecoveryCodes)
+	protected.HandleFunc("GET /api/v1/workspaces/{workspaceID}/memberships", s.handleListMemberships)
+	protected.HandleFunc("POST /api/v1/workspaces/{workspaceID}/memberships", s.handleGrantMembership)
+	protected.HandleFunc("DELETE /api/v1/workspaces/{workspaceID}/memberships/{principalID}/{roleID}", s.handleRevokeMembership)
 
 	public := http.NewServeMux()
 	public.HandleFunc("POST /api/v1/identity/login", s.handleLogin)
 	public.HandleFunc("POST /api/v1/identity/mfa", s.handleMFAVerify)
+	public.HandleFunc("POST /api/v1/identity/recover-request", s.handleRecoverRequest)
+	public.HandleFunc("POST /api/v1/identity/recover-confirm", s.handleRecoverConfirm)
 
 	// Unknown /api routes fail closed with the taxonomy.
 	catchAll := http.NewServeMux()
@@ -48,6 +57,10 @@ func (s *Server) Handler() http.Handler {
 	})
 
 	root := http.NewServeMux()
+	// Exact identity paths that require authentication win over the public
+	// identity prefix (Go mux precedence: most specific pattern first).
+	root.Handle("/api/v1/identity/logout", s.bodyLimit(s.authenticate(protected)))
+	root.Handle("/api/v1/identity/recovery-codes", s.bodyLimit(s.authenticate(protected)))
 	root.Handle("/api/v1/identity/", s.bodyLimit(public))
 	root.Handle("/api/v1/", s.bodyLimit(s.authenticate(protected)))
 	root.Handle("/api/", catchAll)

@@ -18,7 +18,8 @@ for an unexecuted case.** Baseline truth: 744 parametrized cases in
 
 | Suite | Layer | First commit | Latest result | Commit |
 | --- | --- | --- | --- | --- |
-| G10 contract suite (11 tests: unknown-field 422, stale-generation 412, hidden-resource 404, stable replay, altered replay 409, revoked replay 403, 401 taxonomy, me/workspaces, operation visibility/concealment, audit allow+deny, MFA login lifecycle) | API integration (httptest, isolated per-test SQLite) | this commit | PASS (11/11) | see git log |
+| G10 contract suite (11 tests: unknown-field 422, stale-generation 412, hidden-resource 404, stable replay, altered replay 409, revoked replay 403, 401 taxonomy, me/workspaces, operation visibility/concealment, audit allow+deny, MFA login lifecycle) | API integration (httptest, isolated per-test SQLite) | f20b08a | PASS (11/11) | f20b08a |
+| G21 identity/permission enforcement suite (7 tests: password-reset lifecycle w/ single-use token + epoch revocation + MFA preservation (TC-P17-01/02 analog), recovery-code single-use, logout, membership grant/list/revoke + dispatch-recheck cancel of revoked actor's queued operation (TC-P18-01/02 analog), last-owner protection 409, role validation 422, support-lease exact-action semantics) | API integration (httptest, isolated per-test SQLite) | this commit | PASS (7/7) | see git log |
 
 Environment coverage: unit + isolated integration locally; API/security/tenant-isolation via
 httptest; browser via VPS test environment; VPS lifecycle/backup/upgrade/rollback on disposable

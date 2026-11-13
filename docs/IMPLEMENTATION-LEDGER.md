@@ -24,7 +24,7 @@ in `docs/TEST-RESULTS.md`. Release-level completion additionally requires the G5
 | G00 | Scope, source, UX and decision freeze | 01, 02 | IN_PROGRESS | W-G00 |
 | G10 | Architecture, data and baseline security | 03, 04, 05 | IN_PROGRESS | W-G10 |
 | G20 | Installer, host privilege and compatibility | 06, 07, 08 | NOT_STARTED | W-G20 |
-| G21 | Identity and permission enforcement | 17, 18 | NOT_STARTED | W-G21 |
+| G21 | Identity and permission enforcement | 17, 18 | IN_PROGRESS | W-G21 |
 | G22 | Durability, contracts and integrations | 22, 23 | NOT_STARTED | W-G22 |
 | G30 | Networking, web server and runtimes | 09, 10, 11 | NOT_STARTED | W-G30 |
 | G31 | Files, data services and recovery | 13, 14 | NOT_STARTED | W-G31 |
@@ -85,10 +85,25 @@ Installer (claim token, bootstrap, administrator enrollment, recovery codes, acc
 helper protocol implementation (peer proof, typed allowlist, fences, journals), OS compatibility
 preflight (single apt/systemd tuple: Debian-family), host health/packages/services verbs.
 
-## W-G21 · Identity and permission enforcement (planned)
+## W-G21 · Identity and permission enforcement
 
-Session lifecycle enforcement, credential epochs, step-up, membership grants/revocation/transfer,
-tenant isolation across API/jobs/artifacts, support-lease expiry, browser CSRF.
+| Item | Disposition | Code | Tests | Evidence |
+| --- | --- | --- | --- | --- |
+| Password reset (single-use challenge, session revocation via epoch, MFA preserved, no enumeration) | VERIFIED | `internal/authn`, `internal/api/handlers_identity.go` | TestIdentityPasswordResetLifecycle | TEST-RESULTS G21 row |
+| Recovery codes (single-use, MFA second factor, hashed storage) | VERIFIED | `internal/authn` | TestIdentityRecoveryCodes | TEST-RESULTS G21 row |
+| Logout / session revocation | VERIFIED | `internal/api` | TestIdentityLogout | TEST-RESULTS G21 row |
+| Membership grant/list/revoke API (kind-qualified roles, 422 cross-kind, idempotent grant) | VERIFIED | `internal/api/handlers_identity.go` | TestMembership*, TestMembershipRoleValidation | TEST-RESULTS G21 row |
+| Last-owner protection (409) | VERIFIED | `internal/api/handlers_identity.go` | TestMembershipLastOwnerProtection | TEST-RESULTS G21 row |
+| Dispatch-time reauthorization (revoked actor's queued op cancels, never dispatches) | VERIFIED (control-plane; helper-dispatch-count evidence binds to G20) | `internal/operations.DispatchGuard` | TestMembershipGrantRevokeAndDispatchRecheck | TEST-RESULTS G21 row |
+| Support leases: exact per-lease action grants, expiry, revocation | VERIFIED | `internal/authz` | TestSupportLeaseExactActions | TEST-RESULTS G21 row |
+| Invitation acceptance bound to intended principal (TC-CORE-02) | NOT_STARTED | — | — | requires signup-bound principals (installer/commercial wave) |
+| Browser cookie sessions + CSRF double-submit | NOT_STARTED | — | — | G40 UI wiring |
+| Mailer SMTP transport for recovery delivery | PARTIAL | LogMailer no-op seam | — | G34 messaging wave |
+
+Semantics decisions recorded (pending owner ratification alongside DEC-004/DEC-008):
+- Last-owner protection adopted as unconditional policy (workspace retains ≥1 active owner).
+- Recovery token delivery via Mailer seam; LogMailer default (challenge issued, no delivery)
+  until SMTP config (G34). Tokens never appear in logs/responses/audit.
 
 ## W-G22 · Durability, contracts and integrations (planned)
 

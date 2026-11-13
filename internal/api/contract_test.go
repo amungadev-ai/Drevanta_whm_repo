@@ -27,10 +27,13 @@ import (
 
 // fixtureEnv is one isolated server instance per test.
 type fixtureEnv struct {
-	t    *testing.T
-	db   *store.DB
-	srv  *httptest.Server
-	auth *authn.Service
+	t         *testing.T
+	db        *store.DB
+	srv       *httptest.Server
+	auth      *authn.Service
+	Authz     *authz.Checker
+	Ops       *operations.Engine
+	apiServer *Server
 }
 
 func newFixture(t *testing.T) *fixtureEnv {
@@ -49,9 +52,10 @@ func newFixture(t *testing.T) *fixtureEnv {
 	checker := authz.NewChecker(db)
 	eng := operations.NewEngine(db)
 	aw := audit.NewWriter(db)
-	srv := httptest.NewServer(NewServer(db, authSvc, checker, eng, aw).Handler())
+	apiSrv := NewServer(db, authSvc, checker, eng, aw)
+	srv := httptest.NewServer(apiSrv.Handler())
 	t.Cleanup(srv.Close)
-	return &fixtureEnv{t: t, db: db, srv: srv, auth: authSvc}
+	return &fixtureEnv{t: t, db: db, srv: srv, auth: authSvc, Authz: checker, Ops: eng, apiServer: apiSrv}
 }
 
 func (f *fixtureEnv) makePrincipal(email string) *store.Principal {
