@@ -214,3 +214,58 @@ func (s *Server) scheduleScopeGuard(r *http.Request, scopeID string) bool {
 	}
 	return true
 }
+
+// ---- POST /api/v1/scopes/{scopeID}/resources (CORE-03 registration) ----
+
+type createResourceRequest struct {
+	Type   string `json:"type"`
+	Name   string `json:"name"`
+	HostID string `json:"host_id,omitempty"`
+}
+
+// knownResourceTypes is the governed vocabulary subset enabled so far
+// (extended per domain wave).
+var knownResourceTypes = map[string]bool{
+	"host snapshot": true, "filesystem entry": true, "SQL database": true,
+	"backup artifact": true, "hostname binding": true, "vhost": true,
+	"application": true, "release artifact": true, "source connection": true,
+	"environment": true, "hosting account": true, "support ticket": true,
+	"schedule": true, "health observation": true, "volume": true,
+}
+
+func (s *Server) handleCreateResource(w http.ResponseWriter, r *http.Request) {
+	scopeID := r.PathValue("scopeID")
+	sub := subjectOf(r)
+	if !s.visibility(r, scopeID) {
+		writeError(w, http.StatusNotFound, CodeNotFound, "no such scope")
+		return
+	}
+	var req createResourceRequest
+	if err := decodeStrict(r, &req); err != nil {
+		writeError(w, http.StatusUnprocessableEntity, CodeInvalidInput, "invalid resource schema")
+		return
+	}
+	if !knownResourceTypes[req.Type] {
+		writeError(w, http.StatusUnprocessableEntity, CodeInvalidInput, "unknown resource type")
+		return
+	}
+	// Explicit action grant for linking resources of this type.
+	if _, err := s.Authz.Authorize(r.Context(), sub.Principal.PrincipalID,
+		"resource.link", req.Type, scopeID, 1); err != nil {
+		writeError(w, http.StatusForbidden, CodeForbidden, "resource registration not permitted")
+		return
+	}
+	res, err := s.DB.CreateResource(r.Context(), scopeID, req.HostID, req.Type, req.Name)
+	if err != nil {
+		writeError(w, http.StatusServiceUnavailable, CodeDependencyFailure, "resource write unavailable")
+		return
+	}
+	writeJSON(w, http.StatusCreated, map[string]any{
+		"resource_id":         res.ResourceID,
+		"type":                res.Type,
+		"name":                res.Name,
+		"desired_generation":  res.DesiredGeneration,
+		"observed_generation": res.ObservedGeneration,
+		"owner_revision":      res.OwnerRevision,
+	})
+}

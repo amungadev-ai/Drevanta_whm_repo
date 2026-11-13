@@ -1,0 +1,6 @@
+# Root-owned unit bindings for unit.apply (DEC-003: adapter resolves stable
+# target IDs using root-owned bindings; raw unit names never come from callers).
+{
+  "panel": "drevanta-panel.service",
+  "helper": "drevanta-helper.service"
+}

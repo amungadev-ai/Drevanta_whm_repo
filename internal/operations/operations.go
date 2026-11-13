@@ -92,6 +92,7 @@ type Operation struct {
 	CorrelationID      string
 	Digest             string
 	Payload            string
+	ResultJSON         string
 	CreatedAt          string
 	UpdatedAt          string
 	ExpectedRevision   int64
@@ -227,11 +228,12 @@ func (e *Engine) Get(ctx context.Context, opID string) (*Operation, error) {
 	o := &Operation{}
 	err := e.db.QueryRowContext(ctx,
 		`SELECT operation_id, actor_id, scope_id, resource_id, action_id, state,
-		        expected_revision, expected_generation, intent_digest, payload, correlation_id, created_at, updated_at
+		        expected_revision, expected_generation, intent_digest, payload,
+		        COALESCE(result_json,''), correlation_id, created_at, updated_at
 		 FROM operation WHERE operation_id = ?`, opID).
 		Scan(&o.OperationID, &o.ActorID, &o.ScopeID, &o.ResourceID, &o.ActionID, &o.State,
-			&o.ExpectedRevision, &o.ExpectedGeneration, &o.Digest, &o.Payload, &o.CorrelationID,
-			&o.CreatedAt, &o.UpdatedAt)
+			&o.ExpectedRevision, &o.ExpectedGeneration, &o.Digest, &o.Payload, &o.ResultJSON,
+			&o.CorrelationID, &o.CreatedAt, &o.UpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}

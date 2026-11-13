@@ -1,0 +1,28 @@
+# Drevanta control plane (unprivileged; DEC-001).
+[Unit]
+Description=Drevanta hosting management control plane
+After=network-online.target drevanta-helper.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=drevanta
+Group=drevanta
+ExecStart=/opt/drevanta/bin/panel -addr 127.0.0.1:8080 -db /var/lib/drevanta/panel.db -migrations /opt/drevanta/migrations -helper-socket /run/drevanta/helper.sock
+Environment=DREVANTA_HOST_ID=*
+Restart=on-failure
+RestartSec=2
+# Hardening: unprivileged service with minimal ambient authority.
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/drevanta
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=no
+
+[Install]
+WantedBy=multi-user.target

@@ -131,3 +131,20 @@ INSERT INTO grant_rule(role_id, action_id, resource_type, scope_rule) VALUES
  ('website.owner','integration.configure','integration grant','same_scope'),
  ('hosting.owner','integration.configure','integration grant','same_scope'),
  ('server.owner','integration.configure','integration grant','same_scope');
+
+-- Resource registration (CORE-03): scope owners link governed records.
+INSERT INTO grant_rule(role_id, action_id, resource_type, scope_rule) VALUES
+ ('website.owner','resource.link','filesystem entry','same_scope'),
+ ('website.owner','resource.link','SQL database','same_scope'),
+ ('website.owner','resource.link','backup artifact','same_scope'),
+ ('website.owner','resource.link','hostname binding','same_scope'),
+ ('website.owner','resource.link','vhost','same_scope'),
+ ('website.owner','resource.link','application','same_scope'),
+ ('website.owner','resource.link','schedule','same_scope'),
+ ('server.owner','resource.link','host snapshot','same_scope'),
+ ('server.owner','resource.link','volume','same_scope'),
+ ('hosting.owner','resource.link','hosting account','same_scope'),
+ ('developer.owner','resource.link','source connection','same_scope'),
+ ('developer.owner','resource.link','environment','same_scope'),
+ ('developer.owner','resource.link','release artifact','same_scope'),
+ ('developer.owner','resource.link','application','same_scope');

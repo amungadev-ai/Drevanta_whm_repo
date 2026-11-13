@@ -15,7 +15,9 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/user"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -252,8 +254,9 @@ func DigestOf(operationID, verb string, arguments json.RawMessage) string {
 // ---- Listener (peer credentials) ----
 
 // Serve listens on a Unix socket, enforces peer UID checks and root-owned
-// socket file, then serves requests until the listener closes.
-func (r *Registry) Serve(ctx context.Context, socketPath string) error {
+// socket file, then serves requests until the listener closes. socketGroup
+// names the group allowed to connect (the panel service group).
+func (r *Registry) Serve(ctx context.Context, socketPath, socketGroup string) error {
 	if err := os.MkdirAll(filepath.Dir(socketPath), 0o750); err != nil {
 		return err
 	}
@@ -264,6 +267,16 @@ func (r *Registry) Serve(ctx context.Context, socketPath string) error {
 	}
 	if err := os.Chmod(socketPath, 0o660); err != nil {
 		return err
+	}
+	if socketGroup != "" {
+		if g, gerr := user.LookupGroup(socketGroup); gerr == nil {
+			if gid, perr := strconv.Atoi(g.Gid); perr == nil {
+				// Both the socket and its containing directory must be
+				// reachable by the connecting service group.
+				_ = os.Chown(filepath.Dir(socketPath), -1, gid)
+				_ = os.Chown(socketPath, -1, gid)
+			}
+		}
 	}
 	go func() {
 		<-ctx.Done()

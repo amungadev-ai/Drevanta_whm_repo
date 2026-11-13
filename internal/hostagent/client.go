@@ -24,6 +24,10 @@ type Client struct {
 // ErrRejected indicates the helper refused before effects (safe).
 var ErrRejected = errors.New("helper rejected request")
 
+// ErrNoConnection indicates the dial itself failed: no request was delivered,
+// so no host effect can have occurred (safe failure, not ambiguity).
+var ErrNoConnection = errors.New("helper connection failed")
+
 // Call sends one request and returns the result.
 func (c *Client) Call(ctx context.Context, req helper.HostRequest) (helper.HostResult, error) {
 	if c.Timeout == 0 {
@@ -32,7 +36,7 @@ func (c *Client) Call(ctx context.Context, req helper.HostRequest) (helper.HostR
 	d := net.Dialer{Timeout: c.Timeout}
 	conn, err := d.DialContext(ctx, "unix", c.SocketPath)
 	if err != nil {
-		return helper.HostResult{}, fmt.Errorf("helper socket: %w", err)
+		return helper.HostResult{}, fmt.Errorf("%w: %v", ErrNoConnection, err)
 	}
 	defer conn.Close()
 

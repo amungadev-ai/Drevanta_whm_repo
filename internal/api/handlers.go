@@ -201,6 +201,7 @@ type operationStatusBody struct {
 	CorrelationID string          `json:"correlation_id"`
 	CreatedAt     string          `json:"created_at"`
 	UpdatedAt     string          `json:"updated_at"`
+	Intent        json.RawMessage `json:"intent,omitempty"`
 	Result        json.RawMessage `json:"result,omitempty"`
 }
 
@@ -246,8 +247,11 @@ func (s *Server) handleOperation(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt:     op.UpdatedAt,
 	}
 	if isOwner && op.Payload != "" {
-		// Payload visible to owner only; members see status.
-		body.Result = json.RawMessage(op.Payload)
+		// Intent visible to the owner only; members see status.
+		body.Intent = json.RawMessage(op.Payload)
+	}
+	if isOwner && op.ResultJSON != "" {
+		body.Result = json.RawMessage(op.ResultJSON)
 	}
 	writeJSON(w, http.StatusOK, body)
 }
