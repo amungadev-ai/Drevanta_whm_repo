@@ -1,0 +1,146 @@
+[
+ {
+  "route": "/",
+  "violations": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 26
+   },
+   {
+    "id": "label-content-name-mismatch",
+    "impact": "serious",
+    "nodes": 1
+   },
+   {
+    "id": "region",
+    "impact": "moderate",
+    "nodes": 1
+   }
+  ],
+  "criticalOrSerious": 2
+ },
+ {
+  "route": "/auth/login",
+  "violations": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 7
+   },
+   {
+    "id": "landmark-unique",
+    "impact": "moderate",
+    "nodes": 1
+   }
+  ],
+  "criticalOrSerious": 1
+ },
+ {
+  "route": "/auth/verify",
+  "violations": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 7
+   },
+   {
+    "id": "landmark-unique",
+    "impact": "moderate",
+    "nodes": 1
+   }
+  ],
+  "criticalOrSerious": 1
+ },
+ {
+  "route": "/onboarding/administrator",
+  "violations": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 8
+   }
+  ],
+  "criticalOrSerious": 1
+ },
+ {
+  "route": "/server",
+  "violations": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 24
+   },
+   {
+    "id": "region",
+    "impact": "moderate",
+    "nodes": 1
+   }
+  ],
+  "criticalOrSerious": 1
+ },
+ {
+  "route": "/server/services",
+  "violations": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 58
+   }
+  ],
+  "criticalOrSerious": 1
+ },
+ {
+  "route": "/website",
+  "violations": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 13
+   },
+   {
+    "id": "region",
+    "impact": "moderate",
+    "nodes": 1
+   }
+  ],
+  "criticalOrSerious": 1
+ },
+ {
+  "route": "/developer",
+  "violations": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 13
+   },
+   {
+    "id": "region",
+    "impact": "moderate",
+    "nodes": 1
+   }
+  ],
+  "criticalOrSerious": 1
+ },
+ {
+  "route": "/audit",
+  "violations": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 28
+   },
+   {
+    "id": "landmark-one-main",
+    "impact": "moderate",
+    "nodes": 1
+   },
+   {
+    "id": "region",
+    "impact": "moderate",
+    "nodes": 3
+   }
+  ],
+  "criticalOrSerious": 1
+ }
+]

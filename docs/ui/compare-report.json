@@ -1,0 +1,593 @@
+{
+ "generated_at": "2026-11-13T21:35:54.874Z",
+ "tolerances": {
+  "pass": 0.005,
+  "chart": 0.02
+ },
+ "counts": {
+  "PASS": 57,
+  "PASS-CHART-TOLERANCE": 1
+ },
+ "results": [
+  {
+   "route": "/",
+   "viewport": "desktop",
+   "baseline": "index",
+   "production": "index",
+   "prodUrl": "http://127.0.0.1:3100/",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/login",
+   "viewport": "desktop",
+   "baseline": "authentication__login",
+   "production": "auth__login",
+   "prodUrl": "http://127.0.0.1:3100/auth/login",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/verify",
+   "viewport": "desktop",
+   "baseline": "authentication__verify",
+   "production": "auth__verify",
+   "prodUrl": "http://127.0.0.1:3100/auth/verify",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/forgot-password",
+   "viewport": "desktop",
+   "baseline": "authentication__forgot-password",
+   "production": "auth__forgot-password",
+   "prodUrl": "http://127.0.0.1:3100/auth/forgot-password",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/check-email",
+   "viewport": "desktop",
+   "baseline": "authentication__check-email",
+   "production": "auth__check-email",
+   "prodUrl": "http://127.0.0.1:3100/auth/check-email",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/email-recovery",
+   "viewport": "desktop",
+   "baseline": "authentication__email-recovery",
+   "production": "auth__email-recovery",
+   "prodUrl": "http://127.0.0.1:3100/auth/email-recovery",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/server-recovery",
+   "viewport": "desktop",
+   "baseline": "authentication__server-recovery",
+   "production": "auth__server-recovery",
+   "prodUrl": "http://127.0.0.1:3100/auth/server-recovery",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/reset-password",
+   "viewport": "desktop",
+   "baseline": "authentication__reset-password",
+   "production": "auth__reset-password",
+   "prodUrl": "http://127.0.0.1:3100/auth/reset-password",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/reset-success",
+   "viewport": "desktop",
+   "baseline": "authentication__reset-success",
+   "production": "auth__reset-success",
+   "prodUrl": "http://127.0.0.1:3100/auth/reset-success",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/login-success",
+   "viewport": "desktop",
+   "baseline": "authentication__login-success",
+   "production": "auth__login-success",
+   "prodUrl": "http://127.0.0.1:3100/auth/login-success",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding",
+   "viewport": "desktop",
+   "baseline": "onboarding",
+   "production": "onboarding",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/administrator",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/administrator",
+   "viewport": "desktop",
+   "baseline": "onboarding__administrator",
+   "production": "onboarding__administrator",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/administrator",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/mfa",
+   "viewport": "desktop",
+   "baseline": "onboarding__mfa",
+   "production": "onboarding__mfa",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/mfa",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/recovery-codes",
+   "viewport": "desktop",
+   "baseline": "onboarding__recovery-codes",
+   "production": "onboarding__recovery-codes",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/recovery-codes",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/access-address",
+   "viewport": "desktop",
+   "baseline": "onboarding__access-address",
+   "production": "onboarding__access-address",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/access-address",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/setup-complete",
+   "viewport": "desktop",
+   "baseline": "onboarding__setup-complete",
+   "production": "onboarding__setup-complete",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/setup-complete",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/claim",
+   "viewport": "desktop",
+   "baseline": "onboarding__claim",
+   "production": "onboarding__claim",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/onboarding",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/installation",
+   "viewport": "desktop",
+   "baseline": "onboarding__installation",
+   "production": "onboarding__installation",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/installation",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/domain-setup",
+   "viewport": "desktop",
+   "baseline": "onboarding__domain-setup",
+   "production": "onboarding__domain-setup",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/domain-setup",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/handoff",
+   "viewport": "desktop",
+   "baseline": "onboarding__handoff",
+   "production": "onboarding__handoff",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/handoff",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/login",
+   "viewport": "desktop",
+   "baseline": "onboarding__login",
+   "production": "onboarding__login",
+   "prodUrl": "http://127.0.0.1:3100/auth/login",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/verify",
+   "viewport": "desktop",
+   "baseline": "onboarding__verify",
+   "production": "onboarding__verify",
+   "prodUrl": "http://127.0.0.1:3100/auth/verify",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/recover",
+   "viewport": "desktop",
+   "baseline": "onboarding__recover",
+   "production": "onboarding__recover",
+   "prodUrl": "http://127.0.0.1:3100/auth/forgot-password",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/reset-password",
+   "viewport": "desktop",
+   "baseline": "onboarding__reset-password",
+   "production": "onboarding__reset-password",
+   "prodUrl": "http://127.0.0.1:3100/auth/reset-password",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/server",
+   "viewport": "desktop",
+   "baseline": "server-admin",
+   "production": "server",
+   "prodUrl": "http://127.0.0.1:3100/server",
+   "diffRatio": 0.00013,
+   "diffPixels": 480,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/server/services",
+   "viewport": "desktop",
+   "baseline": "service-center",
+   "production": "server__services",
+   "prodUrl": "http://127.0.0.1:3100/server/services",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/website",
+   "viewport": "desktop",
+   "baseline": "website-owner",
+   "production": "website",
+   "prodUrl": "http://127.0.0.1:3100/website",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/developer",
+   "viewport": "desktop",
+   "baseline": "developer",
+   "production": "developer",
+   "prodUrl": "http://127.0.0.1:3100/developer",
+   "diffRatio": 0,
+   "diffPixels": 0,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/audit",
+   "viewport": "desktop",
+   "baseline": "capability-audit",
+   "production": "audit",
+   "prodUrl": "http://127.0.0.1:3100/audit",
+   "diffRatio": 0.00245,
+   "diffPixels": 4315,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/",
+   "viewport": "mobile",
+   "baseline": "index",
+   "production": "index",
+   "prodUrl": "http://127.0.0.1:3100/",
+   "diffRatio": 0,
+   "diffPixels": 4,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/login",
+   "viewport": "mobile",
+   "baseline": "authentication__login",
+   "production": "auth__login",
+   "prodUrl": "http://127.0.0.1:3100/auth/login",
+   "diffRatio": 0.00005,
+   "diffPixels": 22,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/verify",
+   "viewport": "mobile",
+   "baseline": "authentication__verify",
+   "production": "auth__verify",
+   "prodUrl": "http://127.0.0.1:3100/auth/verify",
+   "diffRatio": 0.00005,
+   "diffPixels": 22,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/forgot-password",
+   "viewport": "mobile",
+   "baseline": "authentication__forgot-password",
+   "production": "auth__forgot-password",
+   "prodUrl": "http://127.0.0.1:3100/auth/forgot-password",
+   "diffRatio": 0.00005,
+   "diffPixels": 22,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/check-email",
+   "viewport": "mobile",
+   "baseline": "authentication__check-email",
+   "production": "auth__check-email",
+   "prodUrl": "http://127.0.0.1:3100/auth/check-email",
+   "diffRatio": 0.00005,
+   "diffPixels": 22,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/email-recovery",
+   "viewport": "mobile",
+   "baseline": "authentication__email-recovery",
+   "production": "auth__email-recovery",
+   "prodUrl": "http://127.0.0.1:3100/auth/email-recovery",
+   "diffRatio": 0.00006,
+   "diffPixels": 25,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/server-recovery",
+   "viewport": "mobile",
+   "baseline": "authentication__server-recovery",
+   "production": "auth__server-recovery",
+   "prodUrl": "http://127.0.0.1:3100/auth/server-recovery",
+   "diffRatio": 0.00004,
+   "diffPixels": 22,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/reset-password",
+   "viewport": "mobile",
+   "baseline": "authentication__reset-password",
+   "production": "auth__reset-password",
+   "prodUrl": "http://127.0.0.1:3100/auth/reset-password",
+   "diffRatio": 0.00005,
+   "diffPixels": 25,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/reset-success",
+   "viewport": "mobile",
+   "baseline": "authentication__reset-success",
+   "production": "auth__reset-success",
+   "prodUrl": "http://127.0.0.1:3100/auth/reset-success",
+   "diffRatio": 0.00006,
+   "diffPixels": 23,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/auth/login-success",
+   "viewport": "mobile",
+   "baseline": "authentication__login-success",
+   "production": "auth__login-success",
+   "prodUrl": "http://127.0.0.1:3100/auth/login-success",
+   "diffRatio": 0.00006,
+   "diffPixels": 23,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding",
+   "viewport": "mobile",
+   "baseline": "onboarding",
+   "production": "onboarding",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/administrator",
+   "diffRatio": 0.00002,
+   "diffPixels": 12,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/administrator",
+   "viewport": "mobile",
+   "baseline": "onboarding__administrator",
+   "production": "onboarding__administrator",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/administrator",
+   "diffRatio": 0.00002,
+   "diffPixels": 12,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/mfa",
+   "viewport": "mobile",
+   "baseline": "onboarding__mfa",
+   "production": "onboarding__mfa",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/mfa",
+   "diffRatio": 0.00002,
+   "diffPixels": 13,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/recovery-codes",
+   "viewport": "mobile",
+   "baseline": "onboarding__recovery-codes",
+   "production": "onboarding__recovery-codes",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/recovery-codes",
+   "diffRatio": 0.00002,
+   "diffPixels": 13,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/access-address",
+   "viewport": "mobile",
+   "baseline": "onboarding__access-address",
+   "production": "onboarding__access-address",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/access-address",
+   "diffRatio": 0.00002,
+   "diffPixels": 14,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/setup-complete",
+   "viewport": "mobile",
+   "baseline": "onboarding__setup-complete",
+   "production": "onboarding__setup-complete",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/setup-complete",
+   "diffRatio": 0.00002,
+   "diffPixels": 12,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/claim",
+   "viewport": "mobile",
+   "baseline": "onboarding__claim",
+   "production": "onboarding__claim",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/onboarding",
+   "diffRatio": 0.00002,
+   "diffPixels": 12,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/installation",
+   "viewport": "mobile",
+   "baseline": "onboarding__installation",
+   "production": "onboarding__installation",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/installation",
+   "diffRatio": 0.00003,
+   "diffPixels": 26,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/domain-setup",
+   "viewport": "mobile",
+   "baseline": "onboarding__domain-setup",
+   "production": "onboarding__domain-setup",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/domain-setup",
+   "diffRatio": 0.00002,
+   "diffPixels": 14,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/handoff",
+   "viewport": "mobile",
+   "baseline": "onboarding__handoff",
+   "production": "onboarding__handoff",
+   "prodUrl": "http://127.0.0.1:3100/onboarding/handoff",
+   "diffRatio": 0.00005,
+   "diffPixels": 26,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/login",
+   "viewport": "mobile",
+   "baseline": "onboarding__login",
+   "production": "onboarding__login",
+   "prodUrl": "http://127.0.0.1:3100/auth/login",
+   "diffRatio": 0.00005,
+   "diffPixels": 22,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/verify",
+   "viewport": "mobile",
+   "baseline": "onboarding__verify",
+   "production": "onboarding__verify",
+   "prodUrl": "http://127.0.0.1:3100/auth/verify",
+   "diffRatio": 0.00005,
+   "diffPixels": 22,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/recover",
+   "viewport": "mobile",
+   "baseline": "onboarding__recover",
+   "production": "onboarding__recover",
+   "prodUrl": "http://127.0.0.1:3100/auth/forgot-password",
+   "diffRatio": 0.00005,
+   "diffPixels": 22,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/onboarding/reset-password",
+   "viewport": "mobile",
+   "baseline": "onboarding__reset-password",
+   "production": "onboarding__reset-password",
+   "prodUrl": "http://127.0.0.1:3100/auth/reset-password",
+   "diffRatio": 0.00005,
+   "diffPixels": 25,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/server",
+   "viewport": "mobile",
+   "baseline": "server-admin",
+   "production": "server",
+   "prodUrl": "http://127.0.0.1:3100/server",
+   "diffRatio": 0.00004,
+   "diffPixels": 92,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/server/services",
+   "viewport": "mobile",
+   "baseline": "service-center",
+   "production": "server__services",
+   "prodUrl": "http://127.0.0.1:3100/server/services",
+   "diffRatio": 0,
+   "diffPixels": 1,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/website",
+   "viewport": "mobile",
+   "baseline": "website-owner",
+   "production": "website",
+   "prodUrl": "http://127.0.0.1:3100/website",
+   "diffRatio": 0,
+   "diffPixels": 3,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/developer",
+   "viewport": "mobile",
+   "baseline": "developer",
+   "production": "developer",
+   "prodUrl": "http://127.0.0.1:3100/developer",
+   "diffRatio": 0,
+   "diffPixels": 3,
+   "verdict": "PASS"
+  },
+  {
+   "route": "/audit",
+   "viewport": "mobile",
+   "baseline": "capability-audit",
+   "production": "audit",
+   "prodUrl": "http://127.0.0.1:3100/audit",
+   "diffRatio": 0.00579,
+   "diffPixels": 4328,
+   "verdict": "PASS-CHART-TOLERANCE"
+  }
+ ]
+}
