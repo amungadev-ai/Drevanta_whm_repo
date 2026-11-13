@@ -22,21 +22,35 @@ type VerbMapping struct {
 	Arguments func(intent operations.Intent) (json.RawMessage, error)
 }
 
-// DefaultMappings maps the currently enabled action vocabulary (extended per
-// domain wave as allowlist entries freeze).
+// passthroughArgs forwards the intent's typed arguments to the helper verb;
+// the helper validates the exact schema and rejects extras before effects.
+func passthroughArgs(i operations.Intent) (json.RawMessage, error) {
+	if len(i.Arguments) == 0 {
+		return json.RawMessage(`{}`), nil
+	}
+	raw, err := json.Marshal(i.Arguments)
+	if err != nil {
+		return nil, err
+	}
+	return raw, nil
+}
+
+func emptyArgs(i operations.Intent) (json.RawMessage, error) { return json.RawMessage(`{}`), nil }
+
+// DefaultMappings maps the enabled action vocabulary (extended per domain
+// wave as allowlist entries freeze).
 var DefaultMappings = map[string]VerbMapping{
-	"host.inspect": {
-		Verb: "host.inspect",
-		Arguments: func(i operations.Intent) (json.RawMessage, error) {
-			return json.RawMessage(`{}`), nil
-		},
-	},
-	"host.update": {
-		Verb: "host.preflight",
-		Arguments: func(i operations.Intent) (json.RawMessage, error) {
-			return json.RawMessage(`{}`), nil
-		},
-	},
+	"host.inspect":                {Verb: "host.inspect", Arguments: emptyArgs},
+	"host.update":                 {Verb: "host.preflight", Arguments: emptyArgs},
+	"file.write":                  {Verb: "file.apply", Arguments: passthroughArgs},
+	"database.provision":          {Verb: "database.apply", Arguments: passthroughArgs},
+	"sftp.grant":                  {Verb: "sftp.apply", Arguments: passthroughArgs},
+	"vhost.apply":                 {Verb: "vhost.apply", Arguments: passthroughArgs},
+	"domain.bind":                 {Verb: "vhost.apply", Arguments: passthroughArgs},
+	"runtime.toolchain.configure": {Verb: "toolchain.apply", Arguments: passthroughArgs},
+	"runtime.configure":           {Verb: "toolchain.apply", Arguments: passthroughArgs},
+	"module.install":              {Verb: "module.apply", Arguments: passthroughArgs},
+	"backup.restore":              {Verb: "backup.apply", Arguments: passthroughArgs},
 }
 
 // VerbExecutor implements jobs.Executor over the helper client.
@@ -53,7 +67,14 @@ func (e *VerbExecutor) Execute(ctx context.Context, op *operations.Operation, fe
 	if !ok {
 		return "", "", nil, fmt.Errorf("no helper verb mapped for action %s", op.ActionID)
 	}
-	args, err := m.Arguments(operations.Intent{ActionID: op.ActionID})
+	// The canonical intent payload carries the typed arguments.
+	var intent operations.Intent
+	if op.Payload != "" {
+		if err := json.Unmarshal([]byte(op.Payload), &intent); err != nil {
+			return "failed", `{"safe_reason":"intent payload unparsable"}`, nil, nil
+		}
+	}
+	args, err := m.Arguments(intent)
 	if err != nil {
 		return "failed", `{"safe_reason":"argument build failed"}`, nil, nil
 	}
@@ -87,8 +108,18 @@ func (e *VerbExecutor) Execute(ctx context.Context, op *operations.Operation, fe
 	obs, _ := json.Marshal(map[string]any{
 		"verb":        m.Verb,
 		"journal_id":  res.JournalID,
+		"outcome":     res.Outcome,
 		"observation": json.RawMessage(res.Observation),
 	})
+	// The journaled effect verdict governs the operation outcome (profile:
+	// verified success carries observed generation; verified failure is a
+	// known postcondition, not a protocol error).
+	if res.Outcome == "failed" {
+		return "failed", string(obs), nil, nil
+	}
+	if res.Outcome != "" && res.Outcome != "succeeded" {
+		return "uncertain", string(obs), nil, nil
+	}
 	gen := op.ExpectedGeneration + 1
 	return "succeeded", string(obs), &gen, nil
 }
