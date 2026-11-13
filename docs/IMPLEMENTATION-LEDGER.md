@@ -175,6 +175,21 @@ release-readiness report states exactly which gates remain FAIL/BLOCKED/NOT_RUN.
 | Observability (OBS-01) | observations, latest-per-name, notifications | metrics sampler worker, status pages |
 | Backups (WEB-09) | manifests (digest+key+schema), verify+key restore gates | encrypted backup creation + isolated restore drill (G50) |
 
+## Frontend directive wave (2026-11-13, DEC-020/DEC-021)
+
+| Directive deliverable | Disposition | Artifact |
+| --- | --- | --- |
+| §4.1 Prototype inventory | VERIFIED | docs/ui/PROTOTYPE-INVENTORY.md + inventory.json (31 pages = 31 register screens, 13 CSS, 10 JS, 71 digests, mock-data/control accounting) |
+| §10.1 Framework comparison + recommendation | SUBMITTED FOR APPROVAL | docs/ui/FRAMEWORK-EVALUATION.md → SvelteKit+TS (DEC-020) |
+| §10.3 Migration map | DONE (framework-agnostic) | docs/ui/MIGRATION-MAP.md (31 routes, shared components, sequencing, control coverage) |
+| §4.3 Screenshot baseline | VERIFIED — 62 captures, 0 failures | docs/ui/baseline/ (desktop 1440×900 + mobile 375×812, full-page, manifest with console errors + navigation structure); harness tools/ui-baseline/capture.js; BLK-003 gap closed for baseline capture |
+| §10.4 Fidelity verification plan | DONE | docs/ui/FIDELITY-PLAN.md (gates G1–G9, pixelmatch tolerances, honest-accounting rules) |
+| §10.5/§10.6 Architecture + deployment plan | DONE (pending framework approval) | docs/ui/FRONTEND-ARCHITECTURE.md (typed API client, cookie sessions, intent pipeline + operation tracker, nginx-integrated single-installation deployment, upgrade/rollback) |
+| §7 Backend protection | RESPECTED — zero backend changes made for the frontend directive; Go/SQLite/helper/tests unchanged | git diff scope |
+| §9 Independent work continues | see domain waves (a15c8cd) + web-server drill below | ledger |
+
+Migration implementation: **NOT STARTED — blocked on DEC-020 owner approval** (per directive §3/§10).
+
 ## Requirement → implementation traceability
 
 Ledger rows for all 72 requirements (`spec/specification/registers/requirements.csv`) and 47
