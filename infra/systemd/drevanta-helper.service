@@ -1,0 +1,19 @@
+# Drevanta privileged host helper (DEC-003: root-owned, local socket only).
+[Unit]
+Description=Drevanta privileged host helper
+Before=drevanta-panel.service
+
+[Service]
+Type=simple
+# Runs as root by necessity (host administration trust boundary); authority is
+# bounded by the root-owned typed allowlist and peer-credential checks.
+ExecStartPre=/usr/bin/install -d -o root -g drevanta -m 0750 /run/drevanta
+ExecStart=/opt/drevanta/bin/helper -socket /run/drevanta/helper.sock -policy /etc/drevanta/helper-policy.json -db /var/lib/drevanta/helper.db -migrations /opt/drevanta/migrations -installation ${DREVANTA_INSTALLATION_ID} -panel-uid ${DREVANTA_PANEL_UID} -socket-group ${DREVANTA_SOCKET_GROUP}
+Environment=DREVANTA_INSTALLATION_ID=
+Environment=DREVANTA_PANEL_UID=0
+Environment=DREVANTA_SOCKET_GROUP=drevanta
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

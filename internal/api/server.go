@@ -50,6 +50,7 @@ func (s *Server) Handler() http.Handler {
 	protected.HandleFunc("GET /api/v1/scopes/{scopeID}/api-keys", s.handleListAPIKeys)
 	protected.HandleFunc("DELETE /api/v1/scopes/{scopeID}/api-keys/{keyID}", s.handleRevokeAPIKey)
 	protected.HandleFunc("POST /api/v1/scopes/{scopeID}/schedules", s.handleArmSchedule)
+	protected.HandleFunc("POST /api/v1/scopes/{scopeID}/resources", s.handleCreateResource)
 	protected.HandleFunc("POST /api/v1/scopes/{scopeID}/schedules/{scheduleID}/pause", s.handlePauseSchedule)
 	protected.HandleFunc("POST /api/v1/install/address", s.handleInstallAddress)
 

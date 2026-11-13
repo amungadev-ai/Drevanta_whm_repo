@@ -142,7 +142,7 @@ func TestHostAgentSocketIntegration(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go func() {
-		_ = reg.Serve(ctx, socket)
+		_ = reg.Serve(ctx, socket, "")
 	}()
 	deadline := time.Now().Add(2 * time.Second)
 	for time.Now().Before(deadline) {

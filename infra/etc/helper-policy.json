@@ -1,0 +1,7 @@
+{
+  "verbs": {
+    "host.inspect":   ["*"],
+    "host.preflight": ["*"],
+    "unit.apply":     ["*"]
+  }
+}

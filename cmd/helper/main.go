@@ -28,17 +28,18 @@ func main() {
 	migDir := flag.String("migrations", envOr("DREVANTA_MIGRATIONS", "./migrations"), "migrations directory")
 	installID := flag.String("installation", envOr("DREVANTA_INSTALLATION_ID", ""), "installation binding")
 	panelUID := flag.Int("panel-uid", envOrInt("DREVANTA_PANEL_UID", 0), "allowed peer UID (panel service user)")
+	socketGroup := flag.String("socket-group", envOr("DREVANTA_SOCKET_GROUP", ""), "group ownership for the socket file (panel group)")
 	flag.Parse()
 
 	if *installID == "" {
 		log.Fatal("helper: installation binding required")
 	}
-	if err := run(*socket, *policy, *dbPath, *migDir, *installID, *panelUID); err != nil {
+	if err := run(*socket, *policy, *dbPath, *migDir, *installID, *panelUID, *socketGroup); err != nil {
 		log.Fatalf("helper: %v", err)
 	}
 }
 
-func run(socket, policyPath, dbPath, migDir, installID string, panelUID int) error {
+func run(socket, policyPath, dbPath, migDir, installID string, panelUID int, socketGroup string) error {
 	if err := os.MkdirAll(dirOf(dbPath), 0o750); err != nil {
 		return err
 	}
@@ -65,8 +66,8 @@ func run(socket, policyPath, dbPath, migDir, installID string, panelUID int) err
 
 	ctx, cancel = signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
-	log.Printf("helper: serving on %s (installation=%s policy=%s)", socket, installID, policyPath)
-	return registry.Serve(ctx, socket)
+	log.Printf("helper: serving on %s (installation=%s policy=%s group=%s)", socket, installID, policyPath, socketGroup)
+	return registry.Serve(ctx, socket, socketGroup)
 }
 
 // runUnitApply performs the systemd transition via systemctl (typed, bound).
