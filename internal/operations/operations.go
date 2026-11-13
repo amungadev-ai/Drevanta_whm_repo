@@ -275,7 +275,9 @@ func (e *Engine) DispatchGuard(ctx context.Context, opID string, leaseUntil time
 	if err != nil {
 		return 0, err
 	}
-	if op.State != "accepted" && op.State != "scheduled" {
+	// 'dispatched' is allowed: re-dispatch after lease expiry is the crash
+	// reconciliation path (fence increments, effect idempotence required).
+	if op.State != "accepted" && op.State != "scheduled" && op.State != "dispatched" {
 		return 0, ErrConflict
 	}
 	if err := reauthorize(ctx, op); err != nil {

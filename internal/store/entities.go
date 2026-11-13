@@ -196,12 +196,15 @@ func (d *DB) RevokeMembership(ctx context.Context, principalID, workspaceID, rol
 // CreateResource inserts a resource at generation 0.
 func (d *DB) CreateResource(ctx context.Context, scopeID, hostID, typ, name string) (*Resource, error) {
 	r := &Resource{
-		ResourceID: NewID("res"),
-		ScopeID:    scopeID,
-		HostID:     hostID,
-		Type:       typ,
-		Name:       name,
-		CreatedAt:  Now(),
+		ResourceID:         NewID("res"),
+		ScopeID:            scopeID,
+		HostID:             hostID,
+		Type:               typ,
+		DesiredGeneration:  0,
+		ObservedGeneration: 0,
+		OwnerRevision:      1,
+		Name:               name,
+		CreatedAt:          Now(),
 	}
 	_, err := d.ExecContext(ctx,
 		`INSERT INTO resource(resource_id, scope_id, host_id, type, desired_generation, observed_generation, owner_revision, name, created_at)

@@ -25,7 +25,7 @@ in `docs/TEST-RESULTS.md`. Release-level completion additionally requires the G5
 | G10 | Architecture, data and baseline security | 03, 04, 05 | IN_PROGRESS | W-G10 |
 | G20 | Installer, host privilege and compatibility | 06, 07, 08 | NOT_STARTED | W-G20 |
 | G21 | Identity and permission enforcement | 17, 18 | IN_PROGRESS | W-G21 |
-| G22 | Durability, contracts and integrations | 22, 23 | NOT_STARTED | W-G22 |
+| G22 | Durability, contracts and integrations | 22, 23 | IN_PROGRESS | W-G22 |
 | G30 | Networking, web server and runtimes | 09, 10, 11 | NOT_STARTED | W-G30 |
 | G31 | Files, data services and recovery | 13, 14 | NOT_STARTED | W-G31 |
 | G32 | Website and application lifecycle | 12 | NOT_STARTED | W-G32 |
@@ -105,10 +105,25 @@ Semantics decisions recorded (pending owner ratification alongside DEC-004/DEC-0
 - Recovery token delivery via Mailer seam; LogMailer default (challenge issued, no delivery)
   until SMTP config (G34). Tokens never appear in logs/responses/audit.
 
-## W-G22 · Durability, contracts and integrations (planned)
+## W-G22 · Durability, contracts and integrations
 
-Worker crash reconciliation, outbox delivery, API key auth, external SSO hooks, webhooks,
-cron/schedules, envelope schemas frozen as JSON Schema + Go types.
+| Item | Disposition | Code | Tests | Evidence |
+| --- | --- | --- | --- | --- |
+| Durable job worker (claim, lease, dispatch, observe, terminal CAS) | VERIFIED | `internal/jobs` | TestWorkerSucceedsWithObservation | TEST-RESULTS G22 row |
+| Crash reconciliation (expired lease re-dispatch, monotonic fences, journaled observation) | VERIFIED | `internal/jobs` | TestWorkerCrashReconciliationReleasesLease | TEST-RESULTS G22 row |
+| Outcome taxonomy (failed; uncertain blocks unsafe retry) | VERIFIED | `internal/jobs` | TestWorkerFailedAndUncertainOutcomes | TEST-RESULTS G22 row |
+| Dispatch recheck through worker (revoked actor cancels) | VERIFIED | `internal/jobs` | TestWorkerRevokedActorCancelled | TEST-RESULTS G22 row |
+| API keys (issue-once, scope-pinned, revoke-deny) | VERIFIED | `internal/jobs/apikeys.go`, `internal/api/handlers_keys.go` | TestAPIKeyLifecycleScopePinning | TEST-RESULTS G22 row |
+| Interval schedules (arm, fire-once, coalesce, owner-bound ops) | VERIFIED (core) | `internal/jobs/apikeys.go`, `internal/api/handlers_keys.go` | TestScheduleArmsFiresAndCoalesces | TEST-RESULTS G22 row |
+| Outbox delivery to external endpoints (webhooks) | NOT_STARTED | — | — | INT-01 external contracts need owner ruling (DEC-016 scope rows) |
+| Cron-expression schedules | NOT_STARTED | — | — | WEB-08 contract freeze pending |
+| Envelope schemas as published JSON Schema | PARTIAL | Go types are the frozen wire contract | contract suite | publish step in G50 |
+
+Semantics decisions recorded (pending owner ratification alongside DEC-009):
+- Schedule ticks advance the row before accepting the operation: missed ticks coalesce, never
+  double-fire; scheduled operations run as the schedule's owning principal with full predicates.
+- Interval (every_seconds) schedules implemented as the WEB-08 core; cron expressions are a
+  follow-up increment under the same registry.
 
 ## W-G30/G31/G32/G33/G34/G35 (planned)
 
