@@ -14,9 +14,12 @@ echo "== go build"
 go build ./...
 
 echo "== secret redaction scan (staged/tracked files)"
-# Crude but effective: fail on obvious credential artifacts ever entering the tree.
-if git ls-files -z | xargs -0 grep -lE 'ghp_[A-Za-z0-9]{20,}|UGaPmN3Kss9ZrEOH|BEGIN (RSA|OPENSSH) PRIVATE KEY' 2>/dev/null; then
-  echo "SECRET MATERIAL DETECTED in tracked files — refusing"
+# Fail on obvious credential artifacts ever entering the tree: GitHub token
+# prefixes, generic long bearer tokens in .env-like files, private keys.
+leaks=$(git ls-files -z | xargs -0 grep -lE 'ghp_[A-Za-z0-9]{20,}|gho_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|-----BEGIN (RSA|OPENSSH|EC) PRIVATE KEY-----|(?i)password\s*=\s*[A-Za-z0-9]{16,}' 2>/dev/null || true)
+if [ -n "$leaks" ]; then
+  echo "SECRET MATERIAL DETECTED in tracked files — refusing:"
+  echo "$leaks"
   exit 1
 fi
 

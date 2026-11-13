@@ -18,10 +18,11 @@ for an unexecuted case.** Baseline truth: 744 parametrized cases in
 
 | Suite | Layer | First commit | Latest result | Commit |
 | --- | --- | --- | --- | --- |
+| G10 contract suite (11 tests: unknown-field 422, stale-generation 412, hidden-resource 404, stable replay, altered replay 409, revoked replay 403, 401 taxonomy, me/workspaces, operation visibility/concealment, audit allow+deny, MFA login lifecycle) | API integration (httptest, isolated per-test SQLite) | this commit | PASS (11/11) | see git log |
 
-(Environment coverage: unit + isolated integration locally; API/security/tenant-isolation via
+Environment coverage: unit + isolated integration locally; API/security/tenant-isolation via
 httptest; browser via VPS test environment; VPS lifecycle/backup/upgrade/rollback on disposable
-VPS targets per graph G20+.)
+VPS targets per graph G20+. CI adds `-race`.
 
 ## Registration protocol
 
