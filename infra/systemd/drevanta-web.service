@@ -1,0 +1,35 @@
+# Drevanta production frontend (SvelteKit adapter-node) — systemd unit.
+# Part of the coherent single installation: nginx vhost proxies /api/v1 to
+# the Go panel (127.0.0.1:8080) and everything else to this service.
+# Upgrade: replace /opt/drevanta-web/build (digest-verified artifact) and
+# restart; rollback: restore the previous build directory and restart.
+[Unit]
+Description=Drevanta console frontend (SvelteKit adapter-node)
+After=network.target drevanta-panel.service
+Wants=drevanta-panel.service
+
+[Service]
+Type=simple
+User=drevanta-web
+Group=drevanta-web
+WorkingDirectory=/opt/drevanta-web
+Environment=NODE_ENV=production
+Environment=PORT=3100
+Environment=HOST=127.0.0.1
+# Go control plane (BFF proxy target; the bearer token never leaves this host)
+Environment=GO_API_URL=http://127.0.0.1:8080
+Environment=ORIGIN=https://panel.drevanta.test
+ExecStart=/usr/bin/node build/index.js
+Restart=on-failure
+RestartSec=3
+# Resource discipline on a shared hosting VPS (directive section 8)
+MemoryMax=512M
+MemoryHigh=384M
+CPUQuota=50%
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

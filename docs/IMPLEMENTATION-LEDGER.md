@@ -188,7 +188,7 @@ release-readiness report states exactly which gates remain FAIL/BLOCKED/NOT_RUN.
 | §7 Backend protection | RESPECTED — zero backend changes made for the frontend directive; Go/SQLite/helper/tests unchanged | git diff scope |
 | §9 Independent work continues | see domain waves (a15c8cd) + web-server drill below | ledger |
 
-Migration implementation: **NOT STARTED — blocked on DEC-020 owner approval** (per directive §3/§10).
+Migration implementation: **DEC-020 APPROVED 2026-11-13 — Stage-1 EXECUTED** (commits facd209, 13954b7): SvelteKit+TS production frontend, 29 routes covering all 31 approved pages, fidelity 58/58 within tolerance, auth e2e 11/11, deployment drill PASS; Stage-2 componentization backlog in docs/ui/MIGRATION-LEDGER.md.
 
 ## Requirement → implementation traceability
 

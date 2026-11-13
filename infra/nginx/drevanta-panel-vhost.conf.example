@@ -1,0 +1,27 @@
+# Drevanta panel vhost — one coherent installation (directive section 8).
+# Managed include for /etc/drevanta/vhosts/. TLS terminated here
+# (certificate issuance per DEC-014 wave); this example listens on 80.
+server {
+	listen 80;
+	server_name panel.drevanta.test;   # replaced with the configured access address
+
+	# Go control plane keeps its own contract surface
+	location /api/v1/ {
+		proxy_pass http://127.0.0.1:8080;
+		proxy_http_version 1.1;
+		proxy_set_header Host $host;
+		proxy_set_header X-Forwarded-For $remote_addr;
+		proxy_set_header X-Forwarded-Proto $scheme;
+		proxy_read_timeout 30s;
+	}
+
+	# Production console frontend (SvelteKit adapter-node BFF)
+	location / {
+		proxy_pass http://127.0.0.1:3100;
+		proxy_http_version 1.1;
+		proxy_set_header Host $host;
+		proxy_set_header X-Forwarded-For $remote_addr;
+		proxy_set_header X-Forwarded-Proto $scheme;
+		proxy_read_timeout 30s;
+	}
+}
