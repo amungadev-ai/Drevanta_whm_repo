@@ -23,7 +23,7 @@ in `docs/TEST-RESULTS.md`. Release-level completion additionally requires the G5
 | --- | --- | --- | --- | --- |
 | G00 | Scope, source, UX and decision freeze | 01, 02 | IN_PROGRESS | W-G00 |
 | G10 | Architecture, data and baseline security | 03, 04, 05 | IN_PROGRESS | W-G10 |
-| G20 | Installer, host privilege and compatibility | 06, 07, 08 | NOT_STARTED | W-G20 |
+| G20 | Installer, host privilege and compatibility | 06, 07, 08 | IN_PROGRESS | W-G20 |
 | G21 | Identity and permission enforcement | 17, 18 | IN_PROGRESS | W-G21 |
 | G22 | Durability, contracts and integrations | 22, 23 | IN_PROGRESS | W-G22 |
 | G30 | Networking, web server and runtimes | 09, 10, 11 | NOT_STARTED | W-G30 |
@@ -79,11 +79,26 @@ Semantics decisions recorded (pending owner ratification alongside DEC-004/DEC-0
 - Idempotency TTL 24h; session TTL 24h; challenge TTL 30m — fixture defaults (DEC-018), not
   operating limits.
 
-## W-G20 · Installer, host privilege and compatibility (planned)
+## W-G20 · Installer, host privilege and compatibility
 
-Installer (claim token, bootstrap, administrator enrollment, recovery codes, access address),
-helper protocol implementation (peer proof, typed allowlist, fences, journals), OS compatibility
-preflight (single apt/systemd tuple: Debian-family), host health/packages/services verbs.
+| Item | Disposition | Code | Tests | Evidence |
+| --- | --- | --- | --- | --- |
+| Installation claim (token scoped to installation, expiring, hashed storage, atomic consume with owner creation) | VERIFIED | `internal/install`, `internal/api/handlers_install.go` | TestInstallerLifecycle | TEST-RESULTS G20 rows |
+| Interrupted-setup checkpoints + resume (status checkpoint; claim replay denied) | VERIFIED | `internal/install` | TestInstallerLifecycle | TEST-RESULTS G20 rows |
+| Access address setup + verification checkpoint | VERIFIED (write path; DNS/HTTPS probe = DEC-014 work) | `internal/install` | TestInstallerLifecycle | TEST-RESULTS G20 rows |
+| Privileged helper: local Unix socket, peer-credential check, root-owned policy file (runtime reload), typed verbs, strict request schema | VERIFIED | `internal/helper`, `cmd/helper` | helper suite | TEST-RESULTS G20 rows |
+| Host fixtures 7–10 (wrong host, stale fence, lost reply, changed digest) | VERIFIED | `internal/helper` | TestWrongHost/StaleFence/LostReply/ChangedDigest | TEST-RESULTS G20 rows |
+| Built-in verbs: host.inspect, host.preflight (fail-closed OS tuple check), unit.apply (root-owned bindings; no raw unit names/shell) | VERIFIED (inspect/preflight full; unit.apply logic tested via typed-arg discipline) | `internal/helper/verbs.go` | helper suite | TEST-RESULTS G20 rows |
+| Panel↔helper wire integration (real socket, replay identity) | VERIFIED | `internal/hostagent`, `internal/helper` | TestHostAgentSocketIntegration | TEST-RESULTS G20 rows |
+| Intent→dispatch→helper bridge (host verbs through operations engine) | VERIFIED | `internal/api`, `internal/operations` | TestIntentToHelperFlow | TEST-RESULTS G20 rows |
+| VPS matrix drills (clean/repeat/interrupted install, firewall/SSH rollback, reboot convergence) | NOT_STARTED | — | — | G50; requires disposable VPS targets + systemd service units |
+| Package/service management verbs breadth (package.apply, vhost.apply, …) | NOT_STARTED | — | — | G30 domain waves extend the allowlist |
+
+Semantics decisions recorded (pending owner ratification alongside DEC-003/DEC-005):
+- Replay-before-fence ordering with fence-aware replay: a retry repeats the same fence and
+  receives the journaled observation; an older fence rejects as stale (profile fixtures 8/9).
+- Helper policy supports target binding per verb ("*" in dev policy; production binds host IDs).
+- Supported tuples (dev default): ubuntu 24.04/26.04/26.10, debian 12/13 — fails closed otherwise.
 
 ## W-G21 · Identity and permission enforcement
 

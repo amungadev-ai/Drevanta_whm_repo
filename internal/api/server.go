@@ -7,6 +7,7 @@ import (
 	"drevanta/internal/audit"
 	"drevanta/internal/authn"
 	"drevanta/internal/authz"
+	"drevanta/internal/install"
 	"drevanta/internal/operations"
 	"drevanta/internal/store"
 )
@@ -18,6 +19,7 @@ type Server struct {
 	Authz   *authz.Checker
 	Ops     *operations.Engine
 	Audit   *audit.Writer
+	Install *install.Installer
 	Mailer  Mailer           // recovery delivery seam (tests may capture)
 	Clock   func() time.Time // injectable for tests
 	MaxBody int64
@@ -26,7 +28,8 @@ type Server struct {
 // NewServer wires a Server with defaults.
 func NewServer(db *store.DB, authnSvc *authn.Service, checker *authz.Checker, eng *operations.Engine, aw *audit.Writer) *Server {
 	return &Server{DB: db, Authn: authnSvc, Authz: checker, Ops: eng, Audit: aw,
-		Mailer: LogMailer{}, Clock: time.Now, MaxBody: 1 << 20}
+		Install: install.NewInstaller(db, authnSvc),
+		Mailer:  LogMailer{}, Clock: time.Now, MaxBody: 1 << 20}
 }
 
 // Handler builds the full route tree.
@@ -48,12 +51,15 @@ func (s *Server) Handler() http.Handler {
 	protected.HandleFunc("DELETE /api/v1/scopes/{scopeID}/api-keys/{keyID}", s.handleRevokeAPIKey)
 	protected.HandleFunc("POST /api/v1/scopes/{scopeID}/schedules", s.handleArmSchedule)
 	protected.HandleFunc("POST /api/v1/scopes/{scopeID}/schedules/{scheduleID}/pause", s.handlePauseSchedule)
+	protected.HandleFunc("POST /api/v1/install/address", s.handleInstallAddress)
 
 	public := http.NewServeMux()
 	public.HandleFunc("POST /api/v1/identity/login", s.handleLogin)
 	public.HandleFunc("POST /api/v1/identity/mfa", s.handleMFAVerify)
 	public.HandleFunc("POST /api/v1/identity/recover-request", s.handleRecoverRequest)
 	public.HandleFunc("POST /api/v1/identity/recover-confirm", s.handleRecoverConfirm)
+	public.HandleFunc("GET /api/v1/install/status", s.handleInstallStatus)
+	public.HandleFunc("POST /api/v1/install/claim", s.handleInstallClaim)
 
 	// Unknown /api routes fail closed with the taxonomy.
 	catchAll := http.NewServeMux()
@@ -67,6 +73,9 @@ func (s *Server) Handler() http.Handler {
 	root.Handle("/api/v1/identity/logout", s.bodyLimit(s.authenticate(protected)))
 	root.Handle("/api/v1/identity/recovery-codes", s.bodyLimit(s.authenticate(protected)))
 	root.Handle("/api/v1/identity/", s.bodyLimit(public))
+	// Installer routes are public while pending (claim token guards effect).
+	root.Handle("/api/v1/install/status", s.bodyLimit(public))
+	root.Handle("/api/v1/install/claim", s.bodyLimit(public))
 	root.Handle("/api/v1/", s.bodyLimit(s.authenticate(protected)))
 	root.Handle("/api/", catchAll)
 	root.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
