@@ -43,6 +43,8 @@ func (s *Server) Handler() http.Handler {
 	protected.HandleFunc("GET /api/v1/scopes/{scopeID}/audit", s.handleScopeAudit)
 	protected.HandleFunc("POST /api/v1/identity/logout", s.handleLogout)
 	protected.HandleFunc("POST /api/v1/identity/recovery-codes", s.handleRecoveryCodes)
+	protected.HandleFunc("GET /api/v1/identity/mfa/status", s.handleMFAStatus)
+	protected.HandleFunc("POST /api/v1/identity/mfa/enroll", s.handleMFAEnroll)
 	protected.HandleFunc("GET /api/v1/workspaces/{workspaceID}/memberships", s.handleListMemberships)
 	protected.HandleFunc("POST /api/v1/workspaces/{workspaceID}/memberships", s.handleGrantMembership)
 	protected.HandleFunc("DELETE /api/v1/workspaces/{workspaceID}/memberships/{principalID}/{roleID}", s.handleRevokeMembership)
@@ -73,6 +75,8 @@ func (s *Server) Handler() http.Handler {
 	// identity prefix (Go mux precedence: most specific pattern first).
 	root.Handle("/api/v1/identity/logout", s.bodyLimit(s.authenticate(protected)))
 	root.Handle("/api/v1/identity/recovery-codes", s.bodyLimit(s.authenticate(protected)))
+	root.Handle("/api/v1/identity/mfa/status", s.bodyLimit(s.authenticate(protected)))
+	root.Handle("/api/v1/identity/mfa/enroll", s.bodyLimit(s.authenticate(protected)))
 	root.Handle("/api/v1/identity/", s.bodyLimit(public))
 	// Installer routes are public while pending (claim token guards effect).
 	root.Handle("/api/v1/install/status", s.bodyLimit(public))
