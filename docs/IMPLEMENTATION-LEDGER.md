@@ -165,7 +165,7 @@ release-readiness report states exactly which gates remain FAIL/BLOCKED/NOT_RUN.
 | Files (WEB-05) | file.apply verb: site-root confinement, traversal rejection, bounds; intent→worker→helper verified | editor API, archive ops, quota accounting |
 | SFTP (WEB-06) | sftp.apply verb: account create/delete/key with validation | sshd config integration, host drill |
 | Databases (DB-01/02/03) | database.apply verb: provision/grant/revoke/drop via engine bindings; engine absence fails safe | MariaDB/PostgreSQL host drill, Redis optional |
-| Vhosts/TLS (WEB-01/02) | vhost.apply verb: deterministic managed nginx blocks, loopback-only proxy, injection rejection | nginx install drill, TLS issuance (DEC-014) |
+| Vhosts/TLS (WEB-01/02) | vhost.apply verb + **live VPS drill PASSED** (intent → helper → managed nginx conf → reload → HTTP serving) | TLS issuance (DEC-014), nginx service-reload hardening |
 | Runtimes (APP-02/03/04/08) | toolchain.apply mapping registered | per-runtime adapters + matrix (DEC-006) |
 | Site lifecycle (APP-01, MKT-01/02) | template catalog, site installs bound to application resources | template.apply host effect, install drill |
 | Developer (APP-05/06/07) | source connections, builds (digest-bound), environments, CAS promotion + outbox | build isolation executor, release.activate host drill |
