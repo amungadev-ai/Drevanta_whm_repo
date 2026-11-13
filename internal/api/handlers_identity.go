@@ -140,7 +140,7 @@ type membershipItem struct {
 func (s *Server) handleListMemberships(w http.ResponseWriter, r *http.Request) {
 	wsID := r.PathValue("workspaceID")
 	sub := subjectOf(r)
-	if !s.visibilityFor(sub.Principal.PrincipalID, wsID) {
+	if !s.visibility(r, wsID) {
 		writeError(w, http.StatusNotFound, CodeNotFound, "no such workspace")
 		return
 	}
@@ -192,7 +192,7 @@ func (s *Server) handleGrantMembership(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, CodeNotFound, "no such workspace")
 		return
 	}
-	if !s.visibilityFor(sub.Principal.PrincipalID, wsID) {
+	if !s.visibility(r, wsID) {
 		writeError(w, http.StatusNotFound, CodeNotFound, "no such workspace")
 		return
 	}
@@ -289,7 +289,7 @@ func (s *Server) handleRevokeMembership(w http.ResponseWriter, r *http.Request) 
 		writeError(w, http.StatusNotFound, CodeNotFound, "no such workspace")
 		return
 	}
-	if !s.visibilityFor(sub.Principal.PrincipalID, wsID) {
+	if !s.visibility(r, wsID) {
 		writeError(w, http.StatusNotFound, CodeNotFound, "no such workspace")
 		return
 	}

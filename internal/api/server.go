@@ -43,6 +43,11 @@ func (s *Server) Handler() http.Handler {
 	protected.HandleFunc("GET /api/v1/workspaces/{workspaceID}/memberships", s.handleListMemberships)
 	protected.HandleFunc("POST /api/v1/workspaces/{workspaceID}/memberships", s.handleGrantMembership)
 	protected.HandleFunc("DELETE /api/v1/workspaces/{workspaceID}/memberships/{principalID}/{roleID}", s.handleRevokeMembership)
+	protected.HandleFunc("POST /api/v1/scopes/{scopeID}/api-keys", s.handleIssueAPIKey)
+	protected.HandleFunc("GET /api/v1/scopes/{scopeID}/api-keys", s.handleListAPIKeys)
+	protected.HandleFunc("DELETE /api/v1/scopes/{scopeID}/api-keys/{keyID}", s.handleRevokeAPIKey)
+	protected.HandleFunc("POST /api/v1/scopes/{scopeID}/schedules", s.handleArmSchedule)
+	protected.HandleFunc("POST /api/v1/scopes/{scopeID}/schedules/{scheduleID}/pause", s.handlePauseSchedule)
 
 	public := http.NewServeMux()
 	public.HandleFunc("POST /api/v1/identity/login", s.handleLogin)

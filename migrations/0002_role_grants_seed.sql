@@ -108,7 +108,6 @@ INSERT INTO grant_rule(role_id, action_id, resource_type, scope_rule) VALUES
  ('developer.owner','release.certify','release candidate','same_scope'),
  ('developer.owner','environment.clone','environment','same_scope'),
  ('developer.owner','runtime.configure','runtime toolchain','same_scope'),
- ('developer.owner','integration.configure','integration grant','same_scope'),
  ('developer.owner','terminal.open','terminal lease','same_scope'),
  ('developer.owner','audit.read','audit event','same_scope'),
  ('developer.owner','monitor.read','health observation','same_scope'),
@@ -126,3 +125,9 @@ INSERT INTO grant_rule(role_id, action_id, resource_type, scope_rule) VALUES
  ('website.owner','membership.grant','membership','same_scope'),
  ('developer.owner','membership.grant','membership','same_scope'),
  ('server.owner','membership.grant','membership','same_scope');
+
+-- API key administration (phase 23 INT-01) belongs to scope owners.
+INSERT INTO grant_rule(role_id, action_id, resource_type, scope_rule) VALUES
+ ('website.owner','integration.configure','integration grant','same_scope'),
+ ('hosting.owner','integration.configure','integration grant','same_scope'),
+ ('server.owner','integration.configure','integration grant','same_scope');

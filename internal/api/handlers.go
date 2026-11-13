@@ -82,13 +82,12 @@ func (s *Server) handleWorkspaces(w http.ResponseWriter, r *http.Request) {
 // ---- GET /api/v1/resources ----
 
 func (s *Server) handleResources(w http.ResponseWriter, r *http.Request) {
-	sub := subjectOf(r)
 	scopeID := r.URL.Query().Get("scope_id")
 	if scopeID == "" {
 		writeError(w, http.StatusUnprocessableEntity, CodeInvalidInput, "scope_id query parameter required")
 		return
 	}
-	if !s.visibilityFor(sub.Principal.PrincipalID, scopeID) {
+	if !s.visibility(r, scopeID) {
 		writeError(w, http.StatusNotFound, CodeNotFound, "no such scope")
 		return
 	}
@@ -258,7 +257,7 @@ func (s *Server) handleOperation(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleScopeAudit(w http.ResponseWriter, r *http.Request) {
 	scopeID := r.PathValue("scopeID")
 	sub := subjectOf(r)
-	if !s.visibilityFor(sub.Principal.PrincipalID, scopeID) {
+	if !s.visibility(r, scopeID) {
 		writeError(w, http.StatusNotFound, CodeNotFound, "no such scope")
 		return
 	}
