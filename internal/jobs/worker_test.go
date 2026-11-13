@@ -295,3 +295,56 @@ func mustGet(t *testing.T, f *jobsFixture, opID string) *operations.Operation {
 	}
 	return op
 }
+
+// seedPrincipalWorkspace creates an owner with a website workspace.
+func (f *jobsFixture) seedPrincipalWorkspace() (struct {
+	PrincipalID string
+	WorkspaceID string
+}, error) {
+	var out struct {
+		PrincipalID string
+		WorkspaceID string
+	}
+	ctx := context.Background()
+	email := "owner-" + store.NewID("e")[2:10] + "@example.test"
+	p, err := f.db.CreatePrincipal(ctx, email, "Owner")
+	if err != nil {
+		return out, err
+	}
+	if err := f.auth.SetPrimaryPassword(ctx, p.PrincipalID, "Whatever-Long-Password-1!"); err != nil {
+		return out, err
+	}
+	ws, err := f.db.CreateWorkspace(ctx, "website", p.PrincipalID, "ws")
+	if err != nil {
+		return out, err
+	}
+	if err := f.db.AddMembership(ctx, store.Membership{
+		PrincipalID: p.PrincipalID, WorkspaceID: ws.WorkspaceID,
+		RoleID: "website.owner", Revision: 1, State: "active",
+	}); err != nil {
+		return out, err
+	}
+	out.PrincipalID = p.PrincipalID
+	out.WorkspaceID = ws.WorkspaceID
+	return out, nil
+}
+
+// seedResourceIn creates a resource inside the given workspace.
+func (f *jobsFixture) seedResourceIn(workspaceID, typ, name string) *store.Resource {
+	res, err := f.db.CreateResource(context.Background(), workspaceID, "", typ, name)
+	if err != nil {
+		f.t.Fatal(err)
+	}
+	return res
+}
+
+// operationsIntentFor builds a canonical intent for the resource.
+func operationsIntentFor(res *store.Resource, action string, args map[string]any) operations.Intent {
+	return operations.Intent{
+		ActionID:              action,
+		ResourceType:          res.Type,
+		ExpectedOwnerRevision: res.OwnerRevision,
+		ExpectedGeneration:    res.DesiredGeneration,
+		Arguments:             args,
+	}
+}

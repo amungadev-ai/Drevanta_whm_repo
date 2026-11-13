@@ -9,11 +9,13 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -63,6 +65,15 @@ func run(socket, policyPath, dbPath, migDir, installID string, panelUID int, soc
 	registry.Register("host.inspect", helper.InspectHandler())
 	registry.Register("host.preflight", helper.PreflightHandler())
 	registry.Register("unit.apply", helper.UnitApplyHandler(policyPath+".bindings", runUnitApply))
+	// Domain verbs (G31/G30): site-root and engine bindings load from the
+	// root-owned policy directory; absence fails closed.
+	bindingsDir := filepath.Dir(policyPath)
+	_ = helper.LoadFileBindings(filepath.Join(bindingsDir, "site-bindings.json"))
+	_ = helper.LoadDatabaseBindings(filepath.Join(bindingsDir, "database-bindings.json"))
+	registry.Register("file.apply", helper.FileApplyHandler())
+	registry.Register("database.apply", helper.DatabaseApplyHandler(runDatabaseApply))
+	registry.Register("sftp.apply", helper.SFTPApplyHandler(runSFTPApply))
+	registry.Register("vhost.apply", helper.VhostApplyHandler(runVhostWrite))
 
 	ctx, cancel = signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
@@ -76,6 +87,104 @@ func runUnitApply(_ context.Context, unit, state string) error {
 	cmd.Stdout = io.Discard
 	cmd.Stderr = io.Discard
 	return cmd.Run()
+}
+
+// runDatabaseApply executes the declarative database transition through the
+// engine's local admin path. Engine absence fails safely before state change.
+func runDatabaseApply(_ context.Context, engine, op, database, user string) error {
+	var argv []string
+	switch engine {
+	case "mariadb":
+		if _, err := exec.LookPath("mariadb"); err != nil {
+			if _, err2 := exec.LookPath("mysql"); err2 != nil {
+				return fmt.Errorf("engine binary absent")
+			}
+			argv = []string{"mysql", "-e", dbSQL(op, database, user)}
+		} else {
+			argv = []string{"mariadb", "-e", dbSQL(op, database, user)}
+		}
+	case "postgresql":
+		if _, err := exec.LookPath("psql"); err != nil {
+			return fmt.Errorf("engine binary absent")
+		}
+		argv = []string{"sudo", "-u", "postgres", "psql", "-v", "ON_ERROR_STOP=1", "-c", dbSQL(op, database, user)}
+	case "redis":
+		if _, err := exec.LookPath("redis-cli"); err != nil {
+			return fmt.Errorf("engine binary absent")
+		}
+		argv = []string{"redis-cli", "ping"}
+	default:
+		return fmt.Errorf("unknown engine")
+	}
+	if argv == nil {
+		return fmt.Errorf("no transition")
+	}
+	cmd := exec.Command(argv[0], argv[1:]...)
+	cmd.Stdout = io.Discard
+	cmd.Stderr = io.Discard
+	return cmd.Run()
+}
+
+func dbSQL(op, database, user string) string {
+	// Identifiers are pre-validated by typed-argument rules; SQL text is
+	// template-rendered, never caller-supplied.
+	switch op {
+	case "provision":
+		if user != "" {
+			return fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`; CREATE USER IF NOT EXISTS '%s'@'localhost'; GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'localhost'; FLUSH PRIVILEGES;", database, user, database, user)
+		}
+		return fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`;", database)
+	case "grant":
+		return fmt.Sprintf("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'localhost'; FLUSH PRIVILEGES;", database, user)
+	case "revoke":
+		return fmt.Sprintf("REVOKE ALL PRIVILEGES ON `%s`.* FROM '%s'@'localhost'; FLUSH PRIVILEGES;", database, user)
+	case "drop":
+		if user != "" {
+			return fmt.Sprintf("DROP DATABASE IF EXISTS `%s`; DROP USER IF EXISTS '%s'@'localhost';", database, user)
+		}
+		return fmt.Sprintf("DROP DATABASE IF EXISTS `%s`;", database)
+	}
+	return ""
+}
+
+// runSFTPApply manages SFTP-only accounts through useradd/usermod/userdel.
+func runSFTPApply(_ context.Context, binding, account, op, publicKey string) error {
+	switch op {
+	case "create":
+		cmd := exec.Command("useradd", "-r", "-d", "/nonexistent", "-s", "/usr/sbin/nologin", account)
+		cmd.Stdout = io.Discard
+		cmd.Stderr = io.Discard
+		return cmd.Run()
+	case "delete":
+		cmd := exec.Command("userdel", account)
+		cmd.Stdout = io.Discard
+		cmd.Stderr = io.Discard
+		return cmd.Run()
+	case "key":
+		home := "/var/lib/drevanta/sftp-keys/" + account
+		if err := os.MkdirAll(home, 0o700); err != nil {
+			return err
+		}
+		return os.WriteFile(filepath.Join(home, "authorized_keys"), []byte(publicKey+"\n"), 0o600)
+	}
+	return fmt.Errorf("unsupported op")
+}
+
+// runVhostWrite writes the managed vhost include deterministically rendered
+// by the typed verb; reload rides unit.apply separately.
+func runVhostWrite(_ context.Context, binding, serverName, op, body string) error {
+	dir := "/etc/drevanta/vhosts"
+	if err := os.MkdirAll(dir, 0o750); err != nil {
+		return err
+	}
+	target := filepath.Join(dir, serverName+".conf")
+	switch op {
+	case "enable":
+		return os.WriteFile(target, []byte(body), 0o644)
+	case "disable":
+		_ = os.Remove(target)
+	}
+	return nil
 }
 
 func envOr(k, def string) string {

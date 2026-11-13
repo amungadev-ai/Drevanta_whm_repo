@@ -40,8 +40,13 @@ type HostRequest struct {
 }
 
 // HostResult is the single wire response type.
+// HostResult is the single wire response type. Status carries the protocol
+// verdict; Outcome carries the journaled effect verdict (succeeded|failed)
+// per the profile outcome taxonomy — a protocol-ok response whose effect
+// failed must surface "failed", never "succeeded".
 type HostResult struct {
 	Status      string          `json:"status"` // ok | rejected | uncertain
+	Outcome     string          `json:"outcome,omitempty"`
 	SafeReason  string          `json:"safe_reason"`
 	JournalID   string          `json:"journal_id,omitempty"`
 	Observation json.RawMessage `json:"observation,omitempty"`
@@ -189,12 +194,13 @@ func (r *Registry) Process(ctx context.Context, uid int, req HostRequest) HostRe
 	// (profile fixture: lost host reply → one logical effect). A retry
 	// repeats the SAME fence; an OLDER fence means a stale worker and
 	// rejects before effects and finalization.
-	if _, result, jid, jfence, lerr := r.db.Lookup(req.OperationID, req.Digest); lerr == nil {
+	if jout, result, jid, jfence, lerr := r.db.Lookup(req.OperationID, req.Digest); lerr == nil {
 		if req.Fence < jfence {
 			return reject("stale fence")
 		}
 		return HostResult{
 			Status:      "ok",
+			Outcome:     jout,
 			SafeReason:  "journaled observation replayed",
 			JournalID:   jid,
 			Observation: json.RawMessage(result),
@@ -226,12 +232,8 @@ func (r *Registry) Process(ctx context.Context, uid int, req HostRequest) HostRe
 		return HostResult{Status: "uncertain", SafeReason: "journal unavailable; effect state unrecorded",
 			OccurredAt: now.Format(time.RFC3339Nano)}
 	}
-	res := HostResult{Status: "ok", JournalID: jid, Observation: obs,
+	res := HostResult{Status: "ok", Outcome: outcome, JournalID: jid, Observation: obs,
 		OccurredAt: now.Format(time.RFC3339Nano)}
-	if herr != nil {
-		res.Status = "ok" // effect executed and journaled as failed; result carries the failure
-		res.Observation = obs
-	}
 	return res
 }
 
