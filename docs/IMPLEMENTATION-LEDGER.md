@@ -23,15 +23,15 @@ in `docs/TEST-RESULTS.md`. Release-level completion additionally requires the G5
 | --- | --- | --- | --- | --- |
 | G00 | Scope, source, UX and decision freeze | 01, 02 | IN_PROGRESS | W-G00 |
 | G10 | Architecture, data and baseline security | 03, 04, 05 | IN_PROGRESS | W-G10 |
-| G20 | Installer, host privilege and compatibility | 06, 07, 08 | NOT_STARTED | W-G20 |
-| G21 | Identity and permission enforcement | 17, 18 | NOT_STARTED | W-G21 |
-| G22 | Durability, contracts and integrations | 22, 23 | NOT_STARTED | W-G22 |
-| G30 | Networking, web server and runtimes | 09, 10, 11 | NOT_STARTED | W-G30 |
-| G31 | Files, data services and recovery | 13, 14 | NOT_STARTED | W-G31 |
-| G32 | Website and application lifecycle | 12 | NOT_STARTED | W-G32 |
-| G33 | Developer workflows | 15 | NOT_STARTED | W-G33 |
-| G34 | Messaging and commercial hosting | 16, 20 | NOT_STARTED | W-G34 |
-| G35 | Observability and audit | 21 | NOT_STARTED | W-G35 |
+| G20 | Installer, host privilege and compatibility | 06, 07, 08 | IN_PROGRESS | W-G20 |
+| G21 | Identity and permission enforcement | 17, 18 | IN_PROGRESS | W-G21 |
+| G22 | Durability, contracts and integrations | 22, 23 | IN_PROGRESS | W-G22 |
+| G30 | Networking, web server and runtimes | 09, 10, 11 | IN_PROGRESS | W-G30 |
+| G31 | Files, data services and recovery | 13, 14 | IN_PROGRESS | W-G31 |
+| G32 | Website and application lifecycle | 12 | IN_PROGRESS | W-G32 |
+| G33 | Developer workflows | 15 | IN_PROGRESS | W-G33 |
+| G34 | Messaging and commercial hosting | 16, 20 | IN_PROGRESS | W-G34 |
+| G35 | Observability and audit | 21 | IN_PROGRESS | W-G35 |
 | G40 | Four persona runtime UX acceptance | 19 | NOT_STARTED | W-G40 |
 | G50 | Full integration, release and recovery certification | 24 | NOT_STARTED | W-G50 |
 | G60 | Agent evidence and protected-release sign-off | 25 | NOT_STARTED | W-G60 |
@@ -59,31 +59,86 @@ jobs + outbox with leases/fencing), DEC-012 (versioned namespace, canonical sche
 
 | Item | Disposition | Code | Tests | Evidence |
 | --- | --- | --- | --- | --- |
-| Migration framework + schema v1 (17 logical tables) | IN_PROGRESS | `internal/store`, `migrations/0001_core_schema.sql` | `internal/store` | |
-| Canonical JSON + strict field validation | IN_PROGRESS | `internal/api/jsonutil` | `internal/api` | |
-| AuthN: principals, Argon2id credentials, sessions, TOTP MFA, challenges | IN_PROGRESS | `internal/authn` | `internal/authn` | |
-| AuthZ: workspaces, memberships, roles, grants, support leases, deny-by-default | IN_PROGRESS | `internal/authz` | `internal/authz` | |
-| Resource graph + generations/owner revisions | IN_PROGRESS | `internal/store` | `internal/store` | |
-| Operations: intent digest, idempotency, CAS transitions, outbox | IN_PROGRESS | `internal/operations` | `internal/operations` | |
-| API envelope `/api/v1` (me, workspaces, operations, intents) + error taxonomy | IN_PROGRESS | `internal/api` | `internal/api` | |
-| Append-only audit | IN_PROGRESS | `internal/audit` | `internal/audit` | |
-| Contract fixtures from `profile.md` (10 scenarios) | IN_PROGRESS | `internal/api` | `internal/api/contract_test.go` | |
+| Migration framework + schema v1 (17 logical tables + credential + support_lease_grant) | VERIFIED | `internal/store`, `migrations/0001_core_schema.sql`, `migrations/0002_role_grants_seed.sql` | exercised via contract suite | TEST-RESULTS G10 row |
+| Canonical JSON + strict field validation | VERIFIED | `internal/api/errors.go` (decodeStrict) | TestContractUnknownField422 | TEST-RESULTS G10 row |
+| AuthN: principals, Argon2id credentials, sessions, TOTP MFA (RFC 6238), challenges | VERIFIED | `internal/authn` | TestLoginMFALifecycle, TestUnauthorizedRequests401 | TEST-RESULTS G10 row |
+| AuthZ: workspaces, memberships, kind-qualified roles, grant rules, support leases, deny-by-default | VERIFIED | `internal/authz`, `migrations/0002` | TestContractRevokedReplay, TestAuditTrailRecordsDenyAndAllow | TEST-RESULTS G10 row |
+| Resource graph + generations/owner revisions | VERIFIED | `internal/store/entities.go` | exercised via contract suite | TEST-RESULTS G10 row |
+| Operations: intent digest, idempotency (stable/altered/revoked replay), CAS transitions, fences | VERIFIED | `internal/operations` | TestContractStableReplay, TestContractAlteredReplay409, TestContractRevokedReplay | TEST-RESULTS G10 row |
+| API envelope `/api/v1` (me, workspaces, resources, operations, intents, scope audit, login, mfa) + error taxonomy | VERIFIED | `internal/api` | full G10 contract suite | TEST-RESULTS G10 row |
+| Append-only audit | VERIFIED | `internal/audit` | TestAuditTrailRecordsDenyAndAllow | TEST-RESULTS G10 row |
+| Contract fixtures from `profile.md` (6 of 10 scenarios; host-fixture scenarios 7–10 need the G20 helper) | PARTIAL | `internal/api`, `internal/operations` | 6 scenario tests | remaining 4 scenarios bound to G20 host-verb work |
 
-## W-G20 · Installer, host privilege and compatibility (planned)
+Semantics decisions recorded (pending owner ratification alongside DEC-004/DEC-012):
+- Roles are kind-qualified IDs (`website.owner`); role table carries workspace_kind.
+- Visibility rule: any active membership or any support-lease row → visible (denied actions → 403);
+  no relationship → concealed (404, no identifiers). Matches profile fixtures ("denial under
+  current visibility"; "hidden resource → 404").
+- `operation.read` enforced as (creator ‖ active member of operation scope) until the permission
+  vocabulary freeze adds an explicit action row.
+- Idempotency TTL 24h; session TTL 24h; challenge TTL 30m — fixture defaults (DEC-018), not
+  operating limits.
 
-Installer (claim token, bootstrap, administrator enrollment, recovery codes, access address),
-helper protocol implementation (peer proof, typed allowlist, fences, journals), OS compatibility
-preflight (single apt/systemd tuple: Debian-family), host health/packages/services verbs.
+## W-G20 · Installer, host privilege and compatibility
 
-## W-G21 · Identity and permission enforcement (planned)
+| Item | Disposition | Code | Tests | Evidence |
+| --- | --- | --- | --- | --- |
+| Installation claim (token scoped to installation, expiring, hashed storage, atomic consume with owner creation) | VERIFIED | `internal/install`, `internal/api/handlers_install.go` | TestInstallerLifecycle | TEST-RESULTS G20 rows |
+| Interrupted-setup checkpoints + resume (status checkpoint; claim replay denied) | VERIFIED | `internal/install` | TestInstallerLifecycle | TEST-RESULTS G20 rows |
+| Access address setup + verification checkpoint | VERIFIED (write path; DNS/HTTPS probe = DEC-014 work) | `internal/install` | TestInstallerLifecycle | TEST-RESULTS G20 rows |
+| Privileged helper: local Unix socket, peer-credential check, root-owned policy file (runtime reload), typed verbs, strict request schema | VERIFIED | `internal/helper`, `cmd/helper` | helper suite | TEST-RESULTS G20 rows |
+| Host fixtures 7–10 (wrong host, stale fence, lost reply, changed digest) | VERIFIED | `internal/helper` | TestWrongHost/StaleFence/LostReply/ChangedDigest | TEST-RESULTS G20 rows |
+| Built-in verbs: host.inspect, host.preflight (fail-closed OS tuple check), unit.apply (root-owned bindings; no raw unit names/shell) | VERIFIED (inspect/preflight full; unit.apply logic tested via typed-arg discipline) | `internal/helper/verbs.go` | helper suite | TEST-RESULTS G20 rows |
+| Panel↔helper wire integration (real socket, replay identity) | VERIFIED | `internal/hostagent`, `internal/helper` | TestHostAgentSocketIntegration | TEST-RESULTS G20 rows |
+| Intent→dispatch→helper bridge (host verbs through operations engine) | VERIFIED | `internal/api`, `internal/operations` | TestIntentToHelperFlow | TEST-RESULTS G20 rows |
+| VPS matrix drills (clean/repeat/interrupted install, firewall/SSH rollback, reboot convergence) | NOT_STARTED | — | — | G50; requires disposable VPS targets + systemd service units |
+| Package/service management verbs breadth (package.apply, vhost.apply, …) | NOT_STARTED | — | — | G30 domain waves extend the allowlist |
 
-Session lifecycle enforcement, credential epochs, step-up, membership grants/revocation/transfer,
-tenant isolation across API/jobs/artifacts, support-lease expiry, browser CSRF.
+Semantics decisions recorded (pending owner ratification alongside DEC-003/DEC-005):
+- Replay-before-fence ordering with fence-aware replay: a retry repeats the same fence and
+  receives the journaled observation; an older fence rejects as stale (profile fixtures 8/9).
+- Helper policy supports target binding per verb ("*" in dev policy; production binds host IDs).
+- Supported tuples (dev default): ubuntu 24.04/26.04/26.10, debian 12/13 — fails closed otherwise.
 
-## W-G22 · Durability, contracts and integrations (planned)
+## W-G21 · Identity and permission enforcement
 
-Worker crash reconciliation, outbox delivery, API key auth, external SSO hooks, webhooks,
-cron/schedules, envelope schemas frozen as JSON Schema + Go types.
+| Item | Disposition | Code | Tests | Evidence |
+| --- | --- | --- | --- | --- |
+| Password reset (single-use challenge, session revocation via epoch, MFA preserved, no enumeration) | VERIFIED | `internal/authn`, `internal/api/handlers_identity.go` | TestIdentityPasswordResetLifecycle | TEST-RESULTS G21 row |
+| Recovery codes (single-use, MFA second factor, hashed storage) | VERIFIED | `internal/authn` | TestIdentityRecoveryCodes | TEST-RESULTS G21 row |
+| Logout / session revocation | VERIFIED | `internal/api` | TestIdentityLogout | TEST-RESULTS G21 row |
+| Membership grant/list/revoke API (kind-qualified roles, 422 cross-kind, idempotent grant) | VERIFIED | `internal/api/handlers_identity.go` | TestMembership*, TestMembershipRoleValidation | TEST-RESULTS G21 row |
+| Last-owner protection (409) | VERIFIED | `internal/api/handlers_identity.go` | TestMembershipLastOwnerProtection | TEST-RESULTS G21 row |
+| Dispatch-time reauthorization (revoked actor's queued op cancels, never dispatches) | VERIFIED (control-plane; helper-dispatch-count evidence binds to G20) | `internal/operations.DispatchGuard` | TestMembershipGrantRevokeAndDispatchRecheck | TEST-RESULTS G21 row |
+| Support leases: exact per-lease action grants, expiry, revocation | VERIFIED | `internal/authz` | TestSupportLeaseExactActions | TEST-RESULTS G21 row |
+| Invitation acceptance bound to intended principal (TC-CORE-02) | NOT_STARTED | — | — | requires signup-bound principals (installer/commercial wave) |
+| Browser cookie sessions + CSRF double-submit | NOT_STARTED | — | — | G40 UI wiring |
+| Mailer SMTP transport for recovery delivery | PARTIAL | LogMailer no-op seam | — | G34 messaging wave |
+
+Semantics decisions recorded (pending owner ratification alongside DEC-004/DEC-008):
+- Last-owner protection adopted as unconditional policy (workspace retains ≥1 active owner).
+- Recovery token delivery via Mailer seam; LogMailer default (challenge issued, no delivery)
+  until SMTP config (G34). Tokens never appear in logs/responses/audit.
+
+## W-G22 · Durability, contracts and integrations
+
+| Item | Disposition | Code | Tests | Evidence |
+| --- | --- | --- | --- | --- |
+| Durable job worker (claim, lease, dispatch, observe, terminal CAS) | VERIFIED | `internal/jobs` | TestWorkerSucceedsWithObservation | TEST-RESULTS G22 row |
+| Crash reconciliation (expired lease re-dispatch, monotonic fences, journaled observation) | VERIFIED | `internal/jobs` | TestWorkerCrashReconciliationReleasesLease | TEST-RESULTS G22 row |
+| Outcome taxonomy (failed; uncertain blocks unsafe retry) | VERIFIED | `internal/jobs` | TestWorkerFailedAndUncertainOutcomes | TEST-RESULTS G22 row |
+| Dispatch recheck through worker (revoked actor cancels) | VERIFIED | `internal/jobs` | TestWorkerRevokedActorCancelled | TEST-RESULTS G22 row |
+| API keys (issue-once, scope-pinned, revoke-deny) | VERIFIED | `internal/jobs/apikeys.go`, `internal/api/handlers_keys.go` | TestAPIKeyLifecycleScopePinning | TEST-RESULTS G22 row |
+| Interval schedules (arm, fire-once, coalesce, owner-bound ops) | VERIFIED (core) | `internal/jobs/apikeys.go`, `internal/api/handlers_keys.go` | TestScheduleArmsFiresAndCoalesces | TEST-RESULTS G22 row |
+| Outbox delivery to external endpoints (webhooks) | NOT_STARTED | — | — | INT-01 external contracts need owner ruling (DEC-016 scope rows) |
+| Cron-expression schedules | NOT_STARTED | — | — | WEB-08 contract freeze pending |
+| Envelope schemas as published JSON Schema | PARTIAL | Go types are the frozen wire contract | contract suite | publish step in G50 |
+
+Semantics decisions recorded (pending owner ratification alongside DEC-009):
+- Schedule ticks advance the row before accepting the operation: missed ticks coalesce, never
+  double-fire; scheduled operations run as the schedule's owning principal with full predicates.
+- Interval (every_seconds) schedules implemented as the WEB-08 core; cron expressions are a
+  follow-up increment under the same registry.
 
 ## W-G30/G31/G32/G33/G34/G35 (planned)
 
@@ -102,6 +157,38 @@ state, selector, interaction, result).
 
 Only when all required scope and verification gates are satisfied; otherwise the
 release-readiness report states exactly which gates remain FAIL/BLOCKED/NOT_RUN.
+
+## Domain wave status (a15c8cd)
+
+| Domain | Implemented | Remaining for certification |
+| --- | --- | --- |
+| Files (WEB-05) | file.apply verb: site-root confinement, traversal rejection, bounds; intent→worker→helper verified | editor API, archive ops, quota accounting |
+| SFTP (WEB-06) | sftp.apply verb: account create/delete/key with validation | sshd config integration, host drill |
+| Databases (DB-01/02/03) | database.apply verb: provision/grant/revoke/drop via engine bindings; engine absence fails safe | MariaDB/PostgreSQL host drill, Redis optional |
+| Vhosts/TLS (WEB-01/02) | vhost.apply verb + **live VPS drill PASSED** (intent → helper → managed nginx conf → reload → HTTP serving) | TLS issuance (DEC-014), nginx service-reload hardening |
+| Runtimes (APP-02/03/04/08) | toolchain.apply mapping registered | per-runtime adapters + matrix (DEC-006) |
+| Site lifecycle (APP-01, MKT-01/02) | template catalog, site installs bound to application resources | template.apply host effect, install drill |
+| Developer (APP-05/06/07) | source connections, builds (digest-bound), environments, CAS promotion + outbox | build isolation executor, release.activate host drill |
+| Commercial (BIZ-01/02/03) | plans/customers/accounts/subscriptions, invoices, payments (settle-once), credits | gateway credentials + tax rules (BLK-001) |
+| Support (SUP-01/02) | tickets + SLA + state machine, KB | notifications delivery, SLA policy ratification |
+| Mail (MAIL-01/02) | domains (verify flow), mailboxes, aliases | mailbox.apply host drill, SMTP transport (DEC-007) |
+| Observability (OBS-01) | observations, latest-per-name, notifications | metrics sampler worker, status pages |
+| Backups (WEB-09) | manifests (digest+key+schema), verify+key restore gates | encrypted backup creation + isolated restore drill (G50) |
+
+## Frontend directive wave (2026-11-13, DEC-020/DEC-021)
+
+| Directive deliverable | Disposition | Artifact |
+| --- | --- | --- |
+| §4.1 Prototype inventory | VERIFIED | docs/ui/PROTOTYPE-INVENTORY.md + inventory.json (31 pages = 31 register screens, 13 CSS, 10 JS, 71 digests, mock-data/control accounting) |
+| §10.1 Framework comparison + recommendation | SUBMITTED FOR APPROVAL | docs/ui/FRAMEWORK-EVALUATION.md → SvelteKit+TS (DEC-020) |
+| §10.3 Migration map | DONE (framework-agnostic) | docs/ui/MIGRATION-MAP.md (31 routes, shared components, sequencing, control coverage) |
+| §4.3 Screenshot baseline | VERIFIED — 62 captures, 0 failures | docs/ui/baseline/ (desktop 1440×900 + mobile 375×812, full-page, manifest with console errors + navigation structure); harness tools/ui-baseline/capture.js; BLK-003 gap closed for baseline capture |
+| §10.4 Fidelity verification plan | DONE | docs/ui/FIDELITY-PLAN.md (gates G1–G9, pixelmatch tolerances, honest-accounting rules) |
+| §10.5/§10.6 Architecture + deployment plan | DONE (pending framework approval) | docs/ui/FRONTEND-ARCHITECTURE.md (typed API client, cookie sessions, intent pipeline + operation tracker, nginx-integrated single-installation deployment, upgrade/rollback) |
+| §7 Backend protection | RESPECTED — zero backend changes made for the frontend directive; Go/SQLite/helper/tests unchanged | git diff scope |
+| §9 Independent work continues | see domain waves (a15c8cd) + web-server drill below | ledger |
+
+Migration implementation: **NOT STARTED — blocked on DEC-020 owner approval** (per directive §3/§10).
 
 ## Requirement → implementation traceability
 

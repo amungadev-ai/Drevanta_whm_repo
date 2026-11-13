@@ -1,0 +1,1352 @@
+{
+ "pages": [
+  {
+   "path": "authentication/check-email.html",
+   "title": "Check Email \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 404,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth.js"
+   ]
+  },
+  {
+   "path": "authentication/email-recovery.html",
+   "title": "Email Recovery \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 410,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth.js"
+   ]
+  },
+  {
+   "path": "authentication/forgot-password.html",
+   "title": "Forgot Password \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 412,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth.js"
+   ]
+  },
+  {
+   "path": "authentication/login-success.html",
+   "title": "Login Success \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 408,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth.js"
+   ]
+  },
+  {
+   "path": "authentication/login.html",
+   "title": "Login \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 392,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth.js"
+   ]
+  },
+  {
+   "path": "authentication/reset-password.html",
+   "title": "Reset Password \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 410,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth.js"
+   ]
+  },
+  {
+   "path": "authentication/reset-success.html",
+   "title": "Reset Success \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 408,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth.js"
+   ]
+  },
+  {
+   "path": "authentication/server-recovery.html",
+   "title": "Server Recovery \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 412,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth.js"
+   ]
+  },
+  {
+   "path": "authentication/verify.html",
+   "title": "Verify \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 394,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth.js"
+   ]
+  },
+  {
+   "path": "capability-audit.html",
+   "title": "Capability Coverage \u00b7 Drevanta",
+   "persona": "meta",
+   "bytes": 3678,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 1,
+    "selects": 3,
+    "tables": 1,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "capability-audit.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "capability-audit.js"
+   ]
+  },
+  {
+   "path": "developer.html",
+   "title": "Developer Workspace \u00b7 Drevanta",
+   "persona": "developer",
+   "bytes": 3244,
+   "interactive": {
+    "buttons": 5,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 1,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 6,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "capability-audit.css",
+    "hosting.css",
+    "personas.css",
+    "phase2.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "developer.js"
+   ]
+  },
+  {
+   "path": "index.html",
+   "title": "Hosting Workspace \u00b7 Drevanta",
+   "persona": "entry",
+   "bytes": 3206,
+   "interactive": {
+    "buttons": 5,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 1,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 6,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "capability-audit.css",
+    "hosting.css",
+    "phase2.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "hosting.js"
+   ]
+  },
+  {
+   "path": "login.html",
+   "title": "Drevanta login",
+   "persona": "auth",
+   "bytes": 236,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 0,
+    "scripts": 0,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [],
+   "js_refs": []
+  },
+  {
+   "path": "onboarding.html",
+   "title": "Drevanta \u00b7 First-time setup",
+   "persona": "setup",
+   "bytes": 350,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 0,
+    "scripts": 0,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [],
+   "js_refs": []
+  },
+  {
+   "path": "onboarding/access-address.html",
+   "title": "Access address \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 420,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth-flow.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth-flow.js"
+   ]
+  },
+  {
+   "path": "onboarding/administrator.html",
+   "title": "Create administrator \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 425,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth-flow.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth-flow.js"
+   ]
+  },
+  {
+   "path": "onboarding/claim.html",
+   "title": "Continue setup \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 328,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 0,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [],
+   "js_refs": []
+  },
+  {
+   "path": "onboarding/domain-setup.html",
+   "title": "Access address \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 418,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth-flow.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth-flow.js"
+   ]
+  },
+  {
+   "path": "onboarding/handoff.html",
+   "title": "Setup complete \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 413,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth-flow.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth-flow.js"
+   ]
+  },
+  {
+   "path": "onboarding/installation.html",
+   "title": "Install on your VPS \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 423,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth-flow.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth-flow.js"
+   ]
+  },
+  {
+   "path": "onboarding/login.html",
+   "title": "Drevanta account access",
+   "persona": "shared",
+   "bytes": 273,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 0,
+    "scripts": 0,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [],
+   "js_refs": []
+  },
+  {
+   "path": "onboarding/mfa.html",
+   "title": "Authenticator MFA \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 412,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth-flow.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth-flow.js"
+   ]
+  },
+  {
+   "path": "onboarding/onboarding.html",
+   "title": "Onboarding \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 415,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth-flow.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth-flow.js"
+   ]
+  },
+  {
+   "path": "onboarding/recover.html",
+   "title": "Drevanta account access",
+   "persona": "shared",
+   "bytes": 293,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 0,
+    "scripts": 0,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [],
+   "js_refs": []
+  },
+  {
+   "path": "onboarding/recovery-codes.html",
+   "title": "Recovery codes \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 420,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth-flow.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth-flow.js"
+   ]
+  },
+  {
+   "path": "onboarding/reset-password.html",
+   "title": "Drevanta account access",
+   "persona": "shared",
+   "bytes": 291,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 0,
+    "scripts": 0,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [],
+   "js_refs": []
+  },
+  {
+   "path": "onboarding/setup-complete.html",
+   "title": "Setup complete \u00b7 Drevanta",
+   "persona": "shared",
+   "bytes": 420,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 1,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "auth-flow.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "auth-flow.js"
+   ]
+  },
+  {
+   "path": "onboarding/verify.html",
+   "title": "Drevanta account access",
+   "persona": "shared",
+   "bytes": 275,
+   "interactive": {
+    "buttons": 0,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 0,
+    "scripts": 0,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [],
+   "js_refs": []
+  },
+  {
+   "path": "server-admin.html",
+   "title": "Overview \u00b7 Drevanta",
+   "persona": "server",
+   "bytes": 3140,
+   "interactive": {
+    "buttons": 5,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 1,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 6,
+    "scripts": 2,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "capability-audit.css",
+    "phase2.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "app.js",
+    "phase2.js"
+   ]
+  },
+  {
+   "path": "service-center.html",
+   "title": "S1 Service Center \u00b7 Drevanta",
+   "persona": "server",
+   "bytes": 1672,
+   "interactive": {
+    "buttons": 2,
+    "forms": 0,
+    "inputs": 1,
+    "selects": 0,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 2,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "s1-services.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "s1-services.js"
+   ]
+  },
+  {
+   "path": "website-owner.html",
+   "title": "Website Owner Workspace \u00b7 Drevanta",
+   "persona": "website",
+   "bytes": 3239,
+   "interactive": {
+    "buttons": 5,
+    "forms": 0,
+    "inputs": 0,
+    "selects": 1,
+    "tables": 0,
+    "tabs": 0,
+    "modals": 0,
+    "data-views": 6,
+    "scripts": 1,
+    "inline_js_handlers": 0,
+    "canvas_charts": 0
+   },
+   "css_refs": [
+    "accessible-palettes.css",
+    "capability-audit.css",
+    "hosting.css",
+    "personas.css",
+    "phase2.css",
+    "styles.css"
+   ],
+   "js_refs": [
+    "website.js"
+   ]
+  }
+ ],
+ "css": [
+  {
+   "path": "accessible-palettes.css",
+   "selectors_classes": 15,
+   "color_values": 112,
+   "css_variables": [
+    "--bg",
+    "--border",
+    "--border-default",
+    "--border-strong",
+    "--disabled",
+    "--focus-ring",
+    "--muted",
+    "--overlay",
+    "--palette-button",
+    "--palette-button-text",
+    "--palette-on-tint",
+    "--primary",
+    "--primary-active",
+    "--primary-hover",
+    "--primary-tint",
+    "--raised",
+    "--secondary",
+    "--sunken",
+    "--text"
+   ],
+   "bytes": 4829
+  },
+  {
+   "path": "capability-audit.css",
+   "selectors_classes": 25,
+   "color_values": 9,
+   "css_variables": [],
+   "bytes": 4271
+  },
+  {
+   "path": "hosting.css",
+   "selectors_classes": 40,
+   "color_values": 1,
+   "css_variables": [],
+   "bytes": 5981
+  },
+  {
+   "path": "personas.css",
+   "selectors_classes": 13,
+   "color_values": 0,
+   "css_variables": [],
+   "bytes": 1725
+  },
+  {
+   "path": "phase2.css",
+   "selectors_classes": 29,
+   "color_values": 0,
+   "css_variables": [],
+   "bytes": 5751
+  },
+  {
+   "path": "s1-services.css",
+   "selectors_classes": 13,
+   "color_values": 4,
+   "css_variables": [],
+   "bytes": 2283
+  },
+  {
+   "path": "styles.css",
+   "selectors_classes": 147,
+   "color_values": 37,
+   "css_variables": [
+    "--bg",
+    "--border",
+    "--border-default",
+    "--border-strong",
+    "--danger",
+    "--danger-bg",
+    "--disabled",
+    "--info",
+    "--info-bg",
+    "--muted",
+    "--overlay",
+    "--primary",
+    "--primary-active",
+    "--primary-hover",
+    "--primary-tint",
+    "--raised",
+    "--secondary",
+    "--shadow",
+    "--shadow-md",
+    "--success",
+    "--success-bg",
+    "--sunken",
+    "--text",
+    "--warning",
+    "--warning-bg"
+   ],
+   "bytes": 22556
+  },
+  {
+   "path": "authentication/accessible-palettes.css",
+   "selectors_classes": 15,
+   "color_values": 112,
+   "css_variables": [
+    "--bg",
+    "--border",
+    "--border-default",
+    "--border-strong",
+    "--disabled",
+    "--focus-ring",
+    "--muted",
+    "--overlay",
+    "--palette-button",
+    "--palette-button-text",
+    "--palette-on-tint",
+    "--primary",
+    "--primary-active",
+    "--primary-hover",
+    "--primary-tint",
+    "--raised",
+    "--secondary",
+    "--sunken",
+    "--text"
+   ],
+   "bytes": 4829
+  },
+  {
+   "path": "authentication/auth.css",
+   "selectors_classes": 32,
+   "color_values": 3,
+   "css_variables": [],
+   "bytes": 4600
+  },
+  {
+   "path": "authentication/styles.css",
+   "selectors_classes": 147,
+   "color_values": 37,
+   "css_variables": [
+    "--bg",
+    "--border",
+    "--border-default",
+    "--border-strong",
+    "--danger",
+    "--danger-bg",
+    "--disabled",
+    "--info",
+    "--info-bg",
+    "--muted",
+    "--overlay",
+    "--primary",
+    "--primary-active",
+    "--primary-hover",
+    "--primary-tint",
+    "--raised",
+    "--secondary",
+    "--shadow",
+    "--shadow-md",
+    "--success",
+    "--success-bg",
+    "--sunken",
+    "--text",
+    "--warning",
+    "--warning-bg"
+   ],
+   "bytes": 22556
+  },
+  {
+   "path": "onboarding/accessible-palettes.css",
+   "selectors_classes": 15,
+   "color_values": 112,
+   "css_variables": [
+    "--bg",
+    "--border",
+    "--border-default",
+    "--border-strong",
+    "--disabled",
+    "--focus-ring",
+    "--muted",
+    "--overlay",
+    "--palette-button",
+    "--palette-button-text",
+    "--palette-on-tint",
+    "--primary",
+    "--primary-active",
+    "--primary-hover",
+    "--primary-tint",
+    "--raised",
+    "--secondary",
+    "--sunken",
+    "--text"
+   ],
+   "bytes": 4829
+  },
+  {
+   "path": "onboarding/auth-flow.css",
+   "selectors_classes": 99,
+   "color_values": 3,
+   "css_variables": [
+    "--auth-panel"
+   ],
+   "bytes": 20127
+  },
+  {
+   "path": "onboarding/styles.css",
+   "selectors_classes": 147,
+   "color_values": 37,
+   "css_variables": [
+    "--bg",
+    "--border",
+    "--border-default",
+    "--border-strong",
+    "--danger",
+    "--danger-bg",
+    "--disabled",
+    "--info",
+    "--info-bg",
+    "--muted",
+    "--overlay",
+    "--primary",
+    "--primary-active",
+    "--primary-hover",
+    "--primary-tint",
+    "--raised",
+    "--secondary",
+    "--shadow",
+    "--shadow-md",
+    "--success",
+    "--success-bg",
+    "--sunken",
+    "--text",
+    "--warning",
+    "--warning-bg"
+   ],
+   "bytes": 22556
+  }
+ ],
+ "js": {
+  "app.js": {
+   "functions": [
+    "$",
+    "accessibleAccent",
+    "actionsFor",
+    "activity",
+    "activityItems",
+    "add",
+    "applications",
+    "applyColorVariant",
+    "backups",
+    "badge",
+    "btn",
+    "card",
+    "chart",
+    "closeCommand",
+    "closeDrawer",
+    "closeModal",
+    "commandResults",
+    "containers",
+    "contrast",
+    "empty",
+    "escapeHTML",
+    "exportLog",
+    "formField",
+    "formSelect",
+    "goto",
+    "heading",
+    "icon",
+    "lab",
+    "labContent",
+    "logEvent",
+    "lookup",
+    "matches",
+    "metric",
+    "mix",
+    "modal",
+    "nameCell",
+    "openCommand",
+    "operation",
+    "overview",
+    "palettePicker",
+    "readable",
+    "render",
+    "resource",
+    "runBackup",
+    "searchTools",
+    "sectionHead",
+    "servers",
+    "settingSwitch",
+    "settings",
+    "sorted",
+    "storage",
+    "table",
+    "toast",
+    "tr",
+    "validate"
+   ],
+   "storage_or_fetch_refs": 7,
+   "mock_data_vars": 0,
+   "bytes": 48623
+  },
+  "capability-audit.js": {
+   "functions": [
+    "render",
+    "show"
+   ],
+   "storage_or_fetch_refs": 0,
+   "mock_data_vars": 0,
+   "bytes": 6288
+  },
+  "developer.js": {
+   "functions": [
+    "$",
+    "btn",
+    "collection",
+    "dashboard",
+    "detail",
+    "draft",
+    "go",
+    "heading",
+    "item",
+    "line",
+    "page",
+    "panel",
+    "render",
+    "settings",
+    "toast",
+    "unavailable"
+   ],
+   "storage_or_fetch_refs": 4,
+   "mock_data_vars": 0,
+   "bytes": 22110
+  },
+  "hosting.js": {
+   "functions": [
+    "$",
+    "O",
+    "accounts",
+    "activity",
+    "alerts",
+    "applyTheme",
+    "b",
+    "badge",
+    "capacity",
+    "customers",
+    "dashboard",
+    "delegation",
+    "detail",
+    "go",
+    "head",
+    "jobs",
+    "link",
+    "message",
+    "metric",
+    "modal",
+    "note",
+    "panel",
+    "plans",
+    "portfolios",
+    "render",
+    "reports",
+    "settingPage",
+    "settings",
+    "support",
+    "table",
+    "team",
+    "toolbar",
+    "websites"
+   ],
+   "storage_or_fetch_refs": 6,
+   "mock_data_vars": 0,
+   "bytes": 29030
+  },
+  "persona-core.js": {
+   "functions": [
+    "$",
+    "btn",
+    "collection",
+    "dashboard",
+    "detail",
+    "draft",
+    "go",
+    "heading",
+    "item",
+    "line",
+    "page",
+    "panel",
+    "render",
+    "settings",
+    "toast",
+    "unavailable"
+   ],
+   "storage_or_fetch_refs": 4,
+   "mock_data_vars": 0,
+   "bytes": 22077
+  },
+  "phase2.js": {
+   "functions": [
+    "p2AccountPage",
+    "p2Action",
+    "p2Actions",
+    "p2Alerts",
+    "p2Button",
+    "p2Dashboard",
+    "p2Head",
+    "p2Job",
+    "p2Jobs",
+    "p2Modal",
+    "p2Monitoring",
+    "p2Page",
+    "p2Permitted",
+    "p2Roles",
+    "p2Run",
+    "p2SettingsHub",
+    "p2Shell",
+    "p2Status",
+    "p2Table",
+    "shortcut"
+   ],
+   "storage_or_fetch_refs": 4,
+   "mock_data_vars": 1,
+   "bytes": 40242
+  },
+  "s1-services.js": {
+   "functions": [
+    "render",
+    "roleText",
+    "show"
+   ],
+   "storage_or_fetch_refs": 2,
+   "mock_data_vars": 0,
+   "bytes": 7718
+  },
+  "website.js": {
+   "functions": [
+    "$",
+    "btn",
+    "collection",
+    "dashboard",
+    "detail",
+    "draft",
+    "go",
+    "heading",
+    "item",
+    "line",
+    "page",
+    "panel",
+    "render",
+    "settings",
+    "toast",
+    "unavailable"
+   ],
+   "storage_or_fetch_refs": 4,
+   "mock_data_vars": 0,
+   "bytes": 22108
+  },
+  "authentication/auth.js": {
+   "functions": [
+    "apply",
+    "back",
+    "busy",
+    "button",
+    "field",
+    "pw",
+    "save"
+   ],
+   "storage_or_fetch_refs": 9,
+   "mock_data_vars": 0,
+   "bytes": 12187
+  },
+  "onboarding/auth-flow.js": {
+   "functions": [
+    "box",
+    "btn",
+    "digits",
+    "domainRecord",
+    "drawAddress",
+    "drawDomainResult",
+    "drawMfa",
+    "drawRecovery",
+    "f",
+    "link",
+    "mfaDigits",
+    "next",
+    "save",
+    "setPress",
+    "startDomainVerification",
+    "syncMfa",
+    "validDomainName"
+   ],
+   "storage_or_fetch_refs": 6,
+   "mock_data_vars": 0,
+   "bytes": 32116
+  }
+ },
+ "digests_count": 71,
+ "persona_pages": {
+  "meta": [
+   "capability-audit.html"
+  ],
+  "developer": [
+   "developer.html"
+  ],
+  "entry": [
+   "index.html"
+  ],
+  "auth": [
+   "login.html"
+  ],
+  "setup": [
+   "onboarding.html"
+  ],
+  "server": [
+   "server-admin.html",
+   "service-center.html"
+  ],
+  "website": [
+   "website-owner.html"
+  ],
+  "shared": [
+   "authentication/check-email.html",
+   "authentication/email-recovery.html",
+   "authentication/forgot-password.html",
+   "authentication/login-success.html",
+   "authentication/login.html",
+   "authentication/reset-password.html",
+   "authentication/reset-success.html",
+   "authentication/server-recovery.html",
+   "authentication/verify.html",
+   "onboarding/access-address.html",
+   "onboarding/administrator.html",
+   "onboarding/claim.html",
+   "onboarding/domain-setup.html",
+   "onboarding/handoff.html",
+   "onboarding/installation.html",
+   "onboarding/login.html",
+   "onboarding/mfa.html",
+   "onboarding/onboarding.html",
+   "onboarding/recover.html",
+   "onboarding/recovery-codes.html",
+   "onboarding/reset-password.html",
+   "onboarding/setup-complete.html",
+   "onboarding/verify.html"
+  ]
+ },
+ "register_pages": 31,
+ "register_controls": 85,
+ "register_recorded_controls": 239
+}

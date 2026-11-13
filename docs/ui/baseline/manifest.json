@@ -1,0 +1,505 @@
+{
+ "generated_at": "2026-11-13T20:49:47.262Z",
+ "viewports": {
+  "desktop": [
+   1440,
+   900
+  ],
+  "mobile": [
+   375,
+   812
+  ]
+ },
+ "pages": {
+  "authentication__check-email": {
+   "url": "/authentication/check-email.html",
+   "title": "Check Email · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [],
+   "bytes": 47596
+  },
+  "authentication__email-recovery": {
+   "url": "/authentication/email-recovery.html",
+   "title": "Email Recovery · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [],
+   "bytes": 42599
+  },
+  "authentication__forgot-password": {
+   "url": "/authentication/forgot-password.html",
+   "title": "Forgot Password · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [],
+   "bytes": 50435
+  },
+  "authentication__login-success": {
+   "url": "/authentication/login-success.html",
+   "title": "Login Success · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [],
+   "bytes": 45920
+  },
+  "authentication__login": {
+   "url": "/authentication/login.html",
+   "title": "Login · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [],
+   "bytes": 48133
+  },
+  "authentication__reset-password": {
+   "url": "/authentication/reset-password.html",
+   "title": "Reset Password · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [],
+   "bytes": 53659
+  },
+  "authentication__reset-success": {
+   "url": "/authentication/reset-success.html",
+   "title": "Reset Success · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [],
+   "bytes": 44048
+  },
+  "authentication__server-recovery": {
+   "url": "/authentication/server-recovery.html",
+   "title": "Server Recovery · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [],
+   "bytes": 59991
+  },
+  "authentication__verify": {
+   "url": "/authentication/verify.html",
+   "title": "Verify · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [],
+   "bytes": 48353
+  },
+  "capability-audit": {
+   "url": "/capability-audit.html",
+   "title": "Capability Coverage · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 81669
+  },
+  "developer": {
+   "url": "/developer.html",
+   "title": "Dashboard · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 91975
+  },
+  "index": {
+   "url": "/index.html",
+   "title": "Dashboard · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 163008
+  },
+  "login": {
+   "url": "/login.html",
+   "title": "Login · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 48133
+  },
+  "onboarding": {
+   "url": "/onboarding.html",
+   "title": "Create administrator · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 52140
+  },
+  "onboarding__access-address": {
+   "url": "/onboarding/access-address.html",
+   "title": "Access address · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 46990
+  },
+  "onboarding__administrator": {
+   "url": "/onboarding/administrator.html",
+   "title": "Create administrator · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 52139
+  },
+  "onboarding__claim": {
+   "url": "/onboarding/claim.html",
+   "title": "Onboarding · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 52140
+  },
+  "onboarding__domain-setup": {
+   "url": "/onboarding/domain-setup.html",
+   "title": "Access address · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 49075
+  },
+  "onboarding__handoff": {
+   "url": "/onboarding/handoff.html",
+   "title": "Setup complete · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 56274
+  },
+  "onboarding__installation": {
+   "url": "/onboarding/installation.html",
+   "title": "Install on your VPS · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 92065
+  },
+  "onboarding__login": {
+   "url": "/onboarding/login.html",
+   "title": "Login · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 48133
+  },
+  "onboarding__mfa": {
+   "url": "/onboarding/mfa.html",
+   "title": "Authenticator MFA · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 53455
+  },
+  "onboarding__onboarding": {
+   "url": "/onboarding/onboarding.html",
+   "title": "Onboarding · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 52139
+  },
+  "onboarding__recover": {
+   "url": "/onboarding/recover.html",
+   "title": "Forgot Password · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 50435
+  },
+  "onboarding__recovery-codes": {
+   "url": "/onboarding/recovery-codes.html",
+   "title": "Recovery codes · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 45480
+  },
+  "onboarding__reset-password": {
+   "url": "/onboarding/reset-password.html",
+   "title": "Reset Password · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 53659
+  },
+  "onboarding__setup-complete": {
+   "url": "/onboarding/setup-complete.html",
+   "title": "Setup complete · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 45611
+  },
+  "onboarding__verify": {
+   "url": "/onboarding/verify.html",
+   "title": "Verify · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 48353
+  },
+  "server-admin": {
+   "url": "/server-admin.html",
+   "title": "Dashboard · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 237636
+  },
+  "service-center": {
+   "url": "/service-center.html",
+   "title": "S1 Service Center · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 177882
+  },
+  "website-owner": {
+   "url": "/website-owner.html",
+   "title": "Dashboard · Drevanta",
+   "desktop_or_mobile": "mobile",
+   "console_errors": [
+    "TypeError: raw.map is not a function"
+   ],
+   "bytes": 90200
+  }
+ },
+ "navigation": {
+  "capability-audit.html": {
+   "links": [
+    "← Back to Hosting",
+    "Server Administration",
+    "Hosting",
+    "Website Owner",
+    "Developer",
+    "Download registry CSV"
+   ],
+   "buttons": []
+  },
+  "developer.html": {
+   "links": [
+    "Skip to main content",
+    "S1 services",
+    "Capability audit",
+    "Server Admin",
+    "Hosting",
+    "Website Owner",
+    "Developer"
+   ],
+   "buttons": [
+    "◇Dashboard",
+    "◇Projects",
+    "◇Source & Repositories",
+    "◇Builds & Artifacts",
+    "◇Deployments & Releases",
+    "◇Environments",
+    "◇Runtime & Processes",
+    "◇Logs & Monitoring",
+    "◇Secrets & Variables",
+    "◇Domains & Routing",
+    "◇Databases & Services",
+    "◇Jobs & Activity",
+    "◇Team & Access",
+    "◇Integrations & Webhooks",
+    "◇Usage & Limits",
+    "⚙Project Settings",
+    "AMAlex MorganProject Maintainer···",
+    "Developer Workspace",
+    "☾",
+    "Review releases",
+    "Source & Repositories ›",
+    "Builds & Artifacts ›",
+    "Deployments & Releases ›",
+    "Environments ›",
+    "Runtime & Processes ›"
+   ]
+  },
+  "index.html": {
+   "links": [
+    "Skip to main content",
+    "S1 services",
+    "Capability audit",
+    "Server Admin",
+    "Website Owner",
+    "Developer"
+   ],
+   "buttons": [
+    "▦Dashboard",
+    "⚑Alerts & Tasks",
+    "◷Activity Feed",
+    "♙Customer Directory",
+    "▦Client Portfolios",
+    "▤Hosting Accounts",
+    "◎Websites & Domains",
+    "▥Service Plans",
+    "◫Capacity & Quotas",
+    "♧Members & Roles",
+    "↗Delegation & Access",
+    "◷Provisioning Jobs",
+    "☏Support Requests",
+    "▤Audit & Reports",
+    "⚙Organization Settings",
+    "AMAlex MorganOrganization Owner···",
+    "Hosting Workspace",
+    "☾",
+    "Invite customer",
+    "Explore module readiness ›",
+    "View capacity ledger ›",
+    "Capacity and quota breakdown ›",
+    "Acme Studio",
+    "Riverbend Co.",
+    "Lena Portfolio",
+    "Brightpath LLC",
+    "View customer directory ›",
+    "Open job center ›",
+    "Manage team ›",
+    "Organization settings ›"
+   ]
+  },
+  "login.html": {
+   "links": [
+    "◈ drevanta",
+    "Forgot password?"
+   ],
+   "buttons": [
+    "Toggle dark mode",
+    "Show",
+    "Sign in"
+   ]
+  },
+  "onboarding.html": {
+   "links": [
+    "◈ drevanta"
+   ],
+   "buttons": [
+    "Toggle dark mode",
+    "Change",
+    "Generate",
+    "Show",
+    "Copy password",
+    "Show",
+    "Create administrator →"
+   ]
+  },
+  "server-admin.html": {
+   "links": [
+    "Skip to main content",
+    "S1 services",
+    "Capability audit"
+   ],
+   "buttons": [
+    "Dashboard",
+    "Alerts & Recommendations",
+    "Monitoring & Health",
+    "Services & Workloads",
+    "Processes",
+    "Files & Storage",
+    "Networking & Ports",
+    "Backups & Recovery",
+    "Hosting Organizations",
+    "Customers & Relationships",
+    "Server Allocations",
+    "Jobs & Automation",
+    "Audit & Security Center",
+    "Settings & Configurations",
+    "ADAlex DeveloperAdministrator···",
+    "Refresh sample",
+    "Resource intelligence ›",
+    "View services ›",
+    "Firewall ›",
+    "SSH security ›",
+    "Packages ›",
+    "All alerts ›",
+    "Inspect",
+    "Inspect",
+    "Open backups ›",
+    "Organizations ›",
+    "Review allocations ›",
+    "Module catalog ›",
+    "Platform health ›",
+    "Job center ›",
+    "Audit center ›",
+    "Review ›",
+    "Review ›",
+    "Review ›",
+    "Review ›",
+    "Review ›"
+   ]
+  },
+  "service-center.html": {
+   "links": [
+    "Drevanta",
+    "Capability audit",
+    "View all 47 capabilities",
+    "Server Administrator",
+    "Hosting Provider",
+    "Website Owner",
+    "Developer",
+    "Return to workspace"
+   ],
+   "buttons": [
+    "All S1",
+    "My operational scope",
+    "Review contract & gates",
+    "Review contract & gates",
+    "Review contract & gates",
+    "Review contract & gates",
+    "Review contract & gates",
+    "Review contract & gates",
+    "Review contract & gates",
+    "Review contract & gates",
+    "Review contract & gates",
+    "Review contract & gates",
+    "Review contract & gates",
+    "Review contract & gates"
+   ]
+  },
+  "website-owner.html": {
+   "links": [
+    "Skip to main content",
+    "S1 services",
+    "Capability audit",
+    "Server Admin",
+    "Hosting",
+    "Website Owner",
+    "Developer"
+   ],
+   "buttons": [
+    "◇Dashboard",
+    "◇My Websites",
+    "◇Domains & DNS",
+    "◇SSL / HTTPS",
+    "◇Files & Access",
+    "◇Databases",
+    "◇Runtime & PHP",
+    "◇Backups & Restore",
+    "◇Monitoring & Analytics",
+    "◇Logs & Diagnostics",
+    "◇Security Center",
+    "◇Team & Access",
+    "◇Activity & Jobs",
+    "◇Plan & Usage",
+    "◇Support",
+    "⚙Website Settings",
+    "AMAlex MorganWebsite Owner···",
+    "Website Workspace",
+    "☾",
+    "Request backup",
+    "Domains & DNS ›",
+    "SSL / HTTPS ›",
+    "Files & Access ›",
+    "Databases ›",
+    "Runtime & PHP ›"
+   ]
+  }
+ }
+}

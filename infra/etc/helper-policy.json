@@ -1,0 +1,11 @@
+{
+  "verbs": {
+    "host.inspect":   ["*"],
+    "host.preflight": ["*"],
+    "unit.apply":     ["*"],
+    "file.apply":     ["*"],
+    "database.apply": ["*"],
+    "sftp.apply":     ["*"],
+    "vhost.apply":    ["*"]
+  }
+}
