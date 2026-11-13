@@ -26,12 +26,12 @@ in `docs/TEST-RESULTS.md`. Release-level completion additionally requires the G5
 | G20 | Installer, host privilege and compatibility | 06, 07, 08 | IN_PROGRESS | W-G20 |
 | G21 | Identity and permission enforcement | 17, 18 | IN_PROGRESS | W-G21 |
 | G22 | Durability, contracts and integrations | 22, 23 | IN_PROGRESS | W-G22 |
-| G30 | Networking, web server and runtimes | 09, 10, 11 | NOT_STARTED | W-G30 |
-| G31 | Files, data services and recovery | 13, 14 | NOT_STARTED | W-G31 |
-| G32 | Website and application lifecycle | 12 | NOT_STARTED | W-G32 |
-| G33 | Developer workflows | 15 | NOT_STARTED | W-G33 |
-| G34 | Messaging and commercial hosting | 16, 20 | NOT_STARTED | W-G34 |
-| G35 | Observability and audit | 21 | NOT_STARTED | W-G35 |
+| G30 | Networking, web server and runtimes | 09, 10, 11 | IN_PROGRESS | W-G30 |
+| G31 | Files, data services and recovery | 13, 14 | IN_PROGRESS | W-G31 |
+| G32 | Website and application lifecycle | 12 | IN_PROGRESS | W-G32 |
+| G33 | Developer workflows | 15 | IN_PROGRESS | W-G33 |
+| G34 | Messaging and commercial hosting | 16, 20 | IN_PROGRESS | W-G34 |
+| G35 | Observability and audit | 21 | IN_PROGRESS | W-G35 |
 | G40 | Four persona runtime UX acceptance | 19 | NOT_STARTED | W-G40 |
 | G50 | Full integration, release and recovery certification | 24 | NOT_STARTED | W-G50 |
 | G60 | Agent evidence and protected-release sign-off | 25 | NOT_STARTED | W-G60 |
@@ -157,6 +157,23 @@ state, selector, interaction, result).
 
 Only when all required scope and verification gates are satisfied; otherwise the
 release-readiness report states exactly which gates remain FAIL/BLOCKED/NOT_RUN.
+
+## Domain wave status (a15c8cd)
+
+| Domain | Implemented | Remaining for certification |
+| --- | --- | --- |
+| Files (WEB-05) | file.apply verb: site-root confinement, traversal rejection, bounds; intent→worker→helper verified | editor API, archive ops, quota accounting |
+| SFTP (WEB-06) | sftp.apply verb: account create/delete/key with validation | sshd config integration, host drill |
+| Databases (DB-01/02/03) | database.apply verb: provision/grant/revoke/drop via engine bindings; engine absence fails safe | MariaDB/PostgreSQL host drill, Redis optional |
+| Vhosts/TLS (WEB-01/02) | vhost.apply verb: deterministic managed nginx blocks, loopback-only proxy, injection rejection | nginx install drill, TLS issuance (DEC-014) |
+| Runtimes (APP-02/03/04/08) | toolchain.apply mapping registered | per-runtime adapters + matrix (DEC-006) |
+| Site lifecycle (APP-01, MKT-01/02) | template catalog, site installs bound to application resources | template.apply host effect, install drill |
+| Developer (APP-05/06/07) | source connections, builds (digest-bound), environments, CAS promotion + outbox | build isolation executor, release.activate host drill |
+| Commercial (BIZ-01/02/03) | plans/customers/accounts/subscriptions, invoices, payments (settle-once), credits | gateway credentials + tax rules (BLK-001) |
+| Support (SUP-01/02) | tickets + SLA + state machine, KB | notifications delivery, SLA policy ratification |
+| Mail (MAIL-01/02) | domains (verify flow), mailboxes, aliases | mailbox.apply host drill, SMTP transport (DEC-007) |
+| Observability (OBS-01) | observations, latest-per-name, notifications | metrics sampler worker, status pages |
+| Backups (WEB-09) | manifests (digest+key+schema), verify+key restore gates | encrypted backup creation + isolated restore drill (G50) |
 
 ## Requirement → implementation traceability
 
