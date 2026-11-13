@@ -59,15 +59,25 @@ jobs + outbox with leases/fencing), DEC-012 (versioned namespace, canonical sche
 
 | Item | Disposition | Code | Tests | Evidence |
 | --- | --- | --- | --- | --- |
-| Migration framework + schema v1 (17 logical tables) | IN_PROGRESS | `internal/store`, `migrations/0001_core_schema.sql` | `internal/store` | |
-| Canonical JSON + strict field validation | IN_PROGRESS | `internal/api/jsonutil` | `internal/api` | |
-| AuthN: principals, Argon2id credentials, sessions, TOTP MFA, challenges | IN_PROGRESS | `internal/authn` | `internal/authn` | |
-| AuthZ: workspaces, memberships, roles, grants, support leases, deny-by-default | IN_PROGRESS | `internal/authz` | `internal/authz` | |
-| Resource graph + generations/owner revisions | IN_PROGRESS | `internal/store` | `internal/store` | |
-| Operations: intent digest, idempotency, CAS transitions, outbox | IN_PROGRESS | `internal/operations` | `internal/operations` | |
-| API envelope `/api/v1` (me, workspaces, operations, intents) + error taxonomy | IN_PROGRESS | `internal/api` | `internal/api` | |
-| Append-only audit | IN_PROGRESS | `internal/audit` | `internal/audit` | |
-| Contract fixtures from `profile.md` (10 scenarios) | IN_PROGRESS | `internal/api` | `internal/api/contract_test.go` | |
+| Migration framework + schema v1 (17 logical tables + credential + support_lease_grant) | VERIFIED | `internal/store`, `migrations/0001_core_schema.sql`, `migrations/0002_role_grants_seed.sql` | exercised via contract suite | TEST-RESULTS G10 row |
+| Canonical JSON + strict field validation | VERIFIED | `internal/api/errors.go` (decodeStrict) | TestContractUnknownField422 | TEST-RESULTS G10 row |
+| AuthN: principals, Argon2id credentials, sessions, TOTP MFA (RFC 6238), challenges | VERIFIED | `internal/authn` | TestLoginMFALifecycle, TestUnauthorizedRequests401 | TEST-RESULTS G10 row |
+| AuthZ: workspaces, memberships, kind-qualified roles, grant rules, support leases, deny-by-default | VERIFIED | `internal/authz`, `migrations/0002` | TestContractRevokedReplay, TestAuditTrailRecordsDenyAndAllow | TEST-RESULTS G10 row |
+| Resource graph + generations/owner revisions | VERIFIED | `internal/store/entities.go` | exercised via contract suite | TEST-RESULTS G10 row |
+| Operations: intent digest, idempotency (stable/altered/revoked replay), CAS transitions, fences | VERIFIED | `internal/operations` | TestContractStableReplay, TestContractAlteredReplay409, TestContractRevokedReplay | TEST-RESULTS G10 row |
+| API envelope `/api/v1` (me, workspaces, resources, operations, intents, scope audit, login, mfa) + error taxonomy | VERIFIED | `internal/api` | full G10 contract suite | TEST-RESULTS G10 row |
+| Append-only audit | VERIFIED | `internal/audit` | TestAuditTrailRecordsDenyAndAllow | TEST-RESULTS G10 row |
+| Contract fixtures from `profile.md` (6 of 10 scenarios; host-fixture scenarios 7–10 need the G20 helper) | PARTIAL | `internal/api`, `internal/operations` | 6 scenario tests | remaining 4 scenarios bound to G20 host-verb work |
+
+Semantics decisions recorded (pending owner ratification alongside DEC-004/DEC-012):
+- Roles are kind-qualified IDs (`website.owner`); role table carries workspace_kind.
+- Visibility rule: any active membership or any support-lease row → visible (denied actions → 403);
+  no relationship → concealed (404, no identifiers). Matches profile fixtures ("denial under
+  current visibility"; "hidden resource → 404").
+- `operation.read` enforced as (creator ‖ active member of operation scope) until the permission
+  vocabulary freeze adds an explicit action row.
+- Idempotency TTL 24h; session TTL 24h; challenge TTL 30m — fixture defaults (DEC-018), not
+  operating limits.
 
 ## W-G20 · Installer, host privilege and compatibility (planned)
 

@@ -1,0 +1,28 @@
+name: ci
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Lint (gofmt, vet)
+        run: |
+          test -z "$(gofmt -l . | grep -v '^ui/' | grep -v '^spec/')" || { gofmt -l .; exit 1; }
+          go vet ./...
+      - name: Secret redaction scan
+        run: |
+          leaks=$(git ls-files -z | xargs -0 grep -lE 'ghp_[A-Za-z0-9]{20,}|gho_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|-----BEGIN (RSA|OPENSSH|EC) PRIVATE KEY-----' 2>/dev/null || true)
+          if [ -n "$leaks" ]; then echo "SECRET MATERIAL DETECTED:"; echo "$leaks"; exit 1; fi
+      - name: Prototype provenance
+        run: scripts/verify-prototype.sh
+      - name: Build
+        run: go build ./...
+      - name: Test
+        run: go test ./... -count=1 -race
