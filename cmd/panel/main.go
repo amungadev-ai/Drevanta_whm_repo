@@ -19,6 +19,7 @@ import (
 	"drevanta/internal/authn"
 	"drevanta/internal/authz"
 	"drevanta/internal/hostagent"
+	"drevanta/internal/mailsmtp"
 	"drevanta/internal/install"
 	"drevanta/internal/jobs"
 	"drevanta/internal/operations"
@@ -99,6 +100,24 @@ func run(addr, dbPath, migDir, helperSocket string) error {
 	eng := operations.NewEngine(db)
 	aw := audit.NewWriter(db)
 	srv := api.NewServer(db, authnSvc, checker, eng, aw)
+	// Recovery delivery (G34): real SMTP transport when configured; the
+	// auditable no-op adapter remains the default without relay settings.
+	if host := os.Getenv("DREVANTA_SMTP_HOST"); host != "" {
+		port := 0
+		fmt.Sscanf(os.Getenv("DREVANTA_SMTP_PORT"), "%d", &port)
+		mailer, err := mailsmtp.New(mailsmtp.Config{
+			Host: host, Port: port,
+			From:     os.Getenv("DREVANTA_SMTP_FROM"),
+			Username: os.Getenv("DREVANTA_SMTP_USER"),
+			Password: os.Getenv("DREVANTA_SMTP_PASS"),
+		})
+		if err != nil {
+			log.Printf("panel: SMTP delivery disabled (%v); recovery stays on the auditable no-op adapter", err)
+		} else {
+			srv.Mailer = mailer
+			log.Printf("panel: SMTP recovery delivery enabled via %s", host)
+		}
+	}
 
 	// Durable job worker loop (phase 22): claims and dispatches through the
 	// privileged helper, reconciles crash-expired leases on start.
