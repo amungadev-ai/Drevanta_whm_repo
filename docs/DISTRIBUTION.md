@@ -91,6 +91,22 @@ install, tampered-artifact refusal (stale signature), impostor-signing-key
 refusal. Platform endpoints are answered by real local servers inside an
 isolated namespace; downloads use REAL curl end to end.
 
+## Current distribution signing key
+
+- Algorithm: ECDSA P-256 (detached signature over SHA256SUMS).
+- **Public-key fingerprint (SHA-256 of the DER-encoded public key,
+  `openssl ec -pubin -in drevanta-dist-public.pem -outform DER | sha256sum`):
+  `89cbd742c0a61e6f5c125cab62a0cadebad35ece4f9172f9331d6cfbd655dec8`**
+- Rotated 2026-11-14 before any publication (the initial key never signed a
+  published artifact; no revocation required).
+- Private key storage: GitHub Actions secret `DREVANTA_DIST_SIGNING_KEY` on
+  THIS repository (write-only secret store) — never in git history, release
+  assets, review packages, logs or CI artifacts. Public key additionally
+  stored as `DREVANTA_DIST_PUBLIC_KEY` and published under `keys/` at
+  release time, embedded in every generated bootstrap.
+- Verify a download against this fingerprint out-of-band (see
+  docs/VERIFICATION.md).
+
 ## Publication checklist (owner actions, in order)
 
 1. Store the signing private key + `DIST_TOKEN` in the private repo's
