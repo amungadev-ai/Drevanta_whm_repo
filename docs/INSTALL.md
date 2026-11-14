@@ -1,105 +1,188 @@
-# Drevanta Manual Installation Guide
+# Drevanta Installation Guide
 
-Version format: `1.0.0-owneraudit.1+git.<sha>` · Install package:
-`drevanta-install-<version>-<commit>.tar.gz` (checksums in
-`<package>.tar.gz.sha256` and the internal `SHA256SUMS`).
+This guide covers every supported installation method. All methods share the
+same underlying installation engine (`engine/install.sh` in the repository,
+shipped as `install.sh` inside every release artifact) — there is one
+installer implementation, not one per method.
+
+## Installation methods (permanent priority order)
+
+| Method | Use when | Entry point | Status |
+| --- | --- | --- | --- |
+| **A — Direct GitHub installation** | Standard customer journey (primary) | `install.sh` at the repository root, executed in one command | Implemented; verified in isolated harness (see `scripts/verify_installer.sh`, 46 checks) |
+| **B — Downloadable installation package** | No direct GitHub retrieval desired | release artifact `drevanta-install-*.tar.gz` + `sha256sum -c` + `./install.sh` | Implemented; verified on a prior fresh Ubuntu 26.04 host and in the harness |
+| **C — Offline installation** | Air-gapped/restricted host | same artifact, engine `--offline` skips network stages | Implemented; dependency auto-install skipped, preinstalled deps required |
+| **D — Developer installation** | Building from source | build the artifact with `scripts/build_install_package.sh`, install it (Method B flow) | Implemented; used for every release |
+| **E — Upgrade** | Existing installation | engine `--upgrade` (backup → replace → migrate → health → rollback) | Implemented; verified in the harness; independent-VPS upgrade run still outstanding |
+
+Outstanding engineering (disclosed, not claimed): automated ACME certificate
+issuance/renewal for custom management domains; artifact code-signing
+beyond SHA-256 manifest verification (needs a signing-key ceremony);
+independent fresh-VPS verification of the full Method A journey (the owner
+acceptance test performs this).
 
 ## Requirements
 
 | Item | Minimum | Recommended |
 | --- | --- | --- |
-| OS | Ubuntu 22.04/24.04/26.04 (amd64) | Ubuntu 26.04 LTS |
+| OS | Debian family: Ubuntu 20.04+, Debian 11+ (linux/amd64) | Ubuntu 26.04 LTS |
 | CPU | 2 vCPU | 4 vCPU |
-| RAM | 4 GB | 8 GB |
-| Disk | 40 GB | 80 GB SSD |
-| Software | systemd, curl, python3, tar, Node.js ≥ 20, nginx (auto-installed if missing and declared) | — |
+| RAM | 1 GB (installer refuses below 400 MB available) | 4 GB |
+| Disk | 3 GB free under `/var` | 40 GB SSD |
+| Network | Outbound HTTPS for release retrieval (Method A/B) and apt | — |
+| Software | systemd; curl, tar, python3 (bootstrap retrieves them via apt if missing); nginx and Node.js ≥ 20 are auto-installed by the engine | — |
 
-**Ports (loopback unless noted):** API `127.0.0.1:8080`, console `127.0.0.1:3100`,
-nginx `127.0.0.1:80` (or `--nginx-port`). Optional services when activated:
-mail 25/587/143/993/110/995, DNS 53, cache 16379 (loopback), payment-callback
-`0.0.0.0:<port>` (callback path only). SSH 22 for administration/tunnels.
+**Ports:** management `0.0.0.0:8443/tcp` HTTPS (configurable `--mgmt-port`),
+loopback HTTP `127.0.0.1:80` (SSH-tunnel target, configurable
+`--nginx-port`), API `127.0.0.1:8080`, console `127.0.0.1:3100` (both
+loopback-only, never exposed). Optional payment-callback vhost
+`0.0.0.0:<port>` (callback path only). SSH 22 for administration. Ports 80
+and 443 remain free for hosted websites and domain routing.
 
-**Dependencies:** declared deps are auto-installed by the installer (nginx,
-Node.js 20 via NodeSource). Independently activatable services (installed on
-demand through the platform when used): mail stack (postfix/dovecot), DNS
-(nsd), Redis/Valkey, OCI containers (podman), toolchains. External
-configuration (not installable by Drevanta): publicly trusted TLS certificate
-(domain required), payment gateway credentials, SMTP relay if used.
-
-## Install
+## Method A — direct GitHub installation (primary)
 
 ```bash
-sha256sum -c drevanta-install-*.tar.gz.sha256
-tar -xzf drevanta-install-*.tar.gz && cd drevanta-install-*
-sudo ./install.sh                       # default instance
-# isolated coexisting instance:
-sudo ./install.sh --instance test --nginx-port 8443 --web-port 3101 --api-port 8082
+curl -fsSL https://raw.githubusercontent.com/amungadev-ai/Drevanta_whm_repo/<pinned-release-ref>/install.sh -o install.sh && sudo bash install.sh
 ```
 
-The installer prints `[OK]/[FAIL]` per step and **exits non-zero listing the
-failed steps if anything fails** — it never reports success for a failed
-operation. On success it prints the access URLs and the claim-token file
-path. What it does: creates an isolated system user and directories,
-installs binaries + console bundle + migrations, runs the one-shot
-bootstrap (creates the installation record and a **single-use claim token,
-24 h TTL**, stored root-only at `$ETC/claim-token`), installs and starts
-`drevanta[-test]-{helper,panel,web}` systemd units, and adds a loopback-only
-nginx vhost. Remote access is by SSH tunnel; no admin authentication is
-exposed over plain HTTP on public interfaces.
+While the repository is **private**, retrieval needs a GitHub token with
+**Contents: Read**. The token is never embedded in URLs, arguments, shell
+history or logs: the bootstrap reads it silently if it cannot fetch the
+release, and passes it to curl via a root-only header file that is deleted
+immediately after use. Export `DREVANTA_GH_TOKEN` beforehand (unattended
+runs require this), or paste it at the hidden prompt.
 
-## First-run onboarding (performed by YOU)
+What the bootstrap does, in order: platform validation → release resolution
+(`--version <tag>`, default: the pinned development release) → release
+manifest retrieval → artifact download → **SHA-256 verification against the
+trusted release MANIFEST.json AND the artifact's internal SHA256SUMS**
+(mismatched or corrupted artifacts are deleted; nothing is installed) →
+extraction into a private temporary directory → execution of the shared
+engine → cleanup. The customer never compiles from source.
 
-1. `ssh -L 8443:127.0.0.1:8443 <user>@<host>` then browse
-   `http://localhost:8443/`.
-2. `sudo cat /etc/drevanta-test/claim-token` on the host (single-use;
-   `sudo shred -u` the file after claiming).
-3. Follow `/onboarding`: claim (create the initial administrator — this
-   account has legitimate platform-wide administrative authority through the
-   platform's authorization model), recovery codes, access address,
-   sign-in, MFA/security setup, dashboard.
+For the stable channel (after owner approval), the same command form will
+point at the official stable release reference; explicit version selection
+and release provenance stay identical.
 
-## Upgrade
+## Methods B/C — package and offline
 
 ```bash
-sudo systemctl stop drevanta-test-panel drevanta-test-web drevanta-test-helper
-tar -xzf drevanta-install-<new>.tar.gz && cd drevanta-install-<new>*
-sudo ./install.sh --instance test --nginx-port 8443 --web-port 3101 --api-port 8082
+sha256sum -c drevanta-install-<version>-<commit>.tar.gz.sha256   # must print OK
+tar -xzf drevanta-install-<version>-<commit>.tar.gz && cd drevanta-install-<version>-<commit>
+sudo ./install.sh                 # fresh install, management HTTPS on :8443
+sudo ./install.sh --offline      # air-gapped host (deps must be preinstalled)
 ```
 
-The installer is idempotent: it re-deploys binaries/bundles and restarts
-units; database data in `/var/lib/drevanta-test` is preserved (migrations
-are forward-only).
+Package integrity: `<package>.tar.gz.sha256` beside the package, internal
+`SHA256SUMS` for every file, and the release `MANIFEST.json` (trusted
+manifest generated at release time). Self-hosted mirrors can substitute the
+API base with `DREVANTA_API_BASE` for verified mirror scenarios.
 
-## Uninstall
+## Method D — developer installation
 
 ```bash
-sudo systemctl disable --now drevanta-test-{panel,web,helper}
-sudo rm -f /etc/systemd/system/drevanta-test-* /etc/nginx/sites-{available,enabled}/drevanta-test*.conf
-sudo rm -rf /opt/drevanta-test /etc/drevanta-test /var/lib/drevanta-test /run/drevanta-test /var/log/drevanta-test
-sudo userdel drevanta-test && sudo systemctl daemon-reload
+bash scripts/build_install_package.sh          # gates: gofmt, go vet, go test
+# then install the produced artifact exactly as Method B
 ```
 
-## Backup & recovery
+## Engine options
 
-- Files: `/var/lib/drevanta-<inst>/panel.db` + `helper.db` (SQLite, WAL) —
-  back up with the instance stopped or using SQLite online-backup semantics.
-- Platform-managed backups: the platform's own backup subsystem covers
-  websites/databases/configurations (see the in-app Backups area); host
-  artifacts live under `/srv/drevanta` (on hosts where the helper manages
-  them).
-- Recovery: reinstall the same version, stop units, restore the DB files
-  into `/var/lib/drevanta-<inst>/`, start units. The installation record
-  (and claim state) lives inside `panel.db`.
+```
+--mgmt-port <port>      public HTTPS management port (default 8443)
+--access-ip <ip>        override the detected server access address
+--mgmt-domain <name>    additional DNS SAN on the management certificate
+--nginx-port <port>     loopback HTTP tunnel target (default 80)
+--private-mgmt          no public management listener (tunnel/VPN access only)
+--public-callback-port  payment-provider callback vhost (callback path only)
+--unattended            suppress token material in output (also DREVANTA_UNATTENDED=1)
+--offline               no network stages
+--upgrade               version-aware in-place upgrade (Method E)
+--instance <name>       coexisting isolated installation
+```
 
-## Troubleshooting
+Every gate prints `[INFO]/[OK]/[WARN]/[FAIL]`; a failed mandatory gate makes
+the installer exit non-zero and list the failed steps. It never reports
+success for a failed or unexecuted step. A persistent installation log is
+written to `/var/log/drevanta[-<instance>]/install-<timestamp>.log` with
+claim tokens redacted, and a machine-readable (token-free) report to
+`/etc/drevanta[-<instance>]/install-report.json`.
 
-- Service state: `systemctl status drevanta-<inst>-{helper,panel,web}`;
-  logs: `journalctl -u <unit>`.
-- Panel not healthy: check migrations ran (journal), DB path permissions
-  (owned by the instance user).
-- Helper rejected request: policy file `$ETC/helper-policy.json` (root-owned
-  allowlist; verbs/targets), socket group membership, installation-id match.
-- Console down: `journalctl -u drevanta-<inst>-web`; Node ≥ 20 required.
-- Claim token lost: wipe `panel.db` and re-run the installer (fresh install;
-  do not attempt to mint tokens by hand).
-- Port conflicts: rerun with `--nginx-port/--web-port/--api-port`.
+## What the engine configures
+
+System user and directories (`/opt/drevanta`, `/etc/drevanta`,
+`/var/lib/drevanta`, `/run/drevanta`, `/var/log/drevanta`; per-instance
+variants), binaries (helper privileged + panel control plane), SvelteKit
+console bundle, SQLite migrations (run at panel start and by the one-shot
+bootstrap), systemd units `drevanta[-<inst>]-{helper,panel,web}`
+(hardened: `NoNewPrivileges`, `ProtectSystem=strict`, private tmp), nginx
+loopback vhost (tunnel target) and the public HTTPS management vhost
+(TLSv1.2/1.3, security headers, `no-store`, self-origin CSP), an
+installation-specific TLS certificate (RSA-2048, 825 days, the server IP as
+subjectAltName; key root-only 0600), narrowly scoped firewall handling (ufw
+is allowed only if it is ALREADY active — the installer never enables a
+firewall or touches SSH), port-conflict detection, the root-only claim-token
+retrieval command, and final health verification of panel, web, helper and
+the management endpoint (local verification only — external reachability is
+explicitly NOT claimed and must be confirmed from the browser).
+
+## First-run onboarding (performed by the owner)
+
+The completion summary prints the primary onboarding URL:
+
+```
+https://<server-ip>:8443/#<single-use-claim-token>
+```
+
+Ctrl+Click it (or type it manually). The approved onboarding interface reads
+the claim token from the URL fragment, validates its format, auto-populates
+the existing claim-token field, and immediately removes the token from the
+address bar (`history.replaceState`) — no reload, no referrer, no storage.
+The owner then completes onboarding personally: review the populated field →
+continue → create the initial administrator → save recovery codes offline →
+access address → sign-in → MFA/security setup → dashboard. Opening the link
+never submits the token or creates an account; the token is consumed only by
+the explicit claim step (`POST /api/v1/install/claim`, atomic, single-use,
+24 h TTL). Manual claim-token entry remains available: the field accepts
+`clm_…` tokens or a full onboarding link.
+
+SSH-tunnel alternative (Priority 2):
+
+```bash
+ssh -N -L 8080:127.0.0.1:80 root@<server-ip>     # from your local computer
+# then open http://localhost:8080/#<single-use-claim-token>
+```
+
+## Claim-token security and lifecycle
+
+- Cryptographically random (crypto/rand), issued once per installation,
+  stored **hash-only** in the database; the plaintext exists only in the
+  root-only file `/etc/drevanta[-<inst>]/claim-token` (0600) and the
+  authorized interactive terminal.
+- Single-use, atomic consumption, 24 h validity; expired/malformed/consumed
+  tokens are rejected (HTTP 401).
+- Retrieval: `sudo drevanta-claim-token` (token + guidance),
+  `--url` (full onboarding URL), `--regenerate` (authorized recovery before
+  claiming; a claimed installation refuses regeneration — the owner claim is
+  final).
+- Token-bearing URLs are confidential: never share them; beware terminal
+  scrollback, screenshots, clipboard history and browser extensions. They
+  never appear in persistent logs (redacted), journals, diagnostics,
+  CI output or analytics.
+- An already claimed installation never receives a new owner claim token
+  during an installer rerun; fresh installs on an existing database are
+  refused without `--upgrade`.
+
+## Certificate verification
+
+The management certificate is issued by this installation, not a public CA —
+the browser warning is expected. Before entering credentials or the claim
+token, compare the certificate SHA-256 fingerprint shown by the browser with
+the `TLS fingerprint` line in the installation summary (they must match
+exactly). Do not bypass the warning blindly. Replacement with a publicly
+trusted certificate (custom management domain) is covered in
+[MANAGEMENT-ACCESS-TLS.md](MANAGEMENT-ACCESS-TLS.md).
+
+## Upgrade, uninstall, backup & recovery
+
+See [UPGRADE-RECOVERY.md](UPGRADE-RECOVERY.md) (Method E details, backups,
+rollback, recovery) and the uninstall/backup commands there.

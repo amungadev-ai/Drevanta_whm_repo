@@ -33,7 +33,7 @@ cp frontend/package.json "/tmp/$OUT/web/"
 [[ -d frontend/node_modules ]] && cp -r frontend/node_modules "/tmp/$OUT/web/node_modules"
 cp -r migrations "/tmp/$OUT/migrations"
 cp -r infra/. "/tmp/$OUT/infra/"
-for f in docs/INSTALL.md docs/OWNER-ACCESS.md docs/OWNER-ACCEPTANCE-TESTING.md docs/OWNER-AUDIT-FINDINGS.md docs/INTEGRATION-READINESS.md docs/MPESA-SANDBOX.md; do
+for f in docs/INSTALL.md docs/OWNER-ACCESS.md docs/OWNER-ACCEPTANCE-TESTING.md docs/OWNER-AUDIT-FINDINGS.md docs/INTEGRATION-READINESS.md docs/MPESA-SANDBOX.md docs/INSTALLER-TROUBLESHOOTING.md docs/MANAGEMENT-ACCESS-TLS.md docs/UPGRADE-RECOVERY.md docs/RELEASE-DISTRIBUTION.md; do
   [[ -f "$f" ]] && cp "$f" "/tmp/$OUT/docs/"
 done
 mkdir -p "/tmp/$OUT/spec/registers"

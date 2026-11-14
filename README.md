@@ -32,6 +32,31 @@ Per handoff DEC-001/DEC-002 recommendations and reconciliation record REC-02:
 - **Authorization** — explicit per-workspace membership, ownership edges, default deny at every boundary (DEC-004)
 - **UI** — the static prototype wired to the real API
 
+## Installation
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/amungadev-ai/Drevanta_whm_repo/<release-ref>/install.sh -o install.sh && sudo bash install.sh
+```
+
+One command on a supported VPS (Ubuntu 20.04+/Debian 11+, amd64): the
+bootstrap retrieves the release artifact, verifies SHA-256 integrity against
+the trusted release manifest and the artifact-internal checksums, and runs
+the shared installation engine — dependencies (nginx, Node.js ≥ 20), systemd
+services, database initialization, an HTTPS management endpoint on port 8443
+with an installation-issued certificate (server-IP SAN), and single-use
+claim-token issuance. Completion prints a one-click onboarding URL
+(`https://<server-ip>:8443/#<claim-token>`) that auto-populates the claim
+field and strips itself from the address bar; the owner completes onboarding
+personally. While the repository is private, retrieval uses a Contents:Read
+token via a root-only header file (never in URLs, arguments or logs).
+
+- Full guide: [`docs/INSTALL.md`](docs/INSTALL.md) (methods A–E, requirements,
+  engine options, claim-token lifecycle)
+- Management access & TLS: [`docs/MANAGEMENT-ACCESS-TLS.md`](docs/MANAGEMENT-ACCESS-TLS.md)
+- Upgrade/backup/recovery: [`docs/UPGRADE-RECOVERY.md`](docs/UPGRADE-RECOVERY.md)
+- Installer troubleshooting: [`docs/INSTALLER-TROUBLESHOOTING.md`](docs/INSTALLER-TROUBLESHOOTING.md)
+- Release distribution & provenance: [`docs/RELEASE-DISTRIBUTION.md`](docs/RELEASE-DISTRIBUTION.md)
+
 ## Repository layout
 
 | Path | Purpose |
@@ -43,7 +68,9 @@ Per handoff DEC-001/DEC-002 recommendations and reconciliation record REC-02:
 | `internal/helper/` | Helper-side verb registry and typed handlers |
 | `migrations/` | Forward-only SQL migrations |
 | `docs/` | Governance: implementation ledger, decision/blocker/test registers, release readiness |
-| `infra/` | Installer, systemd units, deployment assets |
+| `engine/` | The shared installation engine (one engine behind every install method) |
+| `install.sh` | Bootstrap installer (Method A — direct GitHub installation) |
+| `infra/` | systemd-unit templates, policy/bindings assets, deployment assets |
 | `scripts/` | CI and evidence tooling |
 
 ## Governance

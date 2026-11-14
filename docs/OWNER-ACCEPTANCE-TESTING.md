@@ -157,3 +157,61 @@ after onboarding, from the respective management surfaces.
   to be non-functional until you supply the inputs; that is a status, not a
   defect.
 
+
+## Part 6 — Installation, management access & one-click onboarding acceptance
+
+This part verifies the revised installation architecture (2026-11 revision).
+Check items as you go; file defects in `docs/OWNER-AUDIT-FINDINGS.md`.
+
+### 6.1 Method A — single-command GitHub installation
+- [ ] Single installation command executes on the fresh Ubuntu 26.04.1 VPS
+- [ ] Bootstrap validates platform (amd64, Debian-family) and prints progress
+- [ ] Release manifest retrieved; artifact downloaded
+- [ ] `integrity verified against trusted release manifest` + internal SHA256SUMS line printed
+- [ ] Installed version, release tag, artifact SHA-256 shown (provenance)
+- [ ] Engine banner: DREVANTA + version + detected OS/architecture
+- [ ] Stages display: system requirements, deployment layout, security, database, services, endpoint, summary
+- [ ] Dependencies auto-installed (nginx, Node.js ≥ 20) — no manual prereqs
+- [ ] Failed-step behavior: any `[FAIL]` → non-zero exit + step list (observe only if it occurs)
+
+### 6.2 Management access — direct server IP (primary)
+- [ ] Summary shows `Server IP: 95.211.164.33` and status/services lines
+- [ ] `https://95.211.164.33:8443/` serves the console (public interface)
+- [ ] Certificate warning expected; fingerprint comparison instructions shown
+- [ ] Browser certificate SHA-256 == installer-printed fingerprint
+- [ ] Ports 80/443 untouched (free for hosted websites)
+- [ ] Go API (8080) and console (3100) not reachable externally (loopback only)
+- [ ] SSH tunnel alternative works: `ssh -N -L 8080:127.0.0.1:80 …` → `http://localhost:8080/`
+
+### 6.3 One-click onboarding (fragment claim)
+- [ ] Ctrl+Click the printed onboarding URL opens the approved onboarding interface
+- [ ] Claim-token field auto-populated (`✓ Setup token detected`, masked)
+- [ ] Token removed from the address bar immediately (address shows no fragment)
+- [ ] Browser refresh after opening: token NOT re-injected, manual entry offered
+- [ ] Manual claim-token entry path works (`clm_…` token or full link)
+- [ ] Opening the URL did NOT claim/submit anything (claim happens only on Continue)
+- [ ] Claim: administrator created → recovery codes → access address → sign-in → MFA → dashboard
+- [ ] Malformed/missing token fragment → manual-entry state, no errors leaked
+- [ ] Reusing a consumed token → explicit rejection (HTTP 401 surface)
+
+### 6.4 Claim-token lifecycle
+- [ ] `sudo drevanta-claim-token` prints the token + confidentiality guidance (root only)
+- [ ] `sudo drevanta-claim-token --url` prints the full onboarding URL
+- [ ] Persistent install log contains NO claim token (`sudo grep -c clm_ /var/log/drevanta/install-*.log` → 0 matches; `[REDACTED-CLAIM-TOKEN]` if any token passed the logger)
+- [ ] `/etc/drevanta/install-report.json` exists and contains no token material
+- [ ] `--regenerate` refused after claiming (claimed installation is final)
+- [ ] Rerunning the installer without `--upgrade` refuses to modify the claimed installation
+
+### 6.5 Machine-readable + unattended behavior
+- [ ] Exit code 0 on success; `[INFO]/[OK]/[WARN]/[FAIL]` indicators consistent
+- [ ] (Optional rerun on a disposable host) `DREVANTA_UNATTENDED=1` output contains no token material and points to `drevanta-claim-token --url`
+
+### 6.6 Verification evidence and limits
+- Isolated harness (`scripts/verify_installer.sh`, commit edbc9cc): 46/46 checks pass —
+  bootstrap e2e incl. negative paths (mismatch, corruption, unauthenticated), engine e2e
+  in a namespaced fake root (fresh/upgrade/refusal/private-mgmt/unattended/redaction),
+  IP-SAN certificate, fragment logic on the built bundle, claim-regenerate CLI.
+- NOT verified in the harness (your acceptance test verifies these): real systemd
+  service startup, real nginx serving, public-interface reachability from a second
+  client, browser fragment flow in desktop/mobile browsers, real apt/NodeSource
+  dependency installs on a pristine host.
