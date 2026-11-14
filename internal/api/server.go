@@ -21,8 +21,9 @@ type Server struct {
 	Ops     *operations.Engine
 	Audit   *audit.Writer
 	Install *install.Installer
-	Mailer  Mailer           // recovery delivery seam (tests may capture)
-	Clock   func() time.Time // injectable for tests
+	Mailer  Mailer            // recovery delivery seam (tests may capture)
+	Mpesa   *store.MpesaStore // M-Pesa Daraja gateway store (nil => endpoints fail closed)
+	Clock   func() time.Time  // injectable for tests
 	MaxBody int64
 
 	// Domain capability services (G40 full-persona wave).
@@ -54,6 +55,11 @@ func NewServer(db *store.DB, authnSvc *authn.Service, checker *authz.Checker, en
 func (s *Server) Handler() http.Handler {
 	protected := http.NewServeMux()
 	protected.HandleFunc("GET /api/v1/me", s.handleMe)
+	protected.HandleFunc("GET /api/v1/admin/payments/mpesa/config", s.handleMpesaConfigGet)
+	protected.HandleFunc("PUT /api/v1/admin/payments/mpesa/config", s.handleMpesaConfigPut)
+	protected.HandleFunc("GET /api/v1/admin/payments/mpesa/health", s.handleMpesaHealth)
+	protected.HandleFunc("POST /api/v1/admin/payments/mpesa/reconcile", s.handleMpesaReconcile)
+	protected.HandleFunc("POST /api/v1/invoices/{invoiceID}/mpesa", s.handleMpesaInitiate)
 	protected.HandleFunc("GET /api/v1/workspaces", s.handleWorkspaces)
 	protected.HandleFunc("GET /api/v1/resources", s.handleResources)
 	protected.HandleFunc("POST /api/v1/resources/{resourceID}/intents", s.handleIntents)
@@ -117,6 +123,7 @@ func (s *Server) Handler() http.Handler {
 	public.HandleFunc("POST /api/v1/identity/recover-request", s.handleRecoverRequest)
 	public.HandleFunc("POST /api/v1/identity/recover-confirm", s.handleRecoverConfirm)
 	public.HandleFunc("GET /api/v1/install/status", s.handleInstallStatus)
+	public.HandleFunc("POST /api/v1/payments/mpesa/callback", s.handleMpesaCallback) // untrusted; verify-then-settle
 	public.HandleFunc("POST /api/v1/install/claim", s.handleInstallClaim)
 
 	// Unknown /api routes fail closed with the taxonomy.
