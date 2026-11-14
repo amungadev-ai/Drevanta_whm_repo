@@ -4,6 +4,7 @@
 // from a claimed installation (env ADMIN_PASS or default e2e password).
 import http from 'http';
 import { chromium } from 'playwright';
+import crypto from 'crypto';
 
 const BASE = 'http://127.0.0.1:3100';
 const GO = 'http://127.0.0.1:8080';
@@ -43,27 +44,38 @@ if (page.url().includes('/auth/verify')) {
 step('authenticated session established', !page.url().includes('/auth/'), page.url());
 
 function totpNow(secretB32) {
-  const crypto = import('crypto');
-  return crypto.then(c => {
-    const B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-    let bits = '';
-    for (const ch of secretB32.replace(/=+$/, '')) bits += B32.indexOf(ch.toUpperCase()).toString(2).padStart(5, '0');
-    const bytes = [];
-    for (let i = 0; i + 8 <= bits.length; i += 8) bytes.push(parseInt(bits.slice(i, i + 8), 2));
-    const buf = Buffer.alloc(8); buf.writeUInt32BE(Math.floor(Date.now() / 30000), 4);
-    const mac = c.createHmac('sha1', Buffer.from(bytes)).update(buf).digest();
-    const off = mac[19] & 0xf;
-    return String(((mac[off] & 0x7f) << 24 | mac[off + 1] << 16 | mac[off + 2] << 8 | mac[off + 3]) % 1000000).padStart(6, '0');
-  });
+  const B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = '';
+  for (const ch of secretB32.replace(/=+$/, '')) bits += B32.indexOf(ch.toUpperCase()).toString(2).padStart(5, '0');
+  const bytes = [];
+  for (let i = 0; i + 8 <= bits.length; i += 8) bytes.push(parseInt(bits.slice(i, i + 8), 2));
+  const buf = Buffer.alloc(8); buf.writeUInt32BE(Math.floor(Date.now() / 30000), 4);
+  const mac = crypto.createHmac('sha1', Buffer.from(bytes)).update(buf).digest();
+  const off = mac[19] & 0xf;
+  return String(((mac[off] & 0x7f) << 24 | mac[off + 1] << 16 | mac[off + 2] << 8 | mac[off + 3]) % 1000000).padStart(6, '0');
 }
 
 // 1. Cookie security flags — verified from the authoritative Set-Cookie
 // header (Chromium's CDP hides Secure-cookie introspection over http://127.0.0.1).
 import { execSync } from 'child_process';
-const setCurl = execSync(
-  `curl -si -m 8 -X ${'POST'} ${BASE}/api/v1/identity/login -H 'Content-Type: application/json' -d '${JSON.stringify(ADMIN)}' | grep -i '^set-cookie:' || true`,
+// MFA-aware raw login: password step may answer mfa_required (no cookie yet);
+// complete the approved verify step before reading Set-Cookie.
+const loginBody = execSync(
+  `curl -s -m 8 -X POST ${BASE}/api/v1/identity/login -H 'Content-Type: application/json' -d '${JSON.stringify(ADMIN)}'`,
   { encoding: 'utf8' }
 );
+let setCurl = execSync(
+  `curl -si -m 8 -X POST ${BASE}/api/v1/identity/login -H 'Content-Type: application/json' -d '${JSON.stringify(ADMIN)}' | grep -i '^set-cookie:' || true`,
+  { encoding: 'utf8' }
+);
+if (!setCurl.trim() && /mfa_required/.test(loginBody)) {
+  const principal = (loginBody.match(/"principal_id"\s*:\s*"([^"]+)"/) || [])[1] || '';
+  const verifyBody = `{"principal_id":"${principal}","code":"${totpNow(process.env.ADMIN_TOTP_SECRET || '')}"}`;
+  setCurl = execSync(
+    `curl -si -m 8 -X POST ${BASE}/api/v1/identity/mfa -H 'Content-Type: application/json' -d '${verifyBody.replace(/'/g, "'\\''")}' | grep -i '^set-cookie:' || true`,
+    { encoding: 'utf8' }
+  );
+}
 const sc = setCurl.toLowerCase();
 const sessCookie = sc.includes('drevanta_session=');
 const token = (setCurl.match(/drevanta_session=([^;]+)/i) || [])[1] || '';
