@@ -820,7 +820,7 @@ if [[ -z "${INSTALL_ID:-}" ]]; then
 import sqlite3
 print(sqlite3.connect('$VAR/panel.db').execute('select installation_id from installation').fetchone()[0])" 2>/dev/null || true)
 fi
-write_helper_unit
+write_helper_unit "${INSTALL_ID:-}"
 if [[ -n "${INSTALL_ID:-}" ]]; then
   step "unit: $SVC-helper (installation $INSTALL_ID)" bash -c 'systemctl daemon-reload && systemctl enable --now '"$SVC"'-helper'
   HELPER_OK=0
