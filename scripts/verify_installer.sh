@@ -363,6 +363,25 @@ PYEOF2
 grep -q "PROTOCOL_HEADER" /etc/systemd/system/drevanta-acc1-web.service && echo present > "$T2/protohdr" || echo missing > "$T2/protohdr"
 # installed VERSION record must be the artifact version (os-release clobber guard)
 head -1 /opt/drevanta-acc1/VERSION > "$T2/basever" 2>/dev/null || echo missing > "$T2/basever"
+# Finding A regression: vhosts preserve the external host:port (http_host variable)
+grep -q 'Host \$http_host' /etc/nginx/sites-available/drevanta-acc1-mgmt.conf && echo present > "$T2/hh" || echo missing > "$T2/hh"
+# Finding B regression: authorized regeneration with expired / missing token
+# records. A fresh install (acc11) re-bakes the retrieval wrapper for a
+# PENDING instance; the script(1) tool provides the interactive terminal the disclosure
+# gates require.
+r acc11 --instance acc11 --access-ip 203.0.113.7
+if command -v script >/dev/null 2>&1; then
+  ls -la /usr/local/bin/ > "$T2/lsusr" 2>&1
+  date -u -d '25 hours ago' '+%Y-%m-%dT%H:%M:%SZ' > /etc/drevanta-acc11/claim-token-created
+  script -e -qec '/usr/local/bin/drevanta-claim-token' /dev/null > "$T2/wrap-exp" 2>&1; echo \$? > "$T2/wrap-exp.rc"
+  script -e -qec '/usr/local/bin/drevanta-claim-token --regenerate' /dev/null > "$T2/wrap-reg" 2>&1; echo \$? > "$T2/wrap-reg.rc"
+  script -e -qec '/usr/local/bin/drevanta-claim-token' /dev/null > "$T2/wrap-after" 2>&1; echo \$? > "$T2/wrap-after.rc"
+  rm -f /etc/drevanta-acc11/claim-token
+  script -e -qec '/usr/local/bin/drevanta-claim-token --regenerate' /dev/null > "$T2/wrap-reg2" 2>&1; echo \$? > "$T2/wrap-reg2.rc"
+  echo done > "$T2/regen.done"
+else
+  echo skipped > "$T2/regen.done"
+fi
 # public listener withdrawal
 r acc1d --instance acc1 --upgrade --access-ip 203.0.113.7 --private-mgmt
 # lock contention
@@ -454,6 +473,23 @@ SEOF
   r=$(cat "$T2/acc1e.rc"); [[ "$r" != "0" ]] && ok "T2: forced upgrade failure exits non-zero (exit $r)" || bad "T2: forced failure not reported"
   has "T2: rollback verified healthy (true previous version named)" "$T2/acc1e.log" "rollback verified: previous version 1\.0\.0-owneraudit\.1\+[0-9a-f]{40} restored"
   has "T2: rollback health evidence + simulation disclosure" "$T2/acc1e.log" "local checks only: panel:200 web:200"
+  # Finding A: external host:port preserved through the proxy chain
+  [[ "$(grep -c 'proxy_set_header Host \\$http_host;' engine/install.sh 2>/dev/null || echo 0)" == "5" ]] \
+    && ! grep -q 'proxy_set_header Host \\$host;' engine/install.sh \
+    && ok "T2: all 5 proxy locations preserve external host:port (Host \$http_host)" \
+    || bad "T2: Host header preservation (\$http_host)"
+  [[ "$(cat "$T2/hh" 2>/dev/null)" == "present" ]] && ok "T2: generated mgmt vhost carries Host \$http_host" || bad "T2: generated vhost missing Host \$http_host"
+  # Finding B: authorized regeneration with expired / missing token records
+  [[ "$(cat "$T2/regen.done" 2>/dev/null)" == "done" ]] && ok "T2: regeneration regression suite executed" || bad "T2: regeneration regression did not run (script(1) unavailable)"
+  if [[ "$(cat "$T2/regen.done" 2>/dev/null)" == "done" ]]; then
+    [[ "$(cat "$T2/wrap-exp.rc")" == "1" ]] && ok "T2: expired token refuses retrieval (no disclosure)" || bad "T2: expired token still disclosed (rc=$(cat "$T2/wrap-exp.rc"))"
+    grep -q "has EXPIRED" "$T2/wrap-exp" && ok "T2: expired-token message names the recovery path" || bad "T2: expired-token message missing"
+    [[ "$(cat "$T2/wrap-reg.rc")" == "0" ]] && ok "T2: regeneration succeeds for an EXPIRED token" || bad "T2: expired-token regeneration failed (rc=$(cat "$T2/wrap-reg.rc"))"
+    [[ "$(cat "$T2/wrap-after.rc")" == "0" ]] && ok "T2: regenerated token is retrievable (fresh TTL)" || bad "T2: regenerated token not retrievable"
+    [[ "$(cat "$T2/wrap-reg2.rc")" == "0" ]] && ok "T2: regeneration succeeds with MISSING plaintext token file" || bad "T2: missing-file regeneration failed (rc=$(cat "$T2/wrap-reg2.rc"))"
+    newtok=$(grep -oE 'clm_[0-9a-f]+' "$T2/wrap-reg" | head -1); newtok2=$(grep -oE 'clm_[0-9a-f]+' "$T2/wrap-reg2" | head -1)
+    [[ -n "$newtok" && -n "$newtok2" && "$newtok" != "$newtok2" ]] && ok "T2: each regeneration issues a distinct fresh token" || bad "T2: regeneration token uniqueness"
+  fi
   r=$(cat "$T2/acc1f.rc"); [[ "$r" != "0" ]] && ok "T2: rollback-failure path exits non-zero (exit $r)" || bad "T2: rollback-failure exit"
   has "T2: rollback INCOMPLETE reported honestly" "$T2/acc1f.log" "rollback INCOMPLETE"
 

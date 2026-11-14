@@ -309,8 +309,8 @@ server {
     add_header X-Content-Type-Options nosniff always;
     add_header Referrer-Policy no-referrer always;
     add_header Cache-Control "no-store" always;
-    location / { proxy_pass http://127.0.0.1:$WEB_PORT; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
-    location /api/v1/ { proxy_pass http://127.0.0.1:$WEB_PORT; proxy_set_header Host \$host; }
+    location / { proxy_pass http://127.0.0.1:$WEB_PORT; proxy_set_header Host \$http_host; proxy_set_header X-Forwarded-Proto \$scheme; }
+    location /api/v1/ { proxy_pass http://127.0.0.1:$WEB_PORT; proxy_set_header Host \$http_host; }
 }
 NG
 }
@@ -330,8 +330,8 @@ server {
     add_header Cache-Control "no-store" always;
     add_header Content-Security-Policy "$csp" always;
     client_max_body_size 8m;
-    location / { proxy_pass http://127.0.0.1:$WEB_PORT; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto https; }
-    location /api/v1/ { proxy_pass http://127.0.0.1:$WEB_PORT; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto https; }
+    location / { proxy_pass http://127.0.0.1:$WEB_PORT; proxy_set_header Host \$http_host; proxy_set_header X-Forwarded-Proto https; }
+    location /api/v1/ { proxy_pass http://127.0.0.1:$WEB_PORT; proxy_set_header Host \$http_host; proxy_set_header X-Forwarded-Proto https; }
 }
 NG
 }
@@ -746,7 +746,7 @@ if [[ -n "$CALLBACK_PORT" ]]; then
 server {
     listen 0.0.0.0:$CALLBACK_PORT;
     server_name _;
-    location = /api/v1/payments/mpesa/callback { proxy_pass http://127.0.0.1:$WEB_PORT; proxy_set_header Host \$host; }
+    location = /api/v1/payments/mpesa/callback { proxy_pass http://127.0.0.1:$WEB_PORT; proxy_set_header Host \$http_host; }
     location / { return 404; }
 }
 NG
@@ -759,6 +759,7 @@ fi
 # pending, and ONLY for an unexpired token. Consumed, expired or stale
 # plaintext tokens are refused (and stale files removed) before anything is
 # disclosed. The wrapper's output is never written to any persistent log.
+install -d -m 0755 /usr/local/bin   # minimal hosts / fresh tmpfs may not have it yet
 cat > /usr/local/bin/drevanta-claim-token <<CTW
 #!/usr/bin/env bash
 # Drevanta claim-token retrieval + authorized recovery (root only).
@@ -770,48 +771,57 @@ set -uo pipefail
 ETC="$ETC"; VAR="$VAR"; BASE="$BASE"; USR="$USR"
 ACCESS_IP="$ACCESS_IP"; MGMT_PORT="$MGMT_PORT"; PRIVATE_MGMT="$PRIVATE_MGMT"
 [[ \$EUID -eq 0 ]] || { echo "root only" >&2; exit 2; }
-# Disclosure gate 1: no token material on non-interactive stdout.
+# Disclosure gate 1: no token material on non-interactive stdout (all paths
+# disclose token material — retrieval, URL and regeneration alike).
 if [[ ! -t 1 ]]; then
   echo "[refused] this output is not an authorized interactive terminal; claim-token material is suppressed." >&2
   echo "Run 'sudo drevanta-claim-token' inside your interactive terminal session." >&2
   exit 2
 fi
-# Disclosure gate 2: installation state must still be pending.
-state=\$(sudo -u "\$USR" python3 -c "
+# Installation state must still be pending for any token operation. Once
+# claimed, stale plaintext is shredded and nothing is disclosed.
+require_pending() {
+  state=\$(sudo -u "\$USR" python3 -c "
 import sqlite3
 try: print(sqlite3.connect('$VAR/panel.db').execute('select state from installation limit 1').fetchone()[0])
 except Exception: print('unknown')" 2>/dev/null || echo unknown)
-if [[ "\$state" != "pending" ]]; then
-  echo "No outstanding claim token (installation state: \$state; consumed/stale tokens can no longer be claimed)." >&2
-  if [[ -s "\$ETC/claim-token" ]]; then
-    shred -u "\$ETC/claim-token" 2>/dev/null || rm -f "\$ETC/claim-token"
-    echo "Stale plaintext token file removed." >&2
-  fi
-  exit 1
-fi
-[[ -s "\$ETC/claim-token" ]] || { echo "state is pending but no token file exists — reissue: sudo drevanta-claim-token --regenerate" >&2; exit 1; }
-# Disclosure gate 3: expiry.
-CREATED=""
-[[ -f "\$ETC/claim-token-created" ]] && CREATED="\$(cat "\$ETC/claim-token-created")"
-if [[ -n "\$CREATED" ]]; then
-  EXP_EPOCH=\$(date -u -d "\$CREATED +24 hours" +%s 2>/dev/null || echo 0)
-  NOW_EPOCH=\$(date -u +%s)
-  if [[ "\$EXP_EPOCH" -eq 0 || "\$NOW_EPOCH" -ge "\$EXP_EPOCH" ]]; then
-    echo "The outstanding claim token has EXPIRED (issued \$CREATED, TTL 24h) and can no longer be claimed." >&2
-    echo "Reissue before claiming: sudo drevanta-claim-token --regenerate" >&2
+  if [[ "\$state" != "pending" ]]; then
+    echo "No outstanding claim token (installation state: \$state; consumed/stale tokens can no longer be claimed)." >&2
+    if [[ -s "\$ETC/claim-token" ]]; then
+      shred -u "\$ETC/claim-token" 2>/dev/null || rm -f "\$ETC/claim-token"
+      echo "Stale plaintext token file removed." >&2
+    fi
     exit 1
   fi
-  EXP="\$(date -u -d "\$CREATED +24 hours" '+%Y-%m-%d %H:%M UTC' 2>/dev/null || echo 'issue time + 24h')"
-else
-  echo "No issue-time record for the outstanding token — refusing disclosure (treat as expired)." >&2
-  echo "Reissue: sudo drevanta-claim-token --regenerate" >&2
-  exit 1
-fi
+}
+# Disclosure gates 2+3 for RETRIEVAL only: an outstanding token file must
+# exist and must not be expired. Regeneration intentionally bypasses these —
+# it is the authorized recovery path when the previous token expired or the
+# plaintext record was lost — and it works by asking the backend, which
+# enforces the pending state and refreshes the token and its TTL.
+require_disclosable_token() {
+  require_pending
+  [[ -s "\$ETC/claim-token" ]] || { echo "state is pending but no token file exists — reissue: sudo drevanta-claim-token --regenerate" >&2; exit 1; }
+  CREATED=""
+  [[ -f "\$ETC/claim-token-created" ]] && CREATED="\$(cat "\$ETC/claim-token-created")"
+  if [[ -n "\$CREATED" ]]; then
+    EXP_EPOCH=\$(date -u -d "\$CREATED +24 hours" +%s 2>/dev/null || echo 0)
+    NOW_EPOCH=\$(date -u +%s)
+    if [[ "\$EXP_EPOCH" -eq 0 || "\$NOW_EPOCH" -ge "\$EXP_EPOCH" ]]; then
+      echo "The outstanding claim token has EXPIRED (issued \$CREATED, TTL 24h) and can no longer be claimed." >&2
+      echo "Reissue before claiming: sudo drevanta-claim-token --regenerate" >&2
+      exit 1
+    fi
+    EXP="\$(date -u -d "\$CREATED +24 hours" '+%Y-%m-%d %H:%M UTC' 2>/dev/null || echo 'issue time + 24h')"
+  else
+    echo "No issue-time record for the outstanding token — refusing disclosure (treat as expired)." >&2
+    echo "Reissue: sudo drevanta-claim-token --regenerate" >&2
+    exit 1
+  fi
+}
 case "\${1:-}" in
-  --url)
-    if [[ "\$PRIVATE_MGMT" == "1" ]]; then echo "private-management mode: no public onboarding URL exists — use the SSH tunnel URL from the installation summary" >&2; exit 1; fi
-    echo "https://\$ACCESS_IP:\$MGMT_PORT/#\$(cat "\$ETC/claim-token")" ;;
   --regenerate)
+    require_pending
     OUT=\$(sudo -u "\$USR" "\$BASE/bin/panel" claim regenerate -db "\$VAR/panel.db" -migrations "\$BASE/migrations" 2>&1) || { echo "\$OUT" >&2; exit 1; }
     NEW=\$(printf '%s' "\$OUT" | grep -A1 "DREVANTA CLAIM TOKEN" | tail -1 | tr -d '[:space:]')
     [[ -n "\$NEW" ]] || { echo "regeneration failed" >&2; exit 1; }
@@ -819,7 +829,12 @@ case "\${1:-}" in
     date -u '+%Y-%m-%dT%H:%M:%SZ' > "\$ETC/claim-token-created"; chmod 600 "\$ETC/claim-token-created"
     echo "claim token regenerated (single-use, valid 24h):"
     echo "\$NEW" ;;
+  --url)
+    if [[ "\$PRIVATE_MGMT" == "1" ]]; then echo "private-management mode: no public onboarding URL exists — use the SSH tunnel URL from the installation summary" >&2; exit 1; fi
+    require_disclosable_token
+    echo "https://\$ACCESS_IP:\$MGMT_PORT/#\$(cat "\$ETC/claim-token")" ;;
   *)
+    require_disclosable_token
     echo "Single-use claim token (expires: \$EXP; CONFIDENTIAL):"
     cat "\$ETC/claim-token"; echo
     if [[ "\$PRIVATE_MGMT" != "1" ]]; then
