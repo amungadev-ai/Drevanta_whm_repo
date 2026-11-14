@@ -16,6 +16,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -82,6 +83,36 @@ func run(socket, policyPath, dbPath, migDir, installID string, panelUID int, soc
 	// from the root-owned bindings.
 	_ = helper.LoadTLSBindings(filepath.Join(bindingsDir, "tls-bindings.json"))
 	registry.Register("tls.apply", helper.TLSApplyHandler())
+	// G30: mail domains/mailboxes and runtime toolchains — real config
+	// synthesis; package/service execution through registered runners.
+	_ = helper.LoadMailBindings(filepath.Join(bindingsDir, "mail-bindings.json"))
+	helper.SetMailSystemctl(func(_ context.Context, unit, state string) error {
+		cmd := exec.Command("systemctl", state, unit)
+		cmd.Stdout = io.Discard
+		cmd.Stderr = io.Discard
+		return cmd.Run()
+	})
+	helper.SetToolchainRunner(func(_ context.Context, packages string) error {
+		cmd := exec.Command("apt-get", "install", "-y")
+		cmd.Args = append(cmd.Args, strings.Fields(packages)...)
+		cmd.Env = append(os.Environ(), "DEBIAN_FRONTEND=noninteractive")
+		cmd.Stdout = io.Discard
+		cmd.Stderr = io.Discard
+		return cmd.Run()
+	})
+	helper.SetToolchainProber(func(binary string) (string, bool) {
+		p, err := exec.LookPath(binary)
+		if err != nil {
+			return "", false
+		}
+		out, err := exec.Command(p, "--version").CombinedOutput()
+		if err != nil {
+			return "", true // present but version probe failed
+		}
+		return strings.TrimSpace(strings.SplitN(string(out), "\n", 2)[0]), true
+	})
+	registry.Register("mail.apply", helper.MailApplyHandler())
+	registry.Register("toolchain.apply", helper.ToolchainApplyHandler())
 
 	ctx, cancel = signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()

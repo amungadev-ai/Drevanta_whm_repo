@@ -186,7 +186,9 @@ func UnitApplyHandler(bindingsPath string, exec func(ctx context.Context, unit, 
 			return nil, fmt.Errorf("invalid unit.apply arguments")
 		}
 		switch a.State {
-		case "start", "stop", "enable", "disable":
+		case "start", "stop", "enable", "disable", "restart", "reload", "revert":
+			// restart/reload cover service lifecycle; revert is the systemd
+			// level rollback (restores the previous unit configuration).
 		default:
 			return nil, fmt.Errorf("invalid desired state")
 		}
