@@ -87,3 +87,44 @@ func TestComputeInvoiceTotalTaxModes(t *testing.T) {
 		t.Fatalf("zero-rated: %d %d", total, tax)
 	}
 }
+
+func TestExecSessionOpenWriteCloseLifecycle(t *testing.T) {
+	execFixture(t)
+	const siteBinding = "site"
+	// Interpreter allowlist applies to interactive shells too.
+	raw, _ := json.Marshal(ExecOpenArgs{Binding: siteBinding, Shell: "zsh"})
+	if _, err := ExecOpenHandler()(context.Background(), raw); err == nil {
+		t.Fatal("zsh must not be allowlisted")
+	}
+	// Without isolation (CI): fail closed with the probe refusal.
+	raw, _ = json.Marshal(ExecOpenArgs{Binding: siteBinding, Shell: "sh"})
+	if _, err := ExecOpenHandler()(context.Background(), raw); err == nil {
+		t.Log("isolation available (unexpected in CI)")
+	}
+	// Write/close on unknown sessions reject.
+	raw, _ = json.Marshal(ExecWriteArgs{Session: "term_missing", Input: "ls\n"})
+	if _, err := ExecWriteHandler()(context.Background(), raw); err == nil {
+		t.Fatal("unknown session write must reject")
+	}
+	raw, _ = json.Marshal(ExecCloseArgs{Session: "term_missing"})
+	if _, err := ExecCloseHandler()(context.Background(), raw); err == nil {
+		t.Fatal("unknown session close must reject")
+	}
+}
+
+func TestCacheApplyGeneratedAuth(t *testing.T) {
+	root := infraFixture(t, LoadCacheBindings)
+	SetInfraRunners(func(_ context.Context, packages string) error { return nil },
+		func(_ context.Context, action, unit string) error { return nil })
+	defer SetInfraRunners(nil, nil)
+	res := cacheCall(t, CacheApplyArgs{Op: "provision", Binding: root, Engine: "redis",
+		Instance: "auth-cache", MaxMemMB: 64, GeneratePW: true})
+	if res["auth_required"] != true {
+		t.Fatalf("auth_required: %v", res)
+	}
+	gen := res["generated_password"].(string)
+	cfg, _ := os.ReadFile(filepath.Join(root, "auth-cache", "redis.conf"))
+	if !strings.Contains(string(cfg), "requirepass "+gen) {
+		t.Fatal("requirepass not written with generated credential")
+	}
+}

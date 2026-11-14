@@ -8,6 +8,8 @@ package helper
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -19,11 +21,13 @@ import (
 
 // CacheApplyArgs is the typed argument for cache.apply.
 type CacheApplyArgs struct {
-	Op       string `json:"op"`        // provision | configure | remove
-	Binding  string `json:"binding"`   // cache config root binding
-	Engine   string `json:"engine"`    // redis | valkey
-	Instance string `json:"instance"`  // instance name (per-scope isolation)
-	MaxMemMB int    `json:"maxmem_mb"` // memory cap (resource limit)
+	Op          string `json:"op"`                          // provision | configure | remove
+	Binding     string `json:"binding"`                     // cache config root binding
+	Engine      string `json:"engine"`                      // redis | valkey
+	Instance    string `json:"instance"`                    // instance name (per-scope isolation)
+	MaxMemMB    int    `json:"maxmem_mb"`                   // memory cap (resource limit)
+	GeneratePW  bool   `json:"generate_password,omitempty"` // per-instance AUTH (returned once)
+	PasswordRef string `json:"password_ref,omitempty"`      // env:NAME | file:/abs
 }
 
 var cacheRoots = map[string]bool{}
@@ -113,6 +117,21 @@ func CacheApplyHandler() VerbHandler {
 			"port %d\nbind 127.0.0.1\ndir %s\ndbfilename dump.rdb\nmaxmemory %dmb\n"+
 				"maxmemory-policy allkeys-lru\nappendonly no\nsave \"\"\nprotected-mode yes\n",
 			port, cfgDir, a.MaxMemMB)
+		var authPW string
+		if a.GeneratePW {
+			raw := make([]byte, 18)
+			if _, err := rand.Read(raw); err != nil {
+				return nil, fmt.Errorf("generation failed")
+			}
+			authPW = base64.RawURLEncoding.EncodeToString(raw)
+			cfg += "requirepass " + authPW + "\n"
+		} else if a.PasswordRef != "" {
+			pw, err := loadMailPassword(a.PasswordRef)
+			if err != nil {
+				return nil, err
+			}
+			cfg += "requirepass " + pw + "\n"
+		}
 		cfgPath := filepath.Join(cfgDir, engine+".conf")
 		if a.Op == "remove" {
 			if runSystemdCtl != nil {
@@ -129,11 +148,15 @@ func CacheApplyHandler() VerbHandler {
 				return nil, fmt.Errorf("service restart failed")
 			}
 		}
-		return json.Marshal(map[string]any{
+		out := map[string]any{
 			"instance": a.Instance, "engine": engine, "state": "configured",
 			"bind": "127.0.0.1", "port": port, "maxmem_mb": a.MaxMemMB,
-			"config_ref": cfgPath,
-		})
+			"config_ref": cfgPath, "auth_required": a.GeneratePW || a.PasswordRef != "",
+		}
+		if authPW != "" {
+			out["generated_password"] = authPW // one-time delivery, never persisted
+		}
+		return json.Marshal(out)
 	}
 }
 
@@ -259,10 +282,13 @@ var containerRoots = map[string]bool{}
 // LoadContainerBindings reads the root-owned container roots.
 func LoadContainerBindings(path string) error { return loadDirBindings(path, containerRoots) }
 
-var containerRunner func(ctx context.Context, argv ...string) error
+var containerRunner func(ctx context.Context, argv ...string) (string, error)
 
-// SetContainerRunner registers the real OCI runtime runner (podman/docker).
-func SetContainerRunner(f func(ctx context.Context, argv ...string) error) { containerRunner = f }
+// SetContainerRunner registers the real OCI runtime runner (podman/docker);
+// it returns combined output for state inspection.
+func SetContainerRunner(f func(ctx context.Context, argv ...string) (string, error)) {
+	containerRunner = f
+}
 
 func safeImageRef(img string) error {
 	if img == "" || len(img) > 300 || strings.ContainsAny(img, " \t\n;|&$`\\\x00\"'") {
@@ -303,7 +329,7 @@ func ContainerApplyHandler() VerbHandler {
 			if err := safeImageRef(a.Image); err != nil {
 				return nil, err
 			}
-			if err := containerRunner(ctx, "pull", a.Image); err != nil {
+			if _, err := containerRunner(ctx, "pull", a.Image); err != nil {
 				return nil, fmt.Errorf("image pull failed")
 			}
 			return json.Marshal(map[string]string{"name": a.Name, "image": a.Image, "state": "pulled"})
@@ -319,17 +345,17 @@ func ContainerApplyHandler() VerbHandler {
 			if a.Cmd != "" {
 				argv = append(argv, a.Cmd)
 			}
-			if err := containerRunner(ctx, argv...); err != nil {
+			if _, err := containerRunner(ctx, argv...); err != nil {
 				return nil, fmt.Errorf("container run failed: %w", err)
 			}
 			return json.Marshal(map[string]string{"name": a.Name, "state": "running", "image": a.Image})
 		case "stop":
-			if err := containerRunner(ctx, "stop", a.Name); err != nil {
+			if _, err := containerRunner(ctx, "stop", a.Name); err != nil {
 				return nil, fmt.Errorf("container stop failed")
 			}
 			return json.Marshal(map[string]string{"name": a.Name, "state": "stopped"})
 		case "remove":
-			if err := containerRunner(ctx, "rm", "-f", a.Name); err != nil {
+			if _, err := containerRunner(ctx, "rm", "-f", a.Name); err != nil {
 				return nil, fmt.Errorf("container remove failed")
 			}
 			return json.Marshal(map[string]string{"name": a.Name, "state": "removed"})

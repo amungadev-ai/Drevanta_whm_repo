@@ -165,9 +165,9 @@ func TestDNSApplyZoneManagement(t *testing.T) {
 func TestContainerApplyLifecycle(t *testing.T) {
 	root := infraFixture(t, LoadContainerBindings)
 	var argvs [][]string
-	SetContainerRunner(func(_ context.Context, argv ...string) error {
+	SetContainerRunner(func(_ context.Context, argv ...string) (string, error) {
 		argvs = append(argvs, argv)
-		return nil
+		return "", nil
 	})
 	defer SetContainerRunner(nil)
 	h := ContainerApplyHandler()

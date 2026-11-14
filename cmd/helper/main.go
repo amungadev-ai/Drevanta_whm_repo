@@ -134,25 +134,25 @@ func run(socket, policyPath, dbPath, migDir, installID string, panelUID int, soc
 		return cmd.Run()
 	}
 	helper.SetInfraRunners(aptInstall, sysctl)
-	helper.SetContainerRunner(func(ctx context.Context, argv ...string) error {
+	helper.SetContainerRunner(func(ctx context.Context, argv ...string) (string, error) {
 		p, err := exec.LookPath("podman")
 		if err != nil {
 			if p, err = exec.LookPath("docker"); err != nil {
-				return fmt.Errorf("no OCI runtime available")
+				return "", fmt.Errorf("no OCI runtime available")
 			}
 		}
 		cmd := exec.CommandContext(ctx, p, argv...)
-		var stderr strings.Builder
-		cmd.Stdout = io.Discard
-		cmd.Stderr = &stderr
+		var combined strings.Builder
+		cmd.Stdout = &combined
+		cmd.Stderr = &combined
 		if err := cmd.Run(); err != nil {
-			line := strings.SplitN(strings.TrimSpace(stderr.String()), "\n", 2)[0]
+			line := strings.SplitN(strings.TrimSpace(combined.String()), "\n", 2)[0]
 			if len(line) > 120 {
 				line = line[:120]
 			}
-			return fmt.Errorf("oci runtime failed (%v): %s", cmd.ProcessState.ExitCode(), line)
+			return combined.String(), fmt.Errorf("oci runtime failed (%v): %s", cmd.ProcessState.ExitCode(), line)
 		}
-		return nil
+		return combined.String(), nil
 	})
 	registry.Register("exec.session", helper.ExecSessionHandler())
 	registry.Register("cache.apply", helper.CacheApplyHandler())
