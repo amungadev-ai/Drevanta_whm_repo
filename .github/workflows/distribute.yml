@@ -6,7 +6,7 @@ name: distribute
 #
 # Secrets (Settings → Secrets and variables → Actions):
 #   DIST_TOKEN                  GitHub token WITH PUSH ACCESS to
-#                               backupamunga-ops/drevanta_server_manager
+#                               amungadev-ai/drevanta-distribution
 #                               (fine-grained, Contents: Read+Write on that
 #                               repository only; short expiry recommended)
 #   DREVANTA_DIST_SIGNING_KEY   the distribution signing key (PEM, private)

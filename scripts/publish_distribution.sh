@@ -4,7 +4,7 @@
 # Takes a verified release from the PRIVATE development repository and
 # prepares (and — when authorized and run without --dry-run — performs) its
 # publication to the PUBLIC distribution repository:
-#   backupamunga-ops/drevanta_server_manager
+#   amungadev-ai/drevanta-distribution
 #
 # Publication includes:
 #   - bootstrap.sh (channel-aware: dev pinned to the exact tag+commit,
@@ -23,7 +23,7 @@
 #                               DIST_TOKEN when authorized for both)
 # Usage:
 #   scripts/publish_distribution.sh --tag <private-release-tag> \
-#     --channel dev|stable [--dist-repo backupamunga-ops/drevanta_server_manager] [--dry-run]
+#     --channel dev|stable [--dist-repo amungadev-ai/drevanta-distribution] [--dry-run]
 #
 # Governance: --channel stable additionally requires
 #   --stable-authorization "STABLE-RELEASE-AUTHORIZED:<tag>"
@@ -32,7 +32,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 TAG=""; CHANNEL=""; DRY_RUN=0; STABLE_AUTH=""
-DIST_REPO="backupamunga-ops/drevanta_server_manager"
+DIST_REPO="amungadev-ai/drevanta-distribution"
 DEV_REPO="amungadev-ai/Drevanta_whm_repo"
 while [[ $# -gt 0 ]]; do
   case "$1" in

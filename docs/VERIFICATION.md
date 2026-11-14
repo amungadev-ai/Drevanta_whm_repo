@@ -38,13 +38,13 @@ and the documented alternative below.
 On any machine:
 
 ```bash
-RELEASE_URL=https://github.com/backupamunga-ops/drevanta_server_manager/releases/latest/download
+RELEASE_URL=https://github.com/amungadev-ai/drevanta-distribution/releases/latest/download
 curl -fsSLO "$RELEASE_URL/bootstrap.sh"
 curl -fsSLO "$RELEASE_URL/bootstrap.sh.sha256"
 curl -fsSLO "$RELEASE_URL/SHA256SUMS"
 curl -fsSLO "$RELEASE_URL/SHA256SUMS.sig"
 curl -fsSLO keys/drevanta-dist-public.pem 2>/dev/null || \
-  curl -fsSLO https://github.com/backupamunga-ops/drevanta_server_manager/raw/main/keys/drevanta-dist-public.pem
+  curl -fsSLO https://github.com/amungadev-ai/drevanta-distribution/raw/main/keys/drevanta-dist-public.pem
 
 sha256sum -c bootstrap.sh.sha256
 openssl dgst -sha256 -verify drevanta-dist-public.pem -signature SHA256SUMS.sig SHA256SUMS

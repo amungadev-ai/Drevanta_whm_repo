@@ -9,34 +9,36 @@ in the PRIVATE development repository and ships inside the signed artifact.
 | Repository | Role | Contents |
 | --- | --- | --- |
 | `amungadev-ai/Drevanta_whm_repo` (private) | Development + release engineering | Full source, CI, dev prereleases, this runbook |
-| `backupamunga-ops/drevanta_server_manager` (public) | Distribution ONLY | bootstrap.sh, signed SHA256SUMS, artifacts, MANIFEST.json, customer docs, public key — no credentials, no private source, no engineering records |
+| `amungadev-ai/drevanta-distribution` (public) | Distribution ONLY | bootstrap.sh, signed SHA256SUMS, artifacts, MANIFEST.json, customer docs, public key — no credentials, no private source, no engineering records |
 
-**Authorization status (verified 2026-11-14):** the distribution repository
-exists (owned by `backupamunga-ops`, public, created 2026-11-10) but the
-current automation token (`amungadev-ai`) has pull-only access to it.
-Publication therefore requires ONE of:
-
-1. Add `amungadev-ai` as a collaborator (Write) on the distribution
-   repository — then the CI workflow publishes directly; or
-2. Run `scripts/publish_distribution.sh` yourself with a token that has push
-   access (env `DIST_TOKEN`), after loading the signing key.
-
-Nothing has been published; the pipeline is prepared and dry-run validated.
+**Authorization status (corrected 2026-11-14):** distribution targets
+`amungadev-ai/drevanta-distribution` (public, same account as this
+repository). An earlier external repository (`backupamunga-ops/
+drevanta_server_manager`) was identified as a different, same-brand product;
+all distribution work involving it is DISCONTINUED and that repository is
+left untouched. Publication to the corrected repository is authorized for
+development prereleases; stable publication still requires the exact owner
+authorization phrase.
 
 ## Customer installation commands
 
 | Channel | Command |
 | --- | --- |
-| Stable (permanent, once a stable release is approved) | `curl -fsSL https://github.com/backupamunga-ops/drevanta_server_manager/releases/latest/download/bootstrap.sh \| bash` |
-| Development prerelease (explicit version, honest labeling) | `curl -fsSL https://github.com/backupamunga-ops/drevanta_server_manager/releases/download/<dev-tag>/bootstrap.sh \| bash` |
+| Stable (permanent, once a stable release is approved) | `curl -fsSL https://github.com/amungadev-ai/drevanta-distribution/releases/latest/download/bootstrap.sh \| bash` |
+| Development prerelease (explicit version, honest labeling) | `curl -fsSL https://github.com/amungadev-ai/drevanta-distribution/releases/download/<dev-tag>/bootstrap.sh \| bash` |
 | Explicit stable version | stable command with `--version <tag>` (run the downloaded file) |
 | Offline | download the release package, then `bash bootstrap.sh --artifact <tarball>` |
 
 GitHub's `/releases/latest/download/` resolves the latest NON-prerelease
-release — development prereleases never pollute the stable channel, and the
-stable bootstrap prints its resolved tag; the dev bootstrap is generated per
-tag with the exact commit pinned inside and prints
-`DEVELOPMENT PRERELEASE … not a production release`.
+release. On this DEDICATED distribution repository the owner has directed
+that the permanent customer command use `/releases/latest`: during the
+development phase the current dev prerelease is published with the
+prerelease flag OFF so the permanent command resolves, while the release
+title, the bootstrap banner
+(`DEVELOPMENT PRERELEASE … not a production release`) and the pinned
+commit inside keep the development status unambiguous. When an approved
+stable release is published it supersedes the dev release as `latest`
+automatically (newest non-prerelease by creation time).
 
 ## Trust chain (what the bootstrap verifies, in order)
 
@@ -96,9 +98,13 @@ isolated namespace; downloads use REAL curl end to end.
 - Algorithm: ECDSA P-256 (detached signature over SHA256SUMS).
 - **Public-key fingerprint (SHA-256 of the DER-encoded public key,
   `openssl ec -pubin -in drevanta-dist-public.pem -outform DER | sha256sum`):
-  `89cbd742c0a61e6f5c125cab62a0cadebad35ece4f9172f9331d6cfbd655dec8`**
-- Rotated 2026-11-14 before any publication (the initial key never signed a
-  published artifact; no revocation required).
+  `91eb6e3b73c57eb252214f319fb9b6e9a816c8f515bdb463a59d552d46bfa582`**
+- Rotated twice on 2026-11-14, both times BEFORE any publication (no
+  signature from either earlier key was ever published; no revocation
+  required). Second rotation: the first rotated key's local copy did not
+  survive a sandbox recycle by design (the durable copy lives only in the
+  write-only Actions secret store), so a fresh keypair was generated and
+  re-stored.
 - Private key storage: GitHub Actions secret `DREVANTA_DIST_SIGNING_KEY` on
   THIS repository (write-only secret store) — never in git history, release
   assets, review packages, logs or CI artifacts. Public key additionally

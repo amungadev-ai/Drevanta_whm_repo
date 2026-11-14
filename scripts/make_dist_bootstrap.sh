@@ -29,7 +29,7 @@
 #          [--tag <dev-tag>] [--commit <dev-commit>] --out <bootstrap.sh>
 set -euo pipefail
 
-CHANNEL=""; PUBKEY=""; DIST_REPO="backupamunga-ops/drevanta_server_manager"
+CHANNEL=""; PUBKEY=""; DIST_REPO="amungadev-ai/drevanta-distribution"
 DEV_TAG=""; DEV_COMMIT=""; OUT=""
 while [[ $# -gt 0 ]]; do
   case "$1" in

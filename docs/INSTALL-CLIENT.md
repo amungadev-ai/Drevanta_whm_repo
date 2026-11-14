@@ -13,7 +13,7 @@
 3. Run **one command**:
 
    ```bash
-   curl -fsSL https://github.com/backupamunga-ops/drevanta_server_manager/releases/latest/download/bootstrap.sh | bash
+   curl -fsSL https://github.com/amungadev-ai/drevanta-distribution/releases/latest/download/bootstrap.sh | bash
    ```
 
 4. Wait for the automated installation. The installer validates your system,
@@ -57,7 +57,7 @@ Append options after the command when running the downloaded file, or use
 ## Upgrading
 
 ```bash
-curl -fsSL https://github.com/backupamunga-ops/drevanta_server_manager/releases/latest/download/bootstrap.sh | bash -s -- --upgrade
+curl -fsSL https://github.com/amungadev-ai/drevanta-distribution/releases/latest/download/bootstrap.sh | bash -s -- --upgrade
 ```
 
 The upgrade stops services without suppressing failures, verifies database

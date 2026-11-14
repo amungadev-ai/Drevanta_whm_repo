@@ -8,7 +8,7 @@ installer implementation, not one per method.
 ## Simplified public installation (customer channel)
 
 A short public-channel installation is prepared:
-`curl -fsSL https://github.com/backupamunga-ops/drevanta_server_manager/releases/latest/download/bootstrap.sh | bash` —
+`curl -fsSL https://github.com/amungadev-ai/drevanta-distribution/releases/latest/download/bootstrap.sh | bash` —
 see `docs/DISTRIBUTION.md` (architecture, trust chain, publication runbook)
 and `docs/INSTALL-CLIENT.md` (the customer-facing guide, including the
 download-and-verify alternative). The private-repo methods below remain the
