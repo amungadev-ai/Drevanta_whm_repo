@@ -22,6 +22,7 @@ func execFixture(t *testing.T) string {
 }
 
 func TestExecSessionAuditedSandboxed(t *testing.T) {
+	execFixture(t) // registers the site binding
 	const siteBinding = "site"
 	h := ExecSessionHandler()
 	// Unknown interpreter rejects.
