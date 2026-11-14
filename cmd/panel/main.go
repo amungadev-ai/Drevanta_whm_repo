@@ -136,8 +136,12 @@ func run(addr, dbPath, migDir, helperSocket string) error {
 	exec := &hostagent.VerbExecutor{Client: client, HostID: hostID, InstallID: installID}
 	worker := jobs.NewWorker(db, eng, exec, dispatchRecheck(db, checker), aw, 2*time.Minute)
 	// Successful host.inspect operations become real health observations
-	// (G40-F2): the monitoring sections render live host facts.
-	worker.Observer = (&jobs.HostInspectObserver{Service: domains.NewObserveService(db)}).Observe
+	// (G40-F2); TLS outcomes update certificate records (G30). The
+	// composite keeps the operation pipeline available if one observer errs.
+	worker.Observer = jobs.ObserverList{
+		(&jobs.HostInspectObserver{Service: domains.NewObserveService(db)}).Observe,
+		(&jobs.TlsObserver{Service: domains.NewTlsService(db)}).Observe,
+	}.Observe
 	if n, err := worker.ReconcileExpired(context.Background()); err == nil && n > 0 {
 		log.Printf("worker: %d operations requeued after restart", n)
 	}

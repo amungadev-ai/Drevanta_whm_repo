@@ -821,3 +821,18 @@ func (s *Server) handleListSchedules(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"schedules": schedules})
 }
+
+// handleListTls serves the scope's TLS certificate records (G30).
+func (s *Server) handleListTls(w http.ResponseWriter, r *http.Request) {
+	scopeID := r.PathValue("scopeID")
+	if !s.visibility(r, scopeID) {
+		writeError(w, http.StatusNotFound, CodeNotFound, "no such scope")
+		return
+	}
+	certs, err := domains.NewTlsService(s.DB).ListCertificates(r.Context(), scopeID)
+	if err != nil {
+		writeError(w, http.StatusServiceUnavailable, CodeDependencyFailure, "certificate lookup unavailable")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"certificates": certs})
+}

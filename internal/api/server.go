@@ -65,6 +65,7 @@ func (s *Server) Handler() http.Handler {
 	protected.HandleFunc("GET /api/v1/scopes/{scopeID}/tickets/{ticketID}", s.handleTicketDetail)
 	protected.HandleFunc("POST /api/v1/scopes/{scopeID}/tickets/{ticketID}/messages", s.handleTicketMessage)
 	protected.HandleFunc("POST /api/v1/scopes/{scopeID}/tickets/{ticketID}/resolve", s.handleTicketResolve)
+	protected.HandleFunc("GET /api/v1/scopes/{scopeID}/tls", s.handleListTls)
 	protected.HandleFunc("GET /api/v1/scopes/{scopeID}/kb", s.handleListKB)
 	protected.HandleFunc("GET /api/v1/scopes/{scopeID}/plans", s.handleListPlans)
 	protected.HandleFunc("POST /api/v1/scopes/{scopeID}/plans", s.handleCreatePlan)

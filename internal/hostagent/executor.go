@@ -47,10 +47,14 @@ var DefaultMappings = map[string]VerbMapping{
 	"sftp.grant":                  {Verb: "sftp.apply", Arguments: passthroughArgs},
 	"vhost.apply":                 {Verb: "vhost.apply", Arguments: passthroughArgs},
 	"domain.bind":                 {Verb: "vhost.apply", Arguments: passthroughArgs},
-	"runtime.toolchain.configure": {Verb: "toolchain.apply", Arguments: passthroughArgs},
-	"runtime.configure":           {Verb: "toolchain.apply", Arguments: passthroughArgs},
-	"module.install":              {Verb: "module.apply", Arguments: passthroughArgs},
 	"backup.restore":              {Verb: "backup.apply", Arguments: passthroughArgs},
+	"backup.create":               {Verb: "backup.apply", Arguments: passthroughArgs},
+	"backup.verify":               {Verb: "backup.apply", Arguments: passthroughArgs},
+	"tls.issue":                   {Verb: "tls.apply", Arguments: passthroughArgs},
+	"tls.renew":                   {Verb: "tls.apply", Arguments: passthroughArgs},
+	"mail.domain.configure":       {Verb: "mail.apply", Arguments: passthroughArgs},
+	"mailbox.provision":           {Verb: "mail.apply", Arguments: passthroughArgs},
+	"runtime.toolchain.configure": {Verb: "toolchain.apply", Arguments: passthroughArgs},
 }
 
 // VerbExecutor implements jobs.Executor over the helper client.

@@ -78,6 +78,10 @@ func run(socket, policyPath, dbPath, migDir, installID string, panelUID int, soc
 	// restoration; artifact directories load from the root-owned bindings.
 	_ = helper.LoadBackupBindings(filepath.Join(bindingsDir, "backup-bindings.json"))
 	registry.Register("backup.apply", helper.BackupApplyHandler())
+	// G30: TLS certificate issuance/renewal/recovery; ssl directories load
+	// from the root-owned bindings.
+	_ = helper.LoadTLSBindings(filepath.Join(bindingsDir, "tls-bindings.json"))
+	registry.Register("tls.apply", helper.TLSApplyHandler())
 
 	ctx, cancel = signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
