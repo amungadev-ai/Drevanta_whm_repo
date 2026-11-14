@@ -43,7 +43,9 @@
 set -uo pipefail
 
 REPO="amungadev-ai/Drevanta_whm_repo"
-API="https://api.github.com/repos/${REPO}"
+# API base override: used for verified self-hosted mirrors (offline/air-gapped
+# Method C scenarios) and release verification harnesses. Default is GitHub.
+API="${DREVANTA_API_BASE:-https://api.github.com/repos/${REPO}}"
 PINNED_TAG="v1.0.0-owneraudit.1-dev.2"     # development release (owner-approved dev artifact)
 # Provenance of the default release is established by the release tag plus
 # MANIFEST.json + artifact SHA-256 verification below (no credential ever
@@ -185,7 +187,7 @@ if [[ -n "$ART_SHA_EXPECTED" ]]; then
   [[ "$ACTUAL_SHA" == "$ART_SHA_EXPECTED" ]] || { echo "[FAIL] SHA-256 MISMATCH against trusted release manifest — artifact deleted, nothing installed"; rm -f "$WORK/$ART_NAME"; exit 1; }
   echo "[OK]   integrity verified against trusted release manifest"
 fi
-mkdir -p "$WORK/extracted" && tar -xzf "$WORK/$ART_NAME" -C "$WORK/extracted" \
+mkdir -p "$WORK/extracted" && tar --no-same-owner -xzf "$WORK/$ART_NAME" -C "$WORK/extracted" \
   || { echo "[FAIL] artifact is corrupted (tar extraction failed) — deleted, nothing installed"; rm -f "$WORK/$ART_NAME"; exit 1; }
 PKG_DIR="$WORK/extracted/${ART_NAME%.tar.gz}"
 [[ -f "$PKG_DIR/install.sh" && -f "$PKG_DIR/VERSION" ]] || { echo "[FAIL] artifact structure invalid (engine not found)"; exit 1; }

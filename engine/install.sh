@@ -435,6 +435,7 @@ done
 echo "========================================================"
 echo "[INFO] Stage 6/7 — Management endpoint configuration"
 if [[ "$NO_NGINX" == "0" ]]; then
+  step "nginx: configuration directories" bash -c "install -d -m 0755 /etc/nginx/sites-available /etc/nginx/sites-enabled"
   # Loopback HTTP (Priority 2 — SSH tunnel target). Never public.
   cat > /etc/nginx/sites-available/$SVC.conf <<NG
 server {
