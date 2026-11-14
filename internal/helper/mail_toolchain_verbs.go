@@ -168,16 +168,12 @@ func mailProvisionMailbox(ctx context.Context, a MailApplyArgs) (json.RawMessage
 	if err := validMailboxLocal(a.Mailbox); err != nil {
 		return nil, err
 	}
-	if !strings.HasPrefix(a.PasswordRef, "env:") {
-		return nil, fmt.Errorf("password_ref must be env:NAME")
+	pw, err := loadMailPassword(a.PasswordRef)
+	if err != nil {
+		return nil, err
 	}
-	envName := strings.TrimPrefix(a.PasswordRef, "env:")
-	if envName == "" || strings.ContainsAny(envName, " \t\n;") {
-		return nil, fmt.Errorf("invalid env password name")
-	}
-	pw, ok := os.LookupEnv(envName)
-	if !ok || len(pw) < 12 {
-		return nil, fmt.Errorf("mailbox password unavailable or too short")
+	if len(pw) < 12 {
+		return nil, fmt.Errorf("mailbox password too short")
 	}
 	root := a.Binding
 	addr := a.Mailbox + "@" + a.Domain
@@ -228,6 +224,44 @@ func mailRemoveMailbox(ctx context.Context, a MailApplyArgs) (json.RawMessage, e
 		return nil, err
 	}
 	return json.Marshal(map[string]string{"mailbox": addr, "state": "removed (mail preserved)"})
+}
+
+// loadMailPassword resolves a password reference WITHOUT ever logging or
+// journaling the value: "env:NAME" reads the helper's own environment (the
+// value must be provisioned into the privileged unit's environment); "file:/abs"
+// reads a root-owned 0600 file (the panel-managed secret workflow).
+func loadMailPassword(ref string) (string, error) {
+	switch {
+	case strings.HasPrefix(ref, "env:"):
+		name := strings.TrimPrefix(ref, "env:")
+		if name == "" || strings.ContainsAny(name, " \t\n;") {
+			return "", fmt.Errorf("invalid env password name")
+		}
+		v, ok := os.LookupEnv(name)
+		if !ok {
+			return "", fmt.Errorf("mailbox password unavailable")
+		}
+		return v, nil
+	case strings.HasPrefix(ref, "file:"):
+		p := strings.TrimPrefix(ref, "file:")
+		if !filepath.IsAbs(p) || strings.Contains(p, "..") || strings.ContainsAny(p, "\x00") {
+			return "", fmt.Errorf("invalid password file ref")
+		}
+		st, err := os.Stat(p)
+		if err != nil {
+			return "", fmt.Errorf("mailbox password unavailable")
+		}
+		if st.Mode().Perm() != 0o600 {
+			return "", fmt.Errorf("password file must be 0600")
+		}
+		b, err := os.ReadFile(p)
+		if err != nil {
+			return "", fmt.Errorf("mailbox password unavailable")
+		}
+		return strings.TrimRight(string(b), "\n\r"), nil
+	default:
+		return "", fmt.Errorf("password_ref must be env:NAME or file:/abs/path")
+	}
 }
 
 func appendUniqueLine(path, line string) error {
@@ -282,6 +316,7 @@ var toolchainProbes = map[string]struct {
 	Package string
 }{
 	"php8.3":     {"php", "php8.3-cli php8.3-fpm php8.3-mysql php8.3-curl php8.3-mbstring"},
+	"php8.5":     {"php", "php8.5-cli php8.5-fpm php8.5-mysql php8.5-curl php8.5-mbstring"},
 	"node22":     {"node", "nodejs npm"},
 	"python3.12": {"python3.12", "python3.12 python3.12-venv"},
 	"go1.23":     {"go", "golang-1.23"},

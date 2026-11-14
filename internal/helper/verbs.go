@@ -167,8 +167,18 @@ func unitBindings(path string) (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Root operators may annotate the bindings file: strip full-line
+	// comments before the strict JSON parse.
+	var clean strings.Builder
+	for _, line := range strings.Split(string(b), "\n") {
+		if strings.HasPrefix(strings.TrimSpace(line), "#") {
+			continue
+		}
+		clean.WriteString(line)
+		clean.WriteString("\n")
+	}
 	var m map[string]string
-	if err := json.Unmarshal(b, &m); err != nil {
+	if err := json.Unmarshal([]byte(clean.String()), &m); err != nil {
 		return nil, err
 	}
 	return m, nil
