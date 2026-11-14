@@ -16,7 +16,7 @@ KEY="${DREVANTA_DIST_SIGNING_KEY:?DREVANTA_DIST_SIGNING_KEY env var required}"
 
 cd "$DIR"
 # Deterministic asset list: everything except the signature and SHA256SUMS.
-find . -maxdepth 1 -type f ! -name 'SHA256SUMS' ! -name 'SHA256SUMS.sig' -printf '%f\n' | LC_ALL=C sort > .assets
+find . -maxdepth 1 -type f ! -name 'SHA256SUMS' ! -name 'SHA256SUMS.sig' ! -name '.assets' -printf '%f\n' | LC_ALL=C sort > .assets
 : > SHA256SUMS
 while IFS= read -r f; do sha256sum "$f" >> SHA256SUMS; done < .assets
 rm -f .assets

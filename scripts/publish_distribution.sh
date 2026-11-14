@@ -58,8 +58,8 @@ fi
 WORK="$(mktemp -d)"; chmod 700 "$WORK"
 PRIV_HDR="$WORK/.priv-hdr"; DIST_HDR="$WORK/.dist-hdr"
 trap 'rm -rf "$WORK"' EXIT
-printf 'Authorization: Bearer %s\nAccept: application/vnd.github+json\n' "$PRIV_TOKEN" > "$PRIV_HDR"; chmod 600 "$PRIV_HDR"
-printf 'Authorization: Bearer %s\nAccept: application/vnd.github+json\n' "$DIST_TOKEN" > "$DIST_HDR"; chmod 600 "$DIST_HDR"
+printf 'Authorization: Bearer %s\n' "$PRIV_TOKEN" > "$PRIV_HDR"   # no Accept here: asset downloads need application/octet-stream; chmod 600 "$PRIV_HDR"
+printf 'Authorization: Bearer %s\n' "$DIST_TOKEN" > "$DIST_HDR"; chmod 600 "$DIST_HDR"
 API="https://api.github.com"
 
 api() { curl -fsS --header @"$1" "${@:2}"; }
@@ -81,7 +81,7 @@ print("[OK] CI green on release commit %s" % runs[0]["head_sha"][:12])'
 
 echo "== 2. Download + re-verify the private release assets =="
 STAGE="$WORK/stage"; mkdir -p "$STAGE/docs" "$STAGE/keys"
-ART_NAME="$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['artifact'])" "$REL_JSON")"
+ART_NAME="$(python3 -c "import json,sys; print([a['name'] for a in json.load(open(sys.argv[1]))['assets'] if a['name'].startswith('drevanta-install-') and a['name'].endswith('.tar.gz')][0])" "$REL_JSON")"
 MAN_ID="$(python3 -c "import json,sys; print([a['id'] for a in json.load(open(sys.argv[1]))['assets'] if a['name']=='MANIFEST.json'][0])" "$REL_JSON")"
 ART_ID="$(python3 -c "import json,sys; print([a['id'] for a in json.load(open(sys.argv[1]))['assets'] if a['name']=='$ART_NAME'][0])" "$REL_JSON")"
 SIDE_ID="$(python3 -c "import json,sys; print([a['id'] for a in json.load(open(sys.argv[1]))['assets'] if a['name']=='$ART_NAME.sha256'][0])" "$REL_JSON")"
