@@ -93,3 +93,8 @@ VPS targets per graph G20+. CI adds `-race`.
 | Redis per-instance AUTH (requirepass generated; NOAUTH without, PONG with) | unit + VPS drill | infra_verbs_test.go TestCacheApplyGeneratedAuth; VPS redis-cli | **PASS** | W2 |
 | Container run idempotency (running->already-active / recovered-existing; hardened flags) | unit + VPS drill | infra_verbs_test.go; VPS: run#1 running, run#2 recovered, podman ps Up | **PASS** | W2 |
 | Interactive PTY session (exec.open/write/close): real PTY echo+output+prompt streamed, revocation enforced, TTL, input never journaled | unit + VPS drill | exec_commercial_test.go TestExecSessionOpenWriteCloseLifecycle; VPS stream chunk | **PASS** | W2 |
+
+| Real application build (isolated fetch/checkout + platform build command + artifact tar.gz + digest) | VPS drill | G32: file:// repo, 2 builds (v1/v2), artifact_dir=dist | **PASS** | d43d9d4 |
+| deploy.apply release (traversal-safe, atomic current swap, web-servable modes) + loopback health check (200 + body expectation) | unit + VPS drill | deploy_verbs_test.go; VPS nginx :8081 healthy=true for v1 and v2 | **PASS** | G32 |
+| deploy.apply rollback to known-good release + health after rollback | unit + VPS drill | deploy_verbs_test.go; VPS: rolled-back to v1, healthy=true | **PASS** | G32 |
+| Artifact traversal rejection (../ member) + non-scratch path rejection + non-loopback health rejection | unit | deploy_verbs_test.go; VPS evil.tar.gz failed, /escape.txt absent | **PASS** | G32 |

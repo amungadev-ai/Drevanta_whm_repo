@@ -21,13 +21,13 @@ import (
 
 // DeployApplyArgs is the typed argument for deploy.apply.
 type DeployApplyArgs struct {
-	Op          string `json:"op"`     // release | rollback | health
-	Binding     string `json:"binding"` // site root binding (fileBindingRoots)
+	Op           string `json:"op"`                      // release | rollback | health
+	Binding      string `json:"binding"`                 // site root binding (fileBindingRoots)
 	ArtifactPath string `json:"artifact_path,omitempty"` // abs path under a build scratch
-	ReleaseID   string `json:"release_id,omitempty"`
-	HealthURL   string `json:"health_url,omitempty"` // http://127.0.0.1:port/...
-	ExpectBody  string `json:"expect_body,omitempty"`
-	TimeoutS    int    `json:"timeout_s,omitempty"`
+	ReleaseID    string `json:"release_id,omitempty"`
+	HealthURL    string `json:"health_url,omitempty"` // http://127.0.0.1:port/...
+	ExpectBody   string `json:"expect_body,omitempty"`
+	TimeoutS     int    `json:"timeout_s,omitempty"`
 }
 
 var buildScratchDirs = map[string]bool{}
@@ -76,20 +76,21 @@ func untarSafe(r io.Reader, dst string) error {
 		if strings.HasPrefix(name, "/") || strings.Contains(name, "..") || strings.Contains(name, "\x00") {
 			return fmt.Errorf("unsafe artifact member rejected")
 		}
-		target := filepath.Join(dst, filepath.Clean("/"+name)[1:])
+		target := filepath.Join(dst, filepath.Clean("/" + name)[1:])
 		if !strings.HasPrefix(target, filepath.Clean(dst)+string(os.PathSeparator)) {
 			return fmt.Errorf("unsafe artifact member rejected")
 		}
 		switch hdr.Typeflag {
 		case tar.TypeDir:
-			if err := os.MkdirAll(target, 0o750); err != nil {
+			if err := os.MkdirAll(target, 0o755); err != nil {
 				return fmt.Errorf("artifact dir failed")
 			}
 		case tar.TypeReg:
-			if err := os.MkdirAll(filepath.Dir(target), 0o750); err != nil {
+			if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
 				return fmt.Errorf("artifact dir failed")
 			}
-			f, err := os.OpenFile(target, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o640)
+			// Deployments are web-servable: files 0644.
+			f, err := os.OpenFile(target, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
 			if err != nil {
 				return fmt.Errorf("artifact file failed")
 			}
@@ -139,9 +140,12 @@ func DeployApplyHandler() VerbHandler {
 			}
 			defer f.Close()
 			rel := filepath.Join(relDir, a.ReleaseID)
-			if err := os.MkdirAll(rel, 0o750); err != nil {
+			if err := os.MkdirAll(rel, 0o755); err != nil {
 				return nil, fmt.Errorf("release dir failed")
 			}
+			// Ensure web traversal of the releases parent even if it was
+			// created earlier with tighter modes.
+			_ = os.Chmod(relDir, 0o755)
 			if err := untarSafe(f, rel); err != nil {
 				os.RemoveAll(rel)
 				return nil, err

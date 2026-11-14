@@ -39,6 +39,7 @@ type BuildExecuteArgs struct {
 	CommitRef    string `json:"commit_ref,omitempty"`
 	ScratchRoot  string `json:"scratch_root"`            // root-allowlisted
 	BuildCommand string `json:"build_command,omitempty"` // platform-configured, never from repo content
+	ArtifactDir  string `json:"artifact_dir,omitempty"`  // relative build-output dir (e.g. "dist")
 	TimeoutS     int    `json:"timeout_s,omitempty"`
 }
 
@@ -263,15 +264,26 @@ func BuildExecuteHandler() VerbHandler {
 			return nil
 		})
 		sum := sha256.Sum256([]byte(a.BuildID))
-		// Artifact production: pack the built tree into a versioned tarball
-		// with a sha256 sidecar under the scratch root (deploy.apply
-		// consumes this exact artifact).
+		// Artifact production: pack the BUILD OUTPUT (artifact_dir when
+		// configured, else the whole work tree) into a versioned tarball
+		// with a digest; deploy.apply consumes this exact artifact.
+		packRoot := wt
+		if a.ArtifactDir != "" {
+			if strings.Contains(a.ArtifactDir, "..") || filepath.IsAbs(a.ArtifactDir) {
+				return nil, fmt.Errorf("invalid artifact dir")
+			}
+			cand := filepath.Join(wt, a.ArtifactDir)
+			if fi, err := os.Stat(cand); err != nil || !fi.IsDir() {
+				return nil, fmt.Errorf("artifact dir missing")
+			}
+			packRoot = cand
+		}
 		artDir := filepath.Join(a.ScratchRoot, "artifacts")
 		if err := os.MkdirAll(artDir, 0o750); err != nil {
 			return nil, fmt.Errorf("artifact dir failed")
 		}
 		artPath := filepath.Join(artDir, a.BuildID+".tar.gz")
-		if err := writeTarGz(artPath, wt); err != nil {
+		if err := writeTarGz(artPath, packRoot); err != nil {
 			return nil, fmt.Errorf("artifact packing failed")
 		}
 		return json.Marshal(map[string]any{
