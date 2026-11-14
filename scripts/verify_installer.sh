@@ -51,6 +51,26 @@ exec "$@"
 EOF
 cat > "$STUB/curl" <<'EOF'
 #!/usr/bin/env bash
+ORIG=("$@")   # passthrough needs the pristine argument vector
+out="/dev/null"; url=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -o) out="$2"; shift 2 ;;
+    -w) fmt="$2"; shift 2 ;;
+    --header|--resolve|--max-time|--retry|-s|-k|-f|-S|-L|-4) shift ;;
+    -*) shift ;;
+    *) url="$1"; shift ;;
+  esac
+done
+case "$url" in
+  # real network destinations pass through (Method A retrieval, apt mirrors)
+  *github.com*|*githubusercontent.com*|*deb.nodesource.com*|*archive.ubuntu.com*|*go.dev*) exec /usr/bin/curl "${ORIG[@]}" ;;
+  *api.ipify.org*) printf '203.0.113.7' > "$out"; echo 200 ;;
+  *install/status*) printf '{"installation_id":"inst_test0000000000000000","state":"pending"}' > "$out"; echo 200 ;;
+  *) printf 'ok' > "$out"; echo 200 ;;
+esac
+EOF'
+#!/usr/bin/env bash
 out="/dev/null"; url=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -62,6 +82,8 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 case "$url" in
+  # real network destinations pass through (Method A retrieval, apt mirrors)
+  *github.com*|*githubusercontent.com*|*deb.nodesource.com*|*archive.ubuntu.com*|*go.dev*) exec /usr/bin/curl "$@" ;;
   *api.ipify.org*) printf '203.0.113.7' > "$out"; echo 200 ;;
   *install/status*) printf '{"installation_id":"inst_test0000000000000000","state":"pending"}' > "$out"; echo 200 ;;
   *) printf 'ok' > "$out"; echo 200 ;;
