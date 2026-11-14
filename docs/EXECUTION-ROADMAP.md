@@ -1,40 +1,48 @@
-# Drevanta Execution Roadmap (dependency-ordered, honest estimates)
+# Drevanta Execution Roadmap — expanded (G32 §3)
 
-Updated: 2026-11-14 · Statuses from release-reconciliation.csv + registers.
-No invented deadlines; effort in engineering-wave units (one wave ≈ one
-checkpoint cycle of implementation + drill + evidence).
+Updated: 2026-11-14 · wave = one checkpoint cycle of implementation + drill +
+evidence. Estimates are engineering effort, not dates; no invented percentages.
 
-## Phase A — Full-scope engineering completion (IN PROGRESS)
+## Verified this wave (G32, commit f7e4c3d)
+FP-P3-052 analytics + FP-P4-026 source webhooks implemented and unit-tested
+(reconciliation now 241 IMPLEMENTED-TESTED / 0 IMPLEMENTED-UNTESTED); mail
+client operations (IMAP full session, POP3, tenant isolation); Redis per-
+instance AUTH; container run idempotency; interactive PTY sessions; REAL
+application build -> artifact -> release -> health -> rollback through
+Drevanta verbs (nginx-served, health TRUE x3); full-stack chain
+(cookie -> BFF -> API -> authz -> durable op -> worker -> helper -> host
+effect -> audit) verified live including 401 rejection.
 
-| ID | Workstream | Dependencies | Effort | Status |
+## Phase A — full-scope engineering completion
+
+| ID | Workstream (reconciliation rows) | Depends | Effort | Status |
 | --- | --- | --- | --- | --- |
-| A1 | Mail: IMAP INBOX path (dovecot 2.4), POP3, webmail integration | — | 1.5 waves | OPEN (BLK-006b) |
-| A2 | Frontend wiring: mail card (DEC-021), DNS zones, cache, terminal, containers | A1 partial | 2 waves | OPEN (BLK-009) |
-| A3 | Multi-node inventory + placement (ADM-05) | — | 2 waves | OPEN |
-| A4 | Resource Intelligence Center + quotas/admission | A4a schema | 2 waves | OPEN |
-| A5 | Platform settings/integrations surfaces | A2 | 1 wave | OPEN |
-| A6 | Org hierarchies/reseller allocation (BIZ scope) | A4 | 1.5 waves | OPEN |
-| A7 | Security scans/WAF/incident response (SEC-01) | — | 2 waves | OPEN |
-| A8 | Terminal PTY streaming + container run idempotency | — | 1 wave | OPEN |
-| A9 | Two IMPLEMENTED-UNTESTED rows → tested | — | 0.5 wave | OPEN |
+| A1 | Mail: webmail frontend integration (DEC-023) + mail card UI | A10 | 1 wave | OPEN |
+| A2 | Frontend wiring of G31/G32 surfaces: DNS zones, cache instances, containers, terminal, analytics cards + fidelity baselines | — | 2 waves | OPEN (BLK-009) |
+| A3 | Website mgmt: managed app abstraction (APP-01), site create/suspend/archive, onboarding, static upload journeys | A2 | 2 waves | OPEN |
+| A4 | DB + DB-user mgmt surfaces complete; file manager; domain/subdomain; DNS mgmt UI | A2 | 1.5 waves | OPEN |
+| A5 | Identity/orgs: workspace+persona switching, delegation/invitations/revocation, agency-managed sites, teams, org hierarchies, reseller allocation | — | 2.5 waves | OPEN |
+| A6 | Developer platform: project wizard, source-connection security, dev webhooks UI (FP-P4-026 surface), source history/provenance, deployment environments, promotion approval, secrets storage/injection/rotation/reveal/break-glass, supply-chain, diagnostics, capacity pressure | W3 core | 3 waves | OPEN |
+| A7 | Platform admin: multi-node inventory+placement (ADM-05), Resource Intelligence Center, quotas/admission, settings+integrations, monitoring analytics, service lifecycle mgmt | — | 3 waves | OPEN |
+| A8 | Security: scans/WAF/incident management (SEC-01) | A7 | 2 waves | OPEN |
+| A9 | Marketplace + specialized app categories (MKT-02) | A3 | 1 wave | OPEN |
+| A10 | Commercial: merchant identity/jurisdiction config, tax enforcement UI, invoices, checkout, subscriptions/renewals, refunds/credits, failed-payment recovery, reconciliation, SLA enforcement (DEC-026 core in tree: validation+tax math+sandbox adapter) | — | 2.5 waves | OPEN |
+| A11 | Cross-platform: error taxonomy, high-risk confirmations, journeys, acceptance matrices, handoff artifacts | — | 1 wave | OPEN |
 
-## Phase B — Integration & operational verification
-
-| ID | Workstream | Depends | Effort | Status |
-| --- | --- | --- | --- | --- |
-| B1 | Full-stack browser→host chains (fresh panel E2E per persona) | A2 | 1.5 waves | OPEN (H wave) |
-| B2 | DR extension: second clean VPS restore + full app boot | owner input (BLK-010) | 0.5 wave | WAITING |
-| B3 | ACME staging verification (public domain) | owner input (DEC-024) | 0.5 wave | WAITING |
+## Phase B — integration & operational verification
+| B1 | Full-stack chains per persona incl. revocation, quotas, exhaustion, interruption, replay | A2-A10 | 2 waves | OPEN (first chain DONE G32) |
+| B2 | DR extension: second clean VPS restore + app boot (BLK-010/011) | owner input | 0.5 wave | WAITING |
+| B3 | ACME public-domain validation/issuance/renewal | DEC-024 input | 0.5 wave | WAITING |
 | B4 | Security regression suite across new surfaces | A2, A8 | 1 wave | OPEN |
+| B5 | Runtime matrix lifecycle tests (every supported runtime) | — | 1.5 waves | OPEN |
 
-## Phase C — Release certification
-Gates: 404-row reconciliation green for all non-owner rows; all drills re-run
-on the final commit; RC build (gates pass) + checksum archive; owner sign-off.
-## Phase D — Clean production install plan (docs + installer hardening)
-## Phase E — Private beta prep (approval-gated) · F — Beta stabilization · G — v1.0 launch · H — maintenance
+## Phase C — certification · D — clean install plan · E — private beta (approval-gated) · F — stabilization · G — v1.0 launch · H — maintenance
+Combined estimate: ~26-30 engineering waves of remaining scope (Phases A+B),
+parallelizable across ~3 independent tracks (A3-A4 web, A5-A6 identity/dev,
+A7-A9 admin/infra; A10-A11 commercial/cross).
 
 ## Genuine owner inputs outstanding
-1. Second disposable VPS for independent off-host DR verification (BLK-010).
-2. Public domain for ACME staging/prod TLS (DEC-024).
-3. Gateway provider choice + TEST credentials (DEC-025).
-4. Tax/SLA/ops VALUES (docs/OWNER-DECISIONS-REQUIRED.md) — configurable now, values needed before commercial acceptance.
+1. Second disposable VPS for independent off-host DR (BLK-010/011).
+2. Public domain for ACME (DEC-024).
+3. Gateway choice + TEST credentials (DEC-025, options register attached).
+4. Tax/SLA/ops VALUES (OWNER-DECISIONS-REQUIRED.md) — mechanisms configurable; values before commercial acceptance.

@@ -32,6 +32,14 @@ REPO_MEMBERS = [
     "docs/ui/a11y-report.json",
     "docs/ui/baseline/manifest.json",
     "docs/DEPLOY-DRILL.md",
+    "docs/DEPLOY-DRILL-G30-G50.md",
+    "docs/DEPLOY-DRILL-G31-G32.md",
+    "docs/PAYMENT-GATEWAY-OPTIONS.md",
+    "docs/EXECUTION-ROADMAP.md",
+    "docs/DECISIONS.md",
+    "docs/IMPLEMENTATION-LEDGER.md",
+    "docs/OWNER-DECISIONS-REQUIRED.md",
+    "spec/registers/release-reconciliation.csv",
     "infra/nginx/drevanta-panel-vhost.conf.example",
     "infra/systemd/drevanta-panel.service",
     "infra/systemd/drevanta-web.service",
@@ -67,7 +75,7 @@ def main() -> int:
     if not head:
         print("cannot resolve HEAD", file=sys.stderr)
         return 1
-    name = f"drevanta-g40-stage3-evidence-{head[:7]}.zip"
+    name = f"drevanta-fullplatform-g32-evidence-{head[:7]}.zip"
     path = os.path.join(OUT, name)
 
     # Repository members: from git archive of the exact pushed commit.

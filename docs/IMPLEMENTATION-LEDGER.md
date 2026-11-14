@@ -223,3 +223,15 @@ Commercial core: DEC-026 validated configuration + tax math; sandbox payment
 adapter (idempotency, webhook HMAC + replay). Remaining engineering is
 explicitly owned by engineering (BLK-006b/009); owner input only for the
 second clean-VPS DR environment (BLK-010).
+
+
+## G32 wave (2026-11-14)
+FP-P3-052 + FP-P4-026 closed with real implementations (reconciliation 241
+IMPLEMENTED-TESTED / 0 IMPLEMENTED-UNTESTED); decision register dedupe
+(DEC-023/024/025/026, DEC-REG-1) and corrected nginx/BFF architecture text;
+mail client operations fully verified (IMAP/POP3/isolation); Redis AUTH,
+container idempotency, interactive PTY sessions; REAL build->deploy->
+health->rollback chain; full-stack cookie-to-host-effect chain with 401/422
+negatives and audit verification. Roadmap expanded to every outstanding
+scope (A1-A11, B1-B5); G31/G32 VPS report + gateway options register added
+to the evidence set.
