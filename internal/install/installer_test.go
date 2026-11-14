@@ -73,3 +73,38 @@ func TestRegenerateClaimToken(t *testing.T) {
 		t.Fatalf("claimed installation must refuse regeneration, got %v", err)
 	}
 }
+
+// Concurrent claim attempts must be serialized: exactly one wins, every
+// other attempt is rejected (atomic consume, replay-safe).
+func TestConcurrentClaimAttempts(t *testing.T) {
+	in, _ := newTestInstaller(t)
+	ctx := context.Background()
+	_, raw, err := in.EnsureInstallation(ctx)
+	if err != nil || raw == "" {
+		t.Fatalf("ensure: %v", err)
+	}
+	const racers = 4
+	type outcome struct {
+		ok  bool
+		err error
+	}
+	results := make(chan outcome, racers)
+	for i := 0; i < racers; i++ {
+		go func(n int) {
+			res, err := in.Claim(ctx, raw, "owner@example.test", "AdminPassphrase-1!", "Owner")
+			results <- outcome{ok: err == nil && res != nil, err: err}
+		}(i)
+	}
+	wins := 0
+	for i := 0; i < racers; i++ {
+		r := <-results
+		if r.ok {
+			wins++
+		} else if r.err == nil {
+			t.Fatal("loser returned nil error without a result")
+		}
+	}
+	if wins != 1 {
+		t.Fatalf("exactly one concurrent claim must win, got %d (errors: %v)", wins, results)
+	}
+}

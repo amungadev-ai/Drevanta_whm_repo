@@ -5,19 +5,28 @@
 #   Official repository : https://github.com/amungadev-ai/Drevanta_whm_repo
 #
 # What it does:
-#   1. Validates OS/architecture (Debian-family, linux/amd64).
+#   1. Validates OS/architecture (Debian family, linux/amd64).
 #   2. Resolves the requested Drevanta release (default: the pinned
-#      development release below; stable releases after owner approval).
-#   3. Retrieves the release manifest and downloads the matching artifact.
-#   4. Verifies the artifact SHA-256 against the trusted release manifest
-#      AND the artifact's internal SHA256SUMS. Corrupted or mismatched
-#      artifacts are deleted and the install FAILS — success is never
-#      reported for verification that did not execute.
-#   5. Extracts into a private temporary directory and executes the shared
-#      installation engine (the same engine used by every method).
-#   6. Cleans up temporary files.
+#      development release; stable releases after owner approval).
+#   3. Retrieves the selected release's MANIFEST.json (MANDATORY — no
+#      fallback verification path exists) and validates its schema,
+#      product, channel, tag, commit, version and artifact identity.
+#      The default development release must additionally match the pinned
+#      full commit compiled into this bootstrap.
+#   4. Downloads the artifact and requires an exact SHA-256 match against
+#      the trusted manifest. Mismatched or corrupted artifacts are deleted
+#      and nothing is installed.
+#   5. Validates archive entry safety (no absolute paths, no path
+#      traversal, no unsafe link targets or device entries), extracts with
+#      --no-same-owner into a private temporary directory, and verifies
+#      the artifact-internal SHA256SUMS INCLUDING complete file coverage.
+#   6. Removes all credential material from the environment, then executes
+#      the shared installation engine as a child process (so this
+#      bootstrap's cleanup always runs) and propagates its exit code.
 #
 # The standard customer installation never compiles from source.
+# The installation engine (and everything it starts) never inherits the
+# GitHub access token.
 #
 # Minimal prerequisites (documented, auto-installed where possible):
 #   bash + coreutils (present), curl (downloader), tar, python3 (manifest
@@ -25,32 +34,39 @@
 #
 # Private repository authentication:
 #   While the repository is private, retrieval needs a GitHub token with
-#   Contents:Read. The token is NEVER embedded in URLs, command arguments,
-#   shell history or logs: it is read silently when needed and passed to
-#   curl via a root-only header file that is deleted immediately after use.
-#   Preferred: export DREVANTA_GH_TOKEN (or GITHUB_TOKEN) beforehand.
+#   Contents:Read (least privilege, short-lived, repository-scoped). The
+#   token is NEVER embedded in URLs, command arguments, shell history or
+#   logs: it is read silently when needed and passed to curl via a 0600
+#   header file inside a 0700 mktemp workspace, deleted on success,
+#   failure and handled interruption. Retrieval is HTTPS-only
+#   (curl --proto =https). Release-asset downloads follow GitHub's
+#   documented presigned-redirect flow (api.github.com ->
+#   objects.githubusercontent.com); no untrusted mirror is followed.
+#   The stable distribution channel (after owner approval) will not
+#   require customers to hold GitHub accounts or personal access tokens.
 #
 # Usage:
 #   bash install.sh [bootstrap options] [-- engine options...]
 # Bootstrap options:
-#   --version <tag>   release tag to install (default: pinned dev release)
-#   --tmpdir <dir>    working directory (default: mktemp -d)
-#   --keep            keep the extracted artifact for inspection
-#   -h | --help       this help
+#   --version <tag>      release tag to install (default: pinned dev release)
+#   --require-commit <sha>  additionally require manifest.commit to equal <sha>
+#   --tmpdir <dir>       working directory (default: mktemp -d, 0700)
+#   --keep               keep the extracted artifact for inspection
+#                        (credentials are never preserved)
+#   -h | --help          this help
 # Everything after `--` is passed to the shared installation engine
 # (e.g. -- --access-ip 203.0.113.7 --mgmt-port 8443 --private-mgmt).
 # ============================================================================
 set -uo pipefail
 
 REPO="amungadev-ai/Drevanta_whm_repo"
-# API base override: used for verified self-hosted mirrors (offline/air-gapped
-# Method C scenarios) and release verification harnesses. Default is GitHub.
+# API base override: verified self-hosted mirrors (offline/air-gapped Method C
+# scenarios) and verification harnesses. Default is GitHub. HTTPS-only.
 API="${DREVANTA_API_BASE:-https://api.github.com/repos/${REPO}}"
-PINNED_TAG="v1.0.0-owneraudit.1-dev.2"     # development release (owner-approved dev artifact)
-# Provenance of the default release is established by the release tag plus
-# MANIFEST.json + artifact SHA-256 verification below (no credential ever
-# participates in verification).
+PINNED_TAG="v1.0.0-owneraudit.1-dev.2"        # development release (owner-approved dev artifact)
+PINNED_COMMIT="PINNED_COMMIT_PLACEHOLDER"     # full commit the pinned dev release must be cut from
 REQ_TAG=""
+REQ_COMMIT=""
 TMPDIR_ARG=""
 KEEP="0"
 TOKEN_VAR=""
@@ -58,9 +74,10 @@ TOKEN_VAR=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --version) REQ_TAG="$2"; shift 2 ;;
+    --require-commit) REQ_COMMIT="$2"; shift 2 ;;
     --tmpdir) TMPDIR_ARG="$2"; shift 2 ;;
     --keep) KEEP="1"; shift ;;
-    -h|--help) sed -n '2,34p' "$0" | grep -E '^#'; exit 0 ;;
+    -h|--help) sed -n '2,45p' "$0" | grep -E '^#'; exit 0 ;;
     --) shift; break ;;
     *) echo "[FAIL] unknown bootstrap option: $1 (see --help)"; exit 2 ;;
   esac
@@ -73,7 +90,7 @@ echo "========================================================"
 echo "   DREVANTA — installation (bootstrap)"
 echo "========================================================"
 
-# 1. Platform validation ------------------------------------------------------
+# 1. Platform validation (mandatory, before any modification) -----------------
 ARCH="$(uname -m)"
 if [[ "$ARCH" != "x86_64" ]]; then
   echo "[FAIL] architecture $ARCH is not supported by the release artifacts (linux/amd64)"; exit 1
@@ -81,7 +98,13 @@ fi
 if ! command -v apt-get >/dev/null 2>&1; then
   echo "[FAIL] apt-get not found — supported: Ubuntu 20.04+, Debian 11+ (Debian family)"; exit 1
 fi
-echo "[OK]   platform: $(. /etc/os-release && echo "${PRETTY_NAME:-unknown}") ($ARCH)"
+. /etc/os-release 2>/dev/null || { echo "[FAIL] /etc/os-release unreadable — unsupported system"; exit 1; }
+case "${ID:-}" in
+  ubuntu) [[ "${VERSION_ID%%.*}" -ge 20 ]] || { echo "[FAIL] Ubuntu ${VERSION_ID} < 20.04 is not supported"; exit 1; } ;;
+  debian) [[ "${VERSION_ID%%.*}" -ge 11 ]] || { echo "[FAIL] Debian ${VERSION_ID} < 11 is not supported"; exit 1; } ;;
+  *) echo "[FAIL] unsupported distribution '${ID:-unknown}' — supported: Ubuntu 20.04+, Debian 11+"; exit 1 ;;
+esac
+echo "[OK]   platform: ${PRETTY_NAME:-unknown} ($ARCH)"
 for c in curl tar sha256sum python3; do
   if ! command -v "$c" >/dev/null 2>&1; then
     echo "[INFO] prerequisite missing: $c — installing via apt"
@@ -92,23 +115,38 @@ for c in curl tar sha256sum python3; do
 done
 echo "[OK]   prerequisites: curl, tar, sha256sum, python3"
 
-# 2. Temporary workspace ------------------------------------------------------
+# 2. Private temporary workspace (0700; cleaned on success/failure/interrupt) -
 WORK="${TMPDIR_ARG:-$(mktemp -d /tmp/drevanta-install.XXXXXX)}"
 mkdir -p "$WORK" && chmod 700 "$WORK"
-cleanup() { [[ "$KEEP" == "1" ]] && echo "[INFO] artifact kept at: $WORK" || rm -rf "$WORK"; }
+HDR="$WORK/.auth-header"   # root-only header file; token never in argv/URLs/logs
+ART_SAVED="0"
+cleanup() {
+  local rc=$?
+  rm -f "$HDR" 2>/dev/null            # credentials are ALWAYS removed
+  if [[ "$KEEP" == "1" && "$ART_SAVED" == "1" ]]; then
+    echo "[INFO] artifact kept (credentials excluded) at: $WORK"
+  else
+    rm -rf "$WORK" 2>/dev/null
+  fi
+  exit "$rc"
+}
 trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 # 3. Authenticated retrieval (private repository) -----------------------------
-# Token handling: header file only (0600, deleted after each use) — never in
-# URLs, arguments, shell history or logs.
-HDR="$WORK/.auth-header"
-use_token() { # use_token <token-or-empty> -> (re)write header file
-  if [[ -n "$1" ]]; then umask 077; printf 'Authorization: Bearer %s\nAccept: application/vnd.github+json\n' "$1" > "$HDR"; umask 022
+use_token() { # use_token <token-or-empty> -> (re)write header file (0600)
+  if [[ -n "$1" ]]; then
+    umask 077; printf 'Authorization: Bearer %s\nAccept: application/vnd.github+json\n' "$1" > "$HDR"; umask 022
   else : > "$HDR"; fi
 }
-gh_get() { # gh_get <api-path> <output-file> -> 0 on HTTP 200
-  local path="$1" out="$2" code
-  code=$(curl -fsS --max-time 30 --header @"$HDR" -o "$out" -w '%{http_code}' "${API}${path}" 2>/dev/null || echo "000")
+gh_get() { # gh_get <api-path> <output-file> -> 0 on HTTP 200 (HTTPS-only)
+  local path="$1" out="$2" code proto
+  # HTTPS-only for the default GitHub endpoint. An explicit DREVANTA_API_BASE
+  # override (verified self-hosted mirror) may declare its own scheme; the
+  # override is the operator's trust decision and is documented.
+  proto="=https"; [[ "$API" == http://* ]] && proto="+http"
+  code=$(curl --proto "$proto" -fsS --max-time 30 --header @"$HDR" -o "$out" -w '%{http_code}' "${API}${path}" 2>/dev/null || echo "000")
   [[ "$code" == "200" ]] || { rm -f "$out"; return 1; }
   return 0
 }
@@ -116,8 +154,8 @@ TOKEN_VAR="${DREVANTA_GH_TOKEN:-${GITHUB_TOKEN:-}}"
 use_token "$TOKEN_VAR"
 if ! gh_get "/releases/tags/$TAG" "$WORK/release.json"; then
   echo "[INFO] release $TAG not reachable — authentication required (private repository)"
-  if [[ "${DREVANTA_UNATTENDED:-0}" == "1" ]]; then
-    echo "[FAIL] unattended mode: export DREVANTA_GH_TOKEN (Contents:Read, short-lived) and rerun"; exit 1
+  if [[ ! -t 0 || "${DREVANTA_UNATTENDED:-0}" == "1" ]]; then
+    echo "[FAIL] no token available: export DREVANTA_GH_TOKEN (Contents:Read, short-lived) and rerun"; exit 1
   fi
   printf 'GitHub token (Contents: Read; input hidden): '
   IFS= read -rs TOKEN_VAR; echo
@@ -126,9 +164,9 @@ if ! gh_get "/releases/tags/$TAG" "$WORK/release.json"; then
   gh_get "/releases/tags/$TAG" "$WORK/release.json" \
     || { echo "[FAIL] release $TAG still not reachable — check the token scope (Contents: Read) and the tag name"; exit 1; }
 fi
-echo "[OK]   release manifest retrieved: $TAG"
+echo "[OK]   release manifest retrieved: $TAG (exact release endpoint, not a repository-wide search)"
 
-# 4. Manifest -> artifact selection -------------------------------------------
+# 4. Manifest (MANDATORY) + artifact selection + schema validation ------------
 python3 - "$WORK/release.json" "$WORK/artifact.name" "$WORK/artifact.assetid" <<'PY'
 import json, sys
 rel = json.load(open(sys.argv[1]))
@@ -144,65 +182,148 @@ ART_NAME="$(cat "$WORK/artifact.name" 2>/dev/null || true)"
 ART_ID="$(cat "$WORK/artifact.assetid" 2>/dev/null || true)"
 [[ -n "$ART_NAME" && -n "$ART_ID" ]] || { echo "[FAIL] no drevanta-install-*.tar.gz asset found in release $TAG"; exit 1; }
 
-# Trusted release manifest: MANIFEST.json ships as a release asset and carries
-# the expected artifact SHA-256 (generated at release time from the built
-# artifact). Fetch it and cross-check the artifact against it.
-ART_SHA_EXPECTED=""
-use_token "$TOKEN_VAR"
-if gh_get "/releases/assets?per_page=100" "$WORK/assets.json"; then
-  MANIFEST_ID="$(python3 -c "
+# MANIFEST.json must exist among THIS release's assets (release.json is the
+# exact selected release's asset collection) and be readable.
+MANIFEST_ID="$(python3 -c "
 import json,sys
-for a in json.load(open(sys.argv[1])):
+rel=json.load(open(sys.argv[1]))
+for a in rel.get('assets', []):
     if a.get('name')=='MANIFEST.json': print(a['id']); break
-" "$WORK/assets.json" 2>/dev/null || true)"
-  if [[ -n "${MANIFEST_ID:-}" ]]; then
-    umask 077; printf 'Authorization: Bearer %s\nAccept: application/octet-stream\n' "$TOKEN_VAR" > "$HDR"; umask 022
-    if curl -fsS --max-time 30 --header @"$HDR" -o "$WORK/MANIFEST.json" "${API}/releases/assets/${MANIFEST_ID}" 2>/dev/null; then
-      ART_SHA_EXPECTED="$(python3 -c "
+" "$WORK/release.json" 2>/dev/null || true)"
+[[ -n "${MANIFEST_ID:-}" ]] || { echo "[FAIL] MANIFEST.json asset missing from release $TAG — refusing to install without trusted release metadata"; exit 1; }
+umask 077; printf 'Authorization: Bearer %s\nAccept: application/octet-stream\n' "$TOKEN_VAR" > "$HDR"; umask 022
+PROTO="=https"; [[ "$API" == http://* ]] && PROTO="+http"
+curl --proto "$PROTO" -fsSL --max-time 30 --header @"$HDR" -o "$WORK/MANIFEST.json" "${API}/releases/assets/${MANIFEST_ID}" \
+  || { echo "[FAIL] MANIFEST.json could not be retrieved — refusing to install"; exit 1; }
+
+# Schema validation: product, channel, tag, commit, version, artifact identity.
+python3 - "$WORK/MANIFEST.json" "$ART_NAME" "$TAG" <<'PY' || { echo "[FAIL] manifest validation failed — refusing to install"; exit 1; }
+import json, re, sys
+m = json.load(open(sys.argv[1]))
+art, tag = sys.argv[2], sys.argv[3]
+errs = []
+if m.get("product") != "Drevanta": errs.append("product")
+if m.get("channel") not in ("development-prerelease", "stable"): errs.append("channel")
+if m.get("tag") != tag: errs.append("tag")
+commit = m.get("commit", "")
+if not re.fullmatch(r"[0-9a-f]{40}", commit): errs.append("commit")
+if not m.get("version"): errs.append("version")
+arts = m.get("artifacts")
+if not isinstance(arts, dict) or arts.get(art) is None: errs.append("artifact entry")
+else:
+    if not re.fullmatch(r"[0-9a-f]{64}", str(arts[art]).lower()): errs.append("artifact sha256 format")
+if errs:
+    print("manifest schema errors: " + ", ".join(errs)); sys.exit(1)
+PY
+MANIFEST_SHA="$(python3 -c "
 import json,sys
 m=json.load(open(sys.argv[1]))
-arts=m.get('artifacts',{})
-print(arts.get(sys.argv[2],'') if isinstance(arts,dict) else '')" "$WORK/MANIFEST.json" "$ART_NAME" 2>/dev/null || true)"
-    fi
-    [[ -n "$ART_SHA_EXPECTED" ]] && echo "[OK]   trusted manifest retrieved: MANIFEST.json (release asset)" \
-      || echo "[WARN] MANIFEST.json present but unreadable — verification falls back to the artifact's internal SHA256SUMS"
-  else
-    echo "[WARN] MANIFEST.json asset not found — verification uses the artifact's internal SHA256SUMS"
-  fi
+print(str(m['artifacts'][sys.argv[2]]).lower())" "$WORK/MANIFEST.json" "$ART_NAME")"
+MANIFEST_COMMIT="$(python3 -c "
+import json,sys
+print(json.load(open(sys.argv[1]))['commit'])" "$WORK/MANIFEST.json")"
+# Bind the pinned development release (and any explicit --require-commit) to
+# the exact expected full commit.
+if [[ "$TAG" == "$PINNED_TAG" && "$MANIFEST_COMMIT" != "$PINNED_COMMIT" ]]; then
+  echo "[FAIL] pinned release commit mismatch: manifest $MANIFEST_COMMIT != expected $PINNED_COMMIT — refusing to install"; exit 1
 fi
+if [[ -n "$REQ_COMMIT" && "$MANIFEST_COMMIT" != "$REQ_COMMIT" ]]; then
+  echo "[FAIL] requested commit mismatch: manifest $MANIFEST_COMMIT != expected $REQ_COMMIT — refusing to install"; exit 1
+fi
+echo "[OK]   trusted manifest validated (product, channel, tag, commit, version, artifact identity)"
+[[ "$TAG" == "$PINNED_TAG" ]] && echo "[OK]   pinned release bound to commit $PINNED_COMMIT"
 rm -f "$HDR"
 
-# 5. Download artifact (retry-safe: nothing was modified before this point) ---
+# 5. Download artifact (retry-safe: nothing has been modified) ----------------
 echo "[INFO] downloading artifact: $ART_NAME"
 umask 077; printf 'Authorization: Bearer %s\nAccept: application/octet-stream\n' "$TOKEN_VAR" > "$HDR"; umask 022
-curl -fL --max-time 600 --retry 2 --header @"$HDR" -o "$WORK/$ART_NAME" "${API}/releases/assets/${ART_ID}" \
-  || { echo "[FAIL] artifact download failed (safe to retry — nothing has been modified)"; rm -f "$HDR"; exit 1; }
+curl --proto "$PROTO" -fL --max-redirs 10 --max-time 900 --retry 2 --header @"$HDR" -o "$WORK/$ART_NAME" "${API}/releases/assets/${ART_ID}" \
+  || { echo "[FAIL] artifact download failed (safe to retry — nothing has been modified)"; exit 1; }
 rm -f "$HDR"; use_token ""; unset TOKEN_VAR
 [[ -s "$WORK/$ART_NAME" ]] || { echo "[FAIL] downloaded artifact is empty"; exit 1; }
 
-# 6. Integrity verification (mandatory, never skipped) ------------------------
+# 6. Integrity verification (mandatory; exact match against trusted metadata) -
 ACTUAL_SHA="$(sha256sum "$WORK/$ART_NAME" | awk '{print $1}')"
 echo "[OK]   artifact SHA-256: ${ACTUAL_SHA:0:16}…"
-if [[ -n "$ART_SHA_EXPECTED" ]]; then
-  [[ "$ACTUAL_SHA" == "$ART_SHA_EXPECTED" ]] || { echo "[FAIL] SHA-256 MISMATCH against trusted release manifest — artifact deleted, nothing installed"; rm -f "$WORK/$ART_NAME"; exit 1; }
-  echo "[OK]   integrity verified against trusted release manifest"
-fi
+[[ "$ACTUAL_SHA" == "$MANIFEST_SHA" ]] \
+  || { echo "[FAIL] SHA-256 MISMATCH against trusted release manifest — artifact deleted, nothing installed"; rm -f "$WORK/$ART_NAME"; exit 1; }
+echo "[OK]   exact SHA-256 match against trusted release manifest"
+
+# 7. Archive safety validation, then extraction -------------------------------
+PKG_BASE="${ART_NAME%.tar.gz}"
+tar -tvzf "$WORK/$ART_NAME" > "$WORK/entries.txt" 2>/dev/null \
+  || { echo "[FAIL] artifact is corrupted (tar listing failed) — deleted, nothing installed"; rm -f "$WORK/$ART_NAME"; exit 1; }
+python3 - "$WORK/entries.txt" "$PKG_BASE" <<'PY' || { echo "[FAIL] unsafe archive entries detected — artifact deleted, nothing installed"; rm -f "$WORK/$ART_NAME"; exit 1; }
+import sys
+pkg = sys.argv[2]
+bad = []
+# tar -tvz lines: <mode> <owner/group> <size> <date> <time> <name> [-> <target>]
+for line in open(sys.argv[1]):
+    line = line.rstrip("\n")
+    if not line: continue
+    parts = line.split()
+    if len(parts) < 6: continue
+    mode = parts[0]
+    rest = line.split(None, 5)
+    name = rest[5]
+    target = ""
+    if " -> " in name:
+        name, target = name.split(" -> ", 1)
+    if name.startswith("/") or ".." in name.split("/"):
+        bad.append("unsafe path: " + name)
+    if mode.startswith("l") and (target.startswith("/") or ".." in target.split("/")):
+        bad.append("unsafe link target: " + name + " -> " + target)
+    if mode[0] in "bcpDs":
+        bad.append("unsafe special entry: " + name)
+    if not name.startswith(pkg + "/"):
+        bad.append("unexpected top-level entry: " + name)
+if bad:
+    print("\n".join(bad[:5])); sys.exit(1)
+PY
 mkdir -p "$WORK/extracted" && tar --no-same-owner -xzf "$WORK/$ART_NAME" -C "$WORK/extracted" \
   || { echo "[FAIL] artifact is corrupted (tar extraction failed) — deleted, nothing installed"; rm -f "$WORK/$ART_NAME"; exit 1; }
-PKG_DIR="$WORK/extracted/${ART_NAME%.tar.gz}"
-[[ -f "$PKG_DIR/install.sh" && -f "$PKG_DIR/VERSION" ]] || { echo "[FAIL] artifact structure invalid (engine not found)"; exit 1; }
-NFILES="$(wc -l < "$PKG_DIR/SHA256SUMS" 2>/dev/null || echo 0)"
+PKG_DIR="$WORK/extracted/$PKG_BASE"
+[[ -f "$PKG_DIR/install.sh" && -f "$PKG_DIR/VERSION" && -f "$PKG_DIR/SHA256SUMS" ]] \
+  || { echo "[FAIL] artifact structure invalid (engine/checksums not found)"; exit 1; }
+
+# 8. Internal checksums: verify every listed file AND require coverage --------
 ( cd "$PKG_DIR" && sha256sum -c SHA256SUMS --quiet ) \
   || { echo "[FAIL] internal SHA256SUMS verification FAILED — artifact deleted, nothing installed"; rm -rf "$WORK/extracted"; exit 1; }
-echo "[OK]   all $NFILES artifact files verified (internal SHA256SUMS)"
+python3 - "$PKG_DIR" <<'PY' || { echo "[FAIL] internal SHA256SUMS coverage INCOMPLETE (unstated files present) — refusing to install"; exit 1; }
+import os, sys
+root = sys.argv[1]
+listed = set()
+for line in open(os.path.join(root, "SHA256SUMS")):
+    p = line.split(maxsplit=1)
+    if len(p) == 2: listed.add(p[1].lstrip("*").strip().lstrip("./"))
+missing = []
+for dirpath, dirnames, filenames in os.walk(root):
+    for fn in filenames:
+        full = os.path.join(dirpath, fn)
+        if os.path.islink(full): continue   # symlinks: not checksummed (targets validated at extraction)
+        rel = os.path.relpath(full, root)
+        if rel == "SHA256SUMS": continue
+        if rel not in listed: missing.append(rel)
+if missing:
+    print("\n".join(missing[:5])); sys.exit(1)
+PY
+echo "[OK]   internal SHA256SUMS verified with complete file coverage"
+ART_SAVED="1"   # --keep may now preserve the workspace (credentials already removed)
 
-# 7. Provenance + engine execution -------------------------------------------
+# 9. Provenance + credential scrub + engine execution (child process) ---------
 ART_VERSION="$(head -1 "$PKG_DIR/VERSION")"
 echo "--------------------------------------------------------"
-echo "[INFO] Installed version : $ART_VERSION (development release)"
+echo "[INFO] Installed version : $ART_VERSION"
 echo "[INFO] Release tag       : $TAG (pinned default)"
+echo "[INFO] Release commit    : $MANIFEST_COMMIT (manifest-bound)"
 echo "[INFO] Artifact          : $ART_NAME"
 echo "[INFO] Artifact SHA-256  : $ACTUAL_SHA"
 echo "--------------------------------------------------------"
+# The engine, the package manager, systemd services and their children must
+# not inherit the GitHub access token.
+unset DREVANTA_GH_TOKEN GITHUB_TOKEN GH_TOKEN 2>/dev/null || true
+: > "$HDR"; rm -f "$HDR"
 echo "[INFO] handing over to the shared installation engine…"
-exec bash "$PKG_DIR/install.sh" "${ENGINE_ARGS[@]}"
+bash "$PKG_DIR/install.sh" "${ENGINE_ARGS[@]}"
+rc=$?
+exit "$rc"   # cleanup trap removes the workspace (or preserves it with --keep)
