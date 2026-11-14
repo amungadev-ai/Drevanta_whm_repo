@@ -9,7 +9,7 @@ installer implementation, not one per method.
 
 | Method | Use when | Entry point | Status |
 | --- | --- | --- | --- |
-| **A — Direct GitHub installation** | Standard customer journey (primary) | `install.sh` at the repository root, executed in one command | Implemented; verified in isolated harness (see `scripts/verify_installer.sh`, 82 checks incl. negative tests) |
+| **A — Direct GitHub installation** | Standard customer journey (primary) | `install.sh` at the repository root, executed in one command | Implemented; verified in isolated harness (see `scripts/verify_installer.sh`, 90 checks incl. negative tests) |
 | **B — Downloadable installation package** | No direct GitHub retrieval desired | release artifact `drevanta-install-*.tar.gz` + `sha256sum -c` + `./install.sh` | Implemented; verified on a prior fresh Ubuntu 26.04 host and in the harness |
 | **C — Offline installation** | Air-gapped/restricted host | same artifact, engine `--offline` skips network stages | Implemented; dependency auto-install skipped, preinstalled deps required |
 | **D — Developer installation** | Building from source | build the artifact with `scripts/build_install_package.sh`, install it (Method B flow) | Implemented; used for every release |
