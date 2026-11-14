@@ -27,6 +27,7 @@ REPO_MEMBERS = [
     "docs/ui/CONTROL-MATRIX.csv",
     "docs/ui/CONTROL-MATRIX.md",
     "docs/ui/MIGRATION-LEDGER.md",
+    "docs/ui/FUNCTIONAL-COVERAGE.csv",
     "docs/ui/compare-report.json",
     "docs/ui/a11y-report.json",
     "docs/ui/baseline/manifest.json",
@@ -40,6 +41,7 @@ REPO_MEMBERS = [
     "tools/deploy/vps_put.py",
     "tools/ui-migration/e2e-s2.mjs",
     "tools/ui-migration/e2e-s3.mjs",
+    "tools/ui-migration/e2e-s4.mjs",
     "tools/ui-migration/gates-s3.mjs",
     "tools/ui-migration/a11y-s3.mjs",
     "tools/ui-migration/security-test.mjs",
@@ -47,6 +49,8 @@ REPO_MEMBERS = [
 
 EVIDENCE = {
     "evidence/e2e-s3-results.txt": "/tmp/drevanta-dev/e2e-s3.log",
+    "evidence/e2e-s4-results.txt": "/tmp/drevanta-dev/e2e-s4.log",
+    "evidence/e2e-s2-regression-results.txt": "/tmp/drevanta-dev/e2e-s2-reg.log",
     "evidence/e2e-s2-regression-results.txt": "/tmp/drevanta-dev/e2e-s2-regression.log",
     "evidence/e2e-vps-results.txt": "/home/z/my-project/download/ui-g40-s2/e2e-vps-results.txt",
     "evidence/security-results.txt": "/home/z/my-project/download/ui-g40-s2/security-results.txt",
