@@ -52,11 +52,11 @@ func main() {
 		os.Exit(1)
 	}
 	out, _ := json.MarshalIndent(map[string]any{
-		"status":     res.Status,
-		"outcome":    res.Outcome,
+		"status":      res.Status,
+		"outcome":     res.Outcome,
 		"safe_reason": res.SafeReason,
-		"result":     res.Observation,
-		"journal_id": res.JournalID,
+		"result":      res.Observation,
+		"journal_id":  res.JournalID,
 	}, "", "  ")
 	fmt.Println(string(out))
 	if res.Status != "ok" {
