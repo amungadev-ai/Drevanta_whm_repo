@@ -57,7 +57,8 @@ fi
 
 WORK="$(mktemp -d)"; chmod 700 "$WORK"
 PRIV_HDR="$WORK/.priv-hdr"; DIST_HDR="$WORK/.dist-hdr"
-trap 'rm -rf "$WORK"' EXIT
+cleanup() { if [[ "$DRY_RUN" == "1" ]]; then echo "[OK] dry-run staging preserved for review: $WORK"; else rm -rf "$WORK"; fi; }
+trap cleanup EXIT
 printf 'Authorization: Bearer %s\n' "$PRIV_TOKEN" > "$PRIV_HDR"   # no Accept here: asset downloads need application/octet-stream; chmod 600 "$PRIV_HDR"
 printf 'Authorization: Bearer %s\n' "$DIST_TOKEN" > "$DIST_HDR"; chmod 600 "$DIST_HDR"
 API="https://api.github.com"
@@ -123,7 +124,7 @@ if [[ "$DRY_RUN" == "1" ]]; then
   ls -la "$STAGE" "$STAGE/docs" "$STAGE/keys"
   echo "---- SHA256SUMS ----"; cat "$STAGE/SHA256SUMS"
   echo "[OK] dry run complete — no publication performed"
-  exit 0
+  exit 0  # staging preserved at $WORK for review
 fi
 
 echo "== 4. Publish to $DIST_REPO (release $TAG, channel $CHANNEL) =="

@@ -55,7 +55,8 @@ cat > "$OUT" <<BOOT
 #  Drevanta — one-command installation bootstrap
 #  Repository: $DIST_REPO
 #  Channel:    $CHANNEL
-#  Generated:  $(date -u '+%Y-%m-%dT%H:%M:%SZ') by make_dist_bootstrap.sh
+#  Deterministic build: identical inputs produce byte-identical bootstraps
+#  (any reviewer can regenerate and compare against the published asset).
 $( [[ "$CHANNEL" == "dev" ]] && echo "#  Pinned:     $DEV_TAG @ $DEV_COMMIT
 #
 #  This is a DEVELOPMENT PRERELEASE for the owner-led acceptance test —
