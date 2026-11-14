@@ -147,9 +147,22 @@ func run(addr, dbPath, migDir, helperSocket string) error {
 	}
 	go workerLoop(worker)
 
-	// Build execution worker (G40-F2): drives queued pipeline builds with
-	// real git fetches; failures map through the build state machine.
-	buildRunner := jobs.NewBuildRunner(db, &jobs.GitBuildExecutor{Timeout: 5 * time.Minute})
+	// Build execution worker (G40-F2 + G30): queued builds route through
+	// the privileged helper's ISOLATED build.execute verb — untrusted
+	// repository content never executes in the panel process. Without the
+	// helper boundary configured, builds fail closed (no silent in-process
+	// execution of untrusted content).
+	buildExec := jobs.BuildExecutor(&jobs.RefusingBuildExecutor{})
+	if scratch := os.Getenv("DREVANTA_BUILD_SCRATCH"); scratch != "" {
+		buildExec = &jobs.HelperBuildExecutor{
+			Client: client, HostID: hostID, InstallID: installID,
+			ScratchRoot: scratch, TimeoutS: 600,
+		}
+		log.Printf("panel: build execution routed through isolated helper boundary (%s)", scratch)
+	} else {
+		log.Printf("panel: build isolation boundary NOT configured — builds will fail closed")
+	}
+	buildRunner := jobs.NewBuildRunner(db, buildExec)
 	go func() {
 		ticker := time.NewTicker(30 * time.Second)
 		defer ticker.Stop()

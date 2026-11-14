@@ -113,6 +113,11 @@ func run(socket, policyPath, dbPath, migDir, installID string, panelUID int, soc
 	})
 	registry.Register("mail.apply", helper.MailApplyHandler())
 	registry.Register("toolchain.apply", helper.ToolchainApplyHandler())
+	// G30: isolated developer builds — scratch roots from root-owned
+	// bindings; untrusted content NEVER executes without a verified
+	// isolation boundary (probe fails closed).
+	_ = helper.LoadBuildBindings(filepath.Join(bindingsDir, "build-bindings.json"))
+	registry.Register("build.execute", helper.BuildExecuteHandler())
 
 	ctx, cancel = signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()

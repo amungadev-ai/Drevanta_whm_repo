@@ -12,6 +12,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -20,6 +21,8 @@ import (
 	"strings"
 	"time"
 
+	"drevanta/internal/helper"
+	"drevanta/internal/hostagent"
 	"drevanta/internal/store"
 )
 
@@ -107,6 +110,70 @@ func (g *GitBuildExecutor) Execute(ctx context.Context, repoURL, commitRef, work
 		return "", 0, fmt.Errorf("tree digest failed")
 	}
 	return "sha256:" + hex.EncodeToString(h.Sum(nil)), size, nil
+}
+
+// HelperBuildExecutor routes builds through the privileged helper's
+// isolated build.execute verb: untrusted repository content never executes
+// in the panel process (or anywhere without a verified isolation boundary).
+// The helper fail-closes when isolation is unavailable.
+type HelperBuildExecutor struct {
+	Client      *hostagent.Client
+	HostID      string
+	InstallID   string
+	ScratchRoot string
+	TimeoutS    int
+}
+
+// Execute performs the isolated build and returns the artifact digest/size.
+func (h *HelperBuildExecutor) Execute(ctx context.Context, repoURL, commitRef, workDir string) (string, int64, error) {
+	buildID := "bld-" + store.NewID("x")
+	args := helper.BuildExecuteArgs{
+		BuildID:     buildID,
+		RepoURL:     repoURL,
+		CommitRef:   commitRef,
+		ScratchRoot: h.ScratchRoot,
+		TimeoutS:    h.TimeoutS,
+	}
+	raw, err := json.Marshal(args)
+	if err != nil {
+		return "", 0, err
+	}
+	req := helper.HostRequest{
+		Version:        helper.Version,
+		InstallationID: h.InstallID,
+		HostID:         h.HostID,
+		Verb:           "build.execute",
+		Arguments:      raw,
+		Fence:          1,
+		OperationID:    buildID,
+		Digest:         helper.DigestOf(buildID, "build.execute", raw),
+		ExpiresAt:      time.Now().UTC().Add(15 * time.Minute).Format(time.RFC3339Nano),
+	}
+	res, err := h.Client.Call(ctx, req)
+	if err != nil {
+		return "", 0, fmt.Errorf("helper build call failed")
+	}
+	if res.Status != "ok" {
+		return "", 0, fmt.Errorf("build refused: %s", res.SafeReason)
+	}
+	var obs struct {
+		ArtifactDigest string `json:"artifact_digest"`
+		ArtifactSize   int64  `json:"artifact_size"`
+	}
+	if err := json.Unmarshal(res.Observation, &obs); err != nil {
+		return "", 0, fmt.Errorf("build result unparsable")
+	}
+	return obs.ArtifactDigest, obs.ArtifactSize, nil
+}
+
+// RefusingBuildExecutor fails every build closed: production wiring uses it
+// when no verified isolation boundary is configured (the platform never
+// executes untrusted repository content in-process).
+type RefusingBuildExecutor struct{}
+
+// Execute refuses.
+func (RefusingBuildExecutor) Execute(_ context.Context, _, _, _ string) (string, int64, error) {
+	return "", 0, fmt.Errorf("build isolation boundary not configured (fail closed)")
 }
 
 // BuildRunner claims queued builds and drives them through the state machine.
