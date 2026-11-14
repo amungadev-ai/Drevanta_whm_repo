@@ -74,6 +74,10 @@ func run(socket, policyPath, dbPath, migDir, installID string, panelUID int, soc
 	registry.Register("database.apply", helper.DatabaseApplyHandler(runDatabaseApply))
 	registry.Register("sftp.apply", helper.SFTPApplyHandler(runSFTPApply))
 	registry.Register("vhost.apply", helper.VhostApplyHandler(runVhostWrite))
+	// G50: encrypted off-host backups with integrity verification and
+	// restoration; artifact directories load from the root-owned bindings.
+	_ = helper.LoadBackupBindings(filepath.Join(bindingsDir, "backup-bindings.json"))
+	registry.Register("backup.apply", helper.BackupApplyHandler())
 
 	ctx, cancel = signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
