@@ -63,6 +63,8 @@ func (s *Server) handleWorkspaces(w http.ResponseWriter, r *http.Request) {
 	// Active scoped membership required for each item (profile route table).
 	seen := map[string]bool{}
 	out := workspaceList{Items: []workspaceItem{}}
+	// Deterministic order: the install's primary (server) workspace first,
+	// then hosting, website, developer — stable across list sources.
 	for _, m := range ms {
 		if seen[m.WorkspaceID] {
 			continue
@@ -76,6 +78,14 @@ func (s *Server) handleWorkspaces(w http.ResponseWriter, r *http.Request) {
 			WorkspaceID: ws.WorkspaceID, Kind: ws.Kind, Name: ws.Name, Role: m.RoleID,
 		})
 	}
+	kindRank := map[string]int{"server": 0, "hosting_org": 1, "website": 2, "developer_project": 3}
+	items := out.Items
+	for a := 1; a < len(items); a++ {
+		for b := a; b > 0 && (kindRank[items[b].Kind] < kindRank[items[b-1].Kind]); b-- {
+			items[b], items[b-1] = items[b-1], items[b]
+		}
+	}
+	out.Items = items
 	writeJSON(w, http.StatusOK, out)
 }
 

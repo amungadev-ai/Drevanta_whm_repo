@@ -37,6 +37,10 @@ type Worker struct {
 	LeaseTTL time.Duration
 	Audit    *audit.Writer
 	NowFn    func() time.Time
+	// Observer (optional) receives every terminal operation outcome; used to
+	// derive real health observations from host.inspect results. Observer
+	// errors never fail the operation pipeline.
+	Observer func(ctx context.Context, op *operations.Operation, outcome, resultJSON string) error
 }
 
 // NewWorker builds a Worker.
@@ -127,7 +131,13 @@ func (w *Worker) processOne(ctx context.Context, opID string, now time.Time) err
 			}
 			return termErr
 		}
-		return w.recordTerminal(ctx, op, "succeeded", observedGen)
+		if err := w.recordTerminal(ctx, op, "succeeded", observedGen); err != nil {
+			return err
+		}
+		if w.Observer != nil {
+			_ = w.Observer(ctx, op, "succeeded", resultJSON)
+		}
+		return nil
 	case execErr == nil && outcome == "failed":
 		if err := w.Ops.Transition(ctx, opID, "dispatched", "failed", &resultJSON); err != nil {
 			if errors.Is(err, operations.ErrConflict) {

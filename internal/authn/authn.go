@@ -10,6 +10,7 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/subtle"
 	"database/sql"
@@ -127,7 +128,7 @@ func TOTPCodeAt(secretB32 string, at time.Time) (string, error) {
 func hotpValue(secret []byte, counter uint64) uint32 {
 	var buf [8]byte
 	binary.BigEndian.PutUint64(buf[:], counter)
-	mac := hmac.New(sha256.New, secret)
+	mac := hmac.New(sha1.New, secret)
 	mac.Write(buf[:])
 	sum := mac.Sum(nil)
 	idx := sum[len(sum)-1] & 0x0f

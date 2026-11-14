@@ -167,8 +167,18 @@ func unitBindings(path string) (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Root operators may annotate the bindings file: strip full-line
+	// comments before the strict JSON parse.
+	var clean strings.Builder
+	for _, line := range strings.Split(string(b), "\n") {
+		if strings.HasPrefix(strings.TrimSpace(line), "#") {
+			continue
+		}
+		clean.WriteString(line)
+		clean.WriteString("\n")
+	}
 	var m map[string]string
-	if err := json.Unmarshal(b, &m); err != nil {
+	if err := json.Unmarshal([]byte(clean.String()), &m); err != nil {
 		return nil, err
 	}
 	return m, nil
@@ -186,7 +196,9 @@ func UnitApplyHandler(bindingsPath string, exec func(ctx context.Context, unit, 
 			return nil, fmt.Errorf("invalid unit.apply arguments")
 		}
 		switch a.State {
-		case "start", "stop", "enable", "disable":
+		case "start", "stop", "enable", "disable", "restart", "reload", "revert":
+			// restart/reload cover service lifecycle; revert is the systemd
+			// level rollback (restores the previous unit configuration).
 		default:
 			return nil, fmt.Errorf("invalid desired state")
 		}

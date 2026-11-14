@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"os/user"
@@ -221,6 +222,11 @@ func (r *Registry) Process(ctx context.Context, uid int, req HostRequest) HostRe
 
 	// Dispatch with typed arguments.
 	obs, herr := handler(ctx, req.Arguments)
+	if herr != nil {
+		// Operational visibility: verb failures are logged with their reason
+		// (typed errors only; arguments and secrets never logged).
+		log.Printf("verb %s failed: %v", req.Verb, herr)
+	}
 
 	outcome := "succeeded"
 	if herr != nil {

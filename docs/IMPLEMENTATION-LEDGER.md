@@ -175,7 +175,7 @@ release-readiness report states exactly which gates remain FAIL/BLOCKED/NOT_RUN.
 | Observability (OBS-01) | observations, latest-per-name, notifications | metrics sampler worker, status pages |
 | Backups (WEB-09) | manifests (digest+key+schema), verify+key restore gates | encrypted backup creation + isolated restore drill (G50) |
 
-## Frontend directive wave (2026-11-13, DEC-020/DEC-021)
+## Frontend directive wave (2026-11-13, DEC-020/DEC-023)
 
 | Directive deliverable | Disposition | Artifact |
 | --- | --- | --- |
@@ -188,7 +188,7 @@ release-readiness report states exactly which gates remain FAIL/BLOCKED/NOT_RUN.
 | §7 Backend protection | RESPECTED — zero backend changes made for the frontend directive; Go/SQLite/helper/tests unchanged | git diff scope |
 | §9 Independent work continues | see domain waves (a15c8cd) + web-server drill below | ledger |
 
-Migration implementation: **NOT STARTED — blocked on DEC-020 owner approval** (per directive §3/§10).
+Migration implementation: **Stage-1 EXECUTED** (facd209..5651d8c) and **Stage-2 EXECUTED** (084b05c..8d5c8db): real MFA enrollment + recovery codes (incl. the RFC 6238 TOTP backend fix), real persona operations (resources/intents/operations/audit) behind Go permission enforcement, workspace-driven routing, real logout, security suite 16/16, real-flow e2e 18/18, control matrix 324/324 accounted, nonvisual a11y fix. Remaining: Stage-3 section-level componentization (42 partial controls), SMTP wave (G34), VPS re-verification + push (credentials expired — blockers recorded in TEST-RESULTS.md).
 
 ## Requirement → implementation traceability
 
@@ -196,3 +196,42 @@ Ledger rows for all 72 requirements (`spec/specification/registers/requirements.
 capabilities are tracked in `docs/traceability.csv` (machine-readable mirror) and updated in the
 same commit as the code they bind. The authoritative normative rows remain in `spec/`; this ledger
 never narrows them, only records implementation state and evidence pointers.
+
+## G30/G50 wave (2026-11-14)
+
+All ten host-operation and disaster-recovery drills executed on the disposable VPS
+with REAL evidence (DEPLOY-DRILL-G30-G50.md): TLS lifecycle, mail provisioning +
+end-to-end delivery, toolchain provisioning (real apt), ISOLATED build execution
+(fail-closed sandbox, deterministic digests), full encrypted backup/DR chain incl.
+sqlite WAL recovery into a clean nspawn environment, service reload/restart/revert,
+interrupted-operation recovery (DispatchGuard reauthorization demonstrated as a
+security property), failed-upgrade rollback, reboot convergence (6 services),
+firewall + SSH safety rollback. Release reconciliation produced for all 404 scope
+rows (release-reconciliation.csv).
+
+## G31 wave (2026-11-14, DEC-016/021/022 rulings)
+
+Mail lifecycle completed and client-verified on the VPS (SSHA512 dovecot-order
+digests with round-trip test — plaintext never at rest; generated passwords
+returned once; suspension revokes auth while preserving mail; alias forwarding
+delivered end-to-end; cross-tenant maildir isolation; IMAP LOGIN verified).
+DEC-016 infrastructure services implemented + drilled: Redis/Valkey
+(verb-driven install, isolated port, PING PONG), authoritative DNS zones
+(nsd-checkzone ok), OCI containers (hardened lifecycle via verb). WEB-07
+scoped terminal sessions (sandboxed, audited, interpreter allowlist).
+Commercial core: DEC-026 validated configuration + tax math; sandbox payment
+adapter (idempotency, webhook HMAC + replay). Remaining engineering is
+explicitly owned by engineering (BLK-006b/009); owner input only for the
+second clean-VPS DR environment (BLK-010).
+
+
+## G32 wave (2026-11-14)
+FP-P3-052 + FP-P4-026 closed with real implementations (reconciliation 241
+IMPLEMENTED-TESTED / 0 IMPLEMENTED-UNTESTED); decision register dedupe
+(DEC-023/024/025/026, DEC-REG-1) and corrected nginx/BFF architecture text;
+mail client operations fully verified (IMAP/POP3/isolation); Redis AUTH,
+container idempotency, interactive PTY sessions; REAL build->deploy->
+health->rollback chain; full-stack cookie-to-host-effect chain with 401/422
+negatives and audit verification. Roadmap expanded to every outstanding
+scope (A1-A11, B1-B5); G31/G32 VPS report + gateway options register added
+to the evidence set.

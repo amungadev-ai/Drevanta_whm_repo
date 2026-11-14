@@ -165,6 +165,29 @@ func (in *Installer) Claim(ctx context.Context, claimToken, adminEmail, adminPas
 	}); err != nil {
 		return nil, err
 	}
+	// Full-persona provisioning (G40-F1): the platform is four-persona, so
+	// the install administrator receives one workspace per persona kind with
+	// the respective owner role. Each workspace is independently scoped —
+	// tenancy isolation applies across them exactly as between principals.
+	extra := []struct {
+		kind, name, role string
+	}{
+		{"hosting_org", "Hosting Organization", "hosting.owner"},
+		{"website", "Website Workspace", "website.owner"},
+		{"developer_project", "Developer Project", "developer.owner"},
+	}
+	for _, spec := range extra {
+		w, err := in.db.CreateWorkspace(ctx, spec.kind, p.PrincipalID, spec.name)
+		if err != nil {
+			return nil, err
+		}
+		if err := in.db.AddMembership(ctx, store.Membership{
+			PrincipalID: p.PrincipalID, WorkspaceID: w.WorkspaceID,
+			RoleID: spec.role, Revision: 1, State: "active",
+		}); err != nil {
+			return nil, err
+		}
+	}
 	_, _ = in.db.ExecContext(ctx,
 		`UPDATE installation SET state=?, checkpoint='workspace_ready' WHERE installation_id=?`,
 		StateActive, instID)
@@ -190,3 +213,41 @@ func (in *Installer) MarkAddressVerified(ctx context.Context) error {
 // ClaimTTL bounds how long a claim token remains valid (policy value; DEC-018
 // fixture default, not an operating limit).
 const ClaimTTL = 24 * time.Hour
+
+// RegenerateClaimToken replaces the outstanding claim token of a still-pending
+// installation (authorized recovery: the printed token was lost, expired or
+// must be rotated before claiming). A fresh token is generated, only its hash
+// is stored, and the 24h validity window restarts. A claimed installation can
+// never be regenerated — the owner claim is final once consumed.
+func (in *Installer) RegenerateClaimToken(ctx context.Context) (string, error) {
+	var instID, state string
+	err := in.db.QueryRowContext(ctx,
+		`SELECT installation_id, state FROM installation LIMIT 1`).Scan(&instID, &state)
+	if errors.Is(err, sql.ErrNoRows) || (err == nil && state != StatePending) {
+		return "", ErrNotPending
+	}
+	if err != nil {
+		return "", err
+	}
+	raw := store.NewID("clm") + store.NewID("t")[4:]
+	sum := sha256.Sum256([]byte(raw))
+	tx, err := in.db.BeginTx(ctx, nil)
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback()
+	res, err := tx.ExecContext(ctx,
+		`UPDATE installation SET claim_token_hash=?, created_at=?
+		 WHERE installation_id=? AND state=?`,
+		hex.EncodeToString(sum[:]), store.Now(), instID, StatePending)
+	if err != nil {
+		return "", err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return "", ErrNotPending
+	}
+	if err := tx.Commit(); err != nil {
+		return "", err
+	}
+	return raw, nil
+}

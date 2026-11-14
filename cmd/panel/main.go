@@ -18,9 +18,11 @@ import (
 	"drevanta/internal/audit"
 	"drevanta/internal/authn"
 	"drevanta/internal/authz"
+	"drevanta/internal/domains"
 	"drevanta/internal/hostagent"
 	"drevanta/internal/install"
 	"drevanta/internal/jobs"
+	"drevanta/internal/mailsmtp"
 	"drevanta/internal/operations"
 	"drevanta/internal/store"
 )
@@ -28,6 +30,10 @@ import (
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "bootstrap" {
 		bootstrapCmd()
+		return
+	}
+	if len(os.Args) > 2 && os.Args[1] == "claim" && os.Args[2] == "regenerate" {
+		claimRegenerateCmd()
 		return
 	}
 	addr := flag.String("addr", envOr("DREVANTA_ADDR", "127.0.0.1:8080"), "listen address")
@@ -79,6 +85,36 @@ func bootstrapCmd() {
 	fmt.Printf("\nDREVANTA CLAIM TOKEN (valid 24h, shown once):\n%s\n\n", token)
 }
 
+// claimRegenerateCmd implements the authorized claim-token recovery process:
+// it replaces the outstanding token of a still-pending installation and prints
+// the new token exactly once (same discipline as bootstrap). A claimed
+// installation refuses regeneration — the owner claim is final.
+func claimRegenerateCmd() {
+	fs := flag.NewFlagSet("claim regenerate", flag.ExitOnError)
+	dbPath := fs.String("db", envOr("DREVANTA_DB", "/var/lib/drevanta/panel.db"), "SQLite database path")
+	migDir := fs.String("migrations", envOr("DREVANTA_MIGRATIONS", "./migrations"), "migrations directory")
+	if err := fs.Parse(os.Args[3:]); err != nil {
+		log.Fatal(err)
+	}
+	db, err := store.Open(*dbPath)
+	if err != nil {
+		log.Fatalf("claim regenerate: %v", err)
+	}
+	defer db.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := db.Migrate(ctx, *migDir); err != nil {
+		log.Fatalf("claim regenerate: %v", err)
+	}
+	authSvc := authn.NewService(db, 24*time.Hour, 30*time.Minute)
+	inst := install.NewInstaller(db, authSvc)
+	token, err := inst.RegenerateClaimToken(ctx)
+	if err != nil {
+		log.Fatalf("claim regenerate: %v", err)
+	}
+	fmt.Printf("\nDREVANTA CLAIM TOKEN (regenerated; valid 24h, shown once):\n%s\n\n", token)
+}
+
 func run(addr, dbPath, migDir, helperSocket string) error {
 	if err := os.MkdirAll(dirOf(dbPath), 0o750); err != nil {
 		return err
@@ -99,6 +135,24 @@ func run(addr, dbPath, migDir, helperSocket string) error {
 	eng := operations.NewEngine(db)
 	aw := audit.NewWriter(db)
 	srv := api.NewServer(db, authnSvc, checker, eng, aw)
+	// Recovery delivery (G34): real SMTP transport when configured; the
+	// auditable no-op adapter remains the default without relay settings.
+	if host := os.Getenv("DREVANTA_SMTP_HOST"); host != "" {
+		port := 0
+		fmt.Sscanf(os.Getenv("DREVANTA_SMTP_PORT"), "%d", &port)
+		mailer, err := mailsmtp.New(mailsmtp.Config{
+			Host: host, Port: port,
+			From:     os.Getenv("DREVANTA_SMTP_FROM"),
+			Username: os.Getenv("DREVANTA_SMTP_USER"),
+			Password: os.Getenv("DREVANTA_SMTP_PASS"),
+		})
+		if err != nil {
+			log.Printf("panel: SMTP delivery disabled (%v); recovery stays on the auditable no-op adapter", err)
+		} else {
+			srv.Mailer = mailer
+			log.Printf("panel: SMTP recovery delivery enabled via %s", host)
+		}
+	}
 
 	// Durable job worker loop (phase 22): claims and dispatches through the
 	// privileged helper, reconciles crash-expired leases on start.
@@ -115,10 +169,44 @@ func run(addr, dbPath, migDir, helperSocket string) error {
 	}
 	exec := &hostagent.VerbExecutor{Client: client, HostID: hostID, InstallID: installID}
 	worker := jobs.NewWorker(db, eng, exec, dispatchRecheck(db, checker), aw, 2*time.Minute)
+	// Successful host.inspect operations become real health observations
+	// (G40-F2); TLS outcomes update certificate records (G30). The
+	// composite keeps the operation pipeline available if one observer errs.
+	worker.Observer = jobs.ObserverList{
+		(&jobs.HostInspectObserver{Service: domains.NewObserveService(db)}).Observe,
+		(&jobs.TlsObserver{Service: domains.NewTlsService(db)}).Observe,
+	}.Observe
 	if n, err := worker.ReconcileExpired(context.Background()); err == nil && n > 0 {
 		log.Printf("worker: %d operations requeued after restart", n)
 	}
 	go workerLoop(worker)
+
+	// Build execution worker (G40-F2 + G30): queued builds route through
+	// the privileged helper's ISOLATED build.execute verb — untrusted
+	// repository content never executes in the panel process. Without the
+	// helper boundary configured, builds fail closed (no silent in-process
+	// execution of untrusted content).
+	buildExec := jobs.BuildExecutor(&jobs.RefusingBuildExecutor{})
+	if scratch := os.Getenv("DREVANTA_BUILD_SCRATCH"); scratch != "" {
+		buildExec = &jobs.HelperBuildExecutor{
+			Client: client, HostID: hostID, InstallID: installID,
+			ScratchRoot: scratch, TimeoutS: 600,
+		}
+		log.Printf("panel: build execution routed through isolated helper boundary (%s)", scratch)
+	} else {
+		log.Printf("panel: build isolation boundary NOT configured — builds will fail closed")
+	}
+	buildRunner := jobs.NewBuildRunner(db, buildExec)
+	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			if _, err := buildRunner.RunOnce(context.Background()); err != nil {
+				log.Printf("build runner tick: %v", err)
+			}
+		}
+	}()
+	log.Printf("panel: build execution worker started (30s tick)")
 
 	httpSrv := &http.Server{
 		Addr:              addr,

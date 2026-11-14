@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"drevanta/internal/store"
 )
@@ -485,4 +486,87 @@ func (b *BackupService) GateRestore(ctx context.Context, backupID, providedKeyRe
 		return fmt.Errorf("%w: key reference mismatch", ErrState)
 	}
 	return nil
+}
+
+// ---- TLS certificates (G30) ----
+
+// TlsService records certificate lifecycle state driven by real helper
+// outcomes (tls.apply); reads serve persona sections.
+type TlsService struct {
+	db *store.DB
+}
+
+// NewTlsService builds the service.
+func NewTlsService(db *store.DB) *TlsService { return &TlsService{db: db} }
+
+// RecordIssued upserts an active certificate after a real issuance/renewal
+// outcome (fingerprint = sha256 hex of the DER certificate).
+func (t *TlsService) RecordIssued(ctx context.Context, scopeID, serverName, fingerprint, notAfter, source string) error {
+	if scopeID == "" || serverName == "" {
+		return ErrInvalid
+	}
+	now := store.Now()
+	_, err := t.db.ExecContext(ctx,
+		`INSERT INTO tls_certificate(cert_id, scope_id, server_name, fingerprint, not_after, source, state, created_at, updated_at)
+		 VALUES(?,?,?,?,?,?,'active',?,?)
+		 ON CONFLICT(scope_id, server_name) DO UPDATE SET
+		   fingerprint=excluded.fingerprint, not_after=excluded.not_after,
+		   source=excluded.source, state='active', updated_at=excluded.updated_at`,
+		store.NewID("cert"), scopeID, serverName, fingerprint, notAfter, source, now, now)
+	return err
+}
+
+// MarkFailed records an issuance/renewal failure for a server name.
+func (t *TlsService) MarkFailed(ctx context.Context, scopeID, serverName string) error {
+	_, err := t.db.ExecContext(ctx,
+		`INSERT INTO tls_certificate(cert_id, scope_id, server_name, state, created_at, updated_at)
+		 VALUES(?,?,?,'failed',?,?)
+		 ON CONFLICT(scope_id, server_name) DO UPDATE SET state='failed', updated_at=excluded.updated_at`,
+		store.NewID("cert"), scopeID, serverName, store.Now(), store.Now())
+	return err
+}
+
+// ListCertificates returns the scope's certificates (newest first).
+func (t *TlsService) ListCertificates(ctx context.Context, scopeID string) ([]map[string]any, error) {
+	rows, err := t.db.QueryContext(ctx,
+		`SELECT cert_id, server_name, fingerprint, not_after, source, state, updated_at
+		 FROM tls_certificate WHERE scope_id=? ORDER BY created_at DESC LIMIT 200`, scopeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []map[string]any{}
+	for rows.Next() {
+		var id, name, fp, notAfter, source, state, updated string
+		if err := rows.Scan(&id, &name, &fp, &notAfter, &source, &state, &updated); err != nil {
+			return nil, err
+		}
+		out = append(out, map[string]any{
+			"cert_id": id, "server_name": name, "fingerprint": fp,
+			"not_after": notAfter, "source": source, "state": state, "updated_at": updated,
+		})
+	}
+	return out, rows.Err()
+}
+
+// DueForRenewal lists active certificates whose NotAfter falls inside the
+// threshold window (drives the renewal reconcile loop).
+func (t *TlsService) DueForRenewal(ctx context.Context, thresholdDays int) ([]map[string]any, error) {
+	horizon := time.Now().UTC().AddDate(0, 0, thresholdDays).Format(time.RFC3339)
+	rows, err := t.db.QueryContext(ctx,
+		`SELECT cert_id, scope_id, server_name, not_after FROM tls_certificate
+		 WHERE state='active' AND not_after IS NOT NULL AND not_after < ? ORDER BY not_after ASC LIMIT 500`, horizon)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []map[string]any{}
+	for rows.Next() {
+		var id, scope, name, notAfter string
+		if err := rows.Scan(&id, &scope, &name, &notAfter); err != nil {
+			return nil, err
+		}
+		out = append(out, map[string]any{"cert_id": id, "scope_id": scope, "server_name": name, "not_after": notAfter})
+	}
+	return out, rows.Err()
 }

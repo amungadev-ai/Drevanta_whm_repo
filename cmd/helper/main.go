@@ -8,6 +8,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -16,6 +17,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -74,6 +76,105 @@ func run(socket, policyPath, dbPath, migDir, installID string, panelUID int, soc
 	registry.Register("database.apply", helper.DatabaseApplyHandler(runDatabaseApply))
 	registry.Register("sftp.apply", helper.SFTPApplyHandler(runSFTPApply))
 	registry.Register("vhost.apply", helper.VhostApplyHandler(runVhostWrite))
+	// G50: encrypted off-host backups with integrity verification and
+	// restoration; artifact directories load from the root-owned bindings.
+	_ = helper.LoadBackupBindings(filepath.Join(bindingsDir, "backup-bindings.json"))
+	registry.Register("backup.apply", helper.BackupApplyHandler())
+	// G30: TLS certificate issuance/renewal/recovery; ssl directories load
+	// from the root-owned bindings.
+	_ = helper.LoadTLSBindings(filepath.Join(bindingsDir, "tls-bindings.json"))
+	registry.Register("tls.apply", helper.TLSApplyHandler())
+	// G30: mail domains/mailboxes and runtime toolchains — real config
+	// synthesis; package/service execution through registered runners.
+	_ = helper.LoadMailBindings(filepath.Join(bindingsDir, "mail-bindings.json"))
+	helper.SetMailSystemctl(func(_ context.Context, unit, state string) error {
+		cmd := exec.Command("systemctl", state, unit)
+		cmd.Stdout = io.Discard
+		cmd.Stderr = io.Discard
+		return cmd.Run()
+	})
+	helper.SetToolchainRunner(func(_ context.Context, packages string) error {
+		cmd := exec.Command("apt-get", "install", "-y")
+		cmd.Args = append(cmd.Args, strings.Fields(packages)...)
+		cmd.Env = append(os.Environ(), "DEBIAN_FRONTEND=noninteractive")
+		cmd.Stdout = io.Discard
+		cmd.Stderr = io.Discard
+		return cmd.Run()
+	})
+	helper.SetToolchainProber(func(binary string) (string, bool) {
+		p, err := exec.LookPath(binary)
+		if err != nil {
+			return "", false
+		}
+		out, err := exec.Command(p, "--version").CombinedOutput()
+		if err != nil {
+			return "", true // present but version probe failed
+		}
+		return strings.TrimSpace(strings.SplitN(string(out), "\n", 2)[0]), true
+	})
+	registry.Register("mail.apply", helper.MailApplyHandler())
+	registry.Register("toolchain.apply", helper.ToolchainApplyHandler())
+	// DEC-016-RULING infrastructure services: cache (DB-03), authoritative
+	// DNS (DNS-01), OCI containers (APP-08) — independently installable.
+	_ = helper.LoadCacheBindings(filepath.Join(bindingsDir, "cache-bindings.json"))
+	_ = helper.LoadDNSBindings(filepath.Join(bindingsDir, "dns-bindings.json"))
+	_ = helper.LoadContainerBindings(filepath.Join(bindingsDir, "container-bindings.json"))
+	aptInstall := func(ctx context.Context, packages string) error {
+		cmd := exec.Command("apt-get", "install", "-y")
+		cmd.Args = append(cmd.Args, strings.Fields(packages)...)
+		cmd.Env = append(os.Environ(), "DEBIAN_FRONTEND=noninteractive")
+		cmd.Stdout = io.Discard
+		cmd.Stderr = io.Discard
+		return cmd.Run()
+	}
+	sysctl := func(ctx context.Context, action, unit string) error {
+		cmd := exec.Command("systemctl", action, unit)
+		cmd.Stdout = io.Discard
+		cmd.Stderr = io.Discard
+		return cmd.Run()
+	}
+	helper.SetInfraRunners(aptInstall, sysctl)
+	helper.SetContainerRunner(func(ctx context.Context, argv ...string) (string, error) {
+		p, err := exec.LookPath("podman")
+		if err != nil {
+			if p, err = exec.LookPath("docker"); err != nil {
+				return "", fmt.Errorf("no OCI runtime available")
+			}
+		}
+		cmd := exec.CommandContext(ctx, p, argv...)
+		var combined strings.Builder
+		cmd.Stdout = &combined
+		cmd.Stderr = &combined
+		if err := cmd.Run(); err != nil {
+			line := strings.SplitN(strings.TrimSpace(combined.String()), "\n", 2)[0]
+			if len(line) > 120 {
+				line = line[:120]
+			}
+			return combined.String(), fmt.Errorf("oci runtime failed (%v): %s", cmd.ProcessState.ExitCode(), line)
+		}
+		return combined.String(), nil
+	})
+	_ = helper.LoadDeployScratchBindings(filepath.Join(bindingsDir, "build-bindings.json"))
+	registry.Register("deploy.apply", helper.DeployApplyHandler())
+	registry.Register("exec.session", helper.ExecSessionHandler())
+	registry.Register("exec.open", helper.ExecOpenHandler())
+	registry.Register("exec.write", helper.ExecWriteHandler())
+	registry.Register("exec.close", helper.ExecCloseHandler())
+	registry.Register("cache.apply", helper.CacheApplyHandler())
+	registry.Register("dns.apply", helper.DNSApplyHandler())
+	registry.Register("container.apply", helper.ContainerApplyHandler())
+	// G30: isolated developer builds — scratch roots from root-owned
+	// bindings; untrusted content NEVER executes without a verified
+	// isolation boundary (probe fails closed).
+	_ = helper.LoadBuildBindings(filepath.Join(bindingsDir, "build-bindings.json"))
+	buildHandler := helper.BuildExecuteHandler()
+	registry.Register("build.execute", func(ctx context.Context, args json.RawMessage) (json.RawMessage, error) {
+		res, err := buildHandler(ctx, args)
+		if err != nil {
+			log.Printf("build.execute: %v", err)
+		}
+		return res, err
+	})
 
 	ctx, cancel = signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
