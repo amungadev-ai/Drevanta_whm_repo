@@ -32,6 +32,10 @@ func main() {
 		bootstrapCmd()
 		return
 	}
+	if len(os.Args) > 2 && os.Args[1] == "claim" && os.Args[2] == "regenerate" {
+		claimRegenerateCmd()
+		return
+	}
 	addr := flag.String("addr", envOr("DREVANTA_ADDR", "127.0.0.1:8080"), "listen address")
 	dbPath := flag.String("db", envOr("DREVANTA_DB", "/var/lib/drevanta/panel.db"), "SQLite database path")
 	migDir := flag.String("migrations", envOr("DREVANTA_MIGRATIONS", "./migrations"), "migrations directory")
@@ -79,6 +83,36 @@ func bootstrapCmd() {
 	// The claim token crosses to the operator exactly once; it is never
 	// stored in plaintext and never logged by anything else.
 	fmt.Printf("\nDREVANTA CLAIM TOKEN (valid 24h, shown once):\n%s\n\n", token)
+}
+
+// claimRegenerateCmd implements the authorized claim-token recovery process:
+// it replaces the outstanding token of a still-pending installation and prints
+// the new token exactly once (same discipline as bootstrap). A claimed
+// installation refuses regeneration — the owner claim is final.
+func claimRegenerateCmd() {
+	fs := flag.NewFlagSet("claim regenerate", flag.ExitOnError)
+	dbPath := fs.String("db", envOr("DREVANTA_DB", "/var/lib/drevanta/panel.db"), "SQLite database path")
+	migDir := fs.String("migrations", envOr("DREVANTA_MIGRATIONS", "./migrations"), "migrations directory")
+	if err := fs.Parse(os.Args[3:]); err != nil {
+		log.Fatal(err)
+	}
+	db, err := store.Open(*dbPath)
+	if err != nil {
+		log.Fatalf("claim regenerate: %v", err)
+	}
+	defer db.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := db.Migrate(ctx, *migDir); err != nil {
+		log.Fatalf("claim regenerate: %v", err)
+	}
+	authSvc := authn.NewService(db, 24*time.Hour, 30*time.Minute)
+	inst := install.NewInstaller(db, authSvc)
+	token, err := inst.RegenerateClaimToken(ctx)
+	if err != nil {
+		log.Fatalf("claim regenerate: %v", err)
+	}
+	fmt.Printf("\nDREVANTA CLAIM TOKEN (regenerated; valid 24h, shown once):\n%s\n\n", token)
 }
 
 func run(addr, dbPath, migDir, helperSocket string) error {

@@ -32,3 +32,5 @@ id_rsa*
 .DS_Store
 Thumbs.db
 *.swp
+/drevanta-install-*.tar.gz
+/drevanta-install-*.tar.gz.sha256

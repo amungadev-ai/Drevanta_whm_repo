@@ -29,6 +29,17 @@
 	const modules: string[] = ["/js/hosting.js"];
 	const bodyAttrs: Record<string,string> = {};
 	onMount(() => {
+		// One-click onboarding handover: the installer prints the primary URL as
+		// https://<server>/ #<single-use-claim-token>. Fragments are client-side
+		// only, so the dashboard root forwards a claim-shaped fragment to the
+		// approved first-run onboarding interface (which reads, validates,
+		// populates and immediately strips it via history.replaceState). The
+		// token itself never touches this page, storage or the backend.
+		const frag = decodeURIComponent(location.hash.slice(1));
+		if (/^(clm_[0-9a-f]{62}|token=.+)$/.test(frag)) {
+			location.replace('/onboarding' + location.hash);
+			return;
+		}
 		for (const [k, v] of Object.entries(bodyAttrs)) document.body.setAttribute('data-' + k, v);
 		for (const src of modules) {
 			const el = document.createElement('script');

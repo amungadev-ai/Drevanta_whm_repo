@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Builds the manual installation package from the CURRENT verified tree:
+# Builds the release artifact from the CURRENT verified tree (methods B/C and
+# the asset behind Method A):
 #   drevanta-install-<version>-<commit>.tar.gz
-# Contains: install.sh, binaries (linux/amd64), console bundle, migrations,
-# infra templates, VERSION + SHA256SUMS. Gates: gofmt/vet/tests must pass.
+# Contains: install.sh (shared engine from engine/), binaries (linux/amd64),
+# console bundle, migrations, infra templates, docs, VERSION + SHA256SUMS.
+# Gates: gofmt/vet/tests must pass. Used by scripts/cut_dev_release.sh.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export PATH="$PATH:/home/z/my-project/tools/go/bin"
@@ -12,7 +14,7 @@ test -z "$(gofmt -l cmd internal 2>/dev/null)" || { gofmt -l cmd internal; exit 
 echo "== gate: go vet =="
 go vet ./...
 echo "== gate: tests =="
-go test ./... -count=1 2>&1 | grep -cE "^ok" 
+go test ./... -count=1
 
 COMMIT=$(git rev-parse --short HEAD)
 VERSION="1.0.0-owneraudit.1"
@@ -20,7 +22,7 @@ OUT="drevanta-install-${VERSION}-${COMMIT}"
 echo "== assembling $OUT =="
 
 rm -rf "/tmp/$OUT" && mkdir -p "/tmp/$OUT/bin" "/tmp/$OUT/web" "/tmp/$OUT/docs" "/tmp/$OUT/infra"
-cp install.sh "/tmp/$OUT/"
+cp engine/install.sh "/tmp/$OUT/"
 chmod 755 "/tmp/$OUT/install.sh"
 printf '%s+%s\nbuilt %s\n' "$VERSION" "$(git rev-parse HEAD)" "$(date -u +%Y-%m-%dT%H:%MZ)" > "/tmp/$OUT/VERSION"
 

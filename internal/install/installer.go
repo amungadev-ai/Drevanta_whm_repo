@@ -213,3 +213,41 @@ func (in *Installer) MarkAddressVerified(ctx context.Context) error {
 // ClaimTTL bounds how long a claim token remains valid (policy value; DEC-018
 // fixture default, not an operating limit).
 const ClaimTTL = 24 * time.Hour
+
+// RegenerateClaimToken replaces the outstanding claim token of a still-pending
+// installation (authorized recovery: the printed token was lost, expired or
+// must be rotated before claiming). A fresh token is generated, only its hash
+// is stored, and the 24h validity window restarts. A claimed installation can
+// never be regenerated — the owner claim is final once consumed.
+func (in *Installer) RegenerateClaimToken(ctx context.Context) (string, error) {
+	var instID, state string
+	err := in.db.QueryRowContext(ctx,
+		`SELECT installation_id, state FROM installation LIMIT 1`).Scan(&instID, &state)
+	if errors.Is(err, sql.ErrNoRows) || (err == nil && state != StatePending) {
+		return "", ErrNotPending
+	}
+	if err != nil {
+		return "", err
+	}
+	raw := store.NewID("clm") + store.NewID("t")[4:]
+	sum := sha256.Sum256([]byte(raw))
+	tx, err := in.db.BeginTx(ctx, nil)
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback()
+	res, err := tx.ExecContext(ctx,
+		`UPDATE installation SET claim_token_hash=?, created_at=?
+		 WHERE installation_id=? AND state=?`,
+		hex.EncodeToString(sum[:]), store.Now(), instID, StatePending)
+	if err != nil {
+		return "", err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return "", ErrNotPending
+	}
+	if err := tx.Commit(); err != nil {
+		return "", err
+	}
+	return raw, nil
+}

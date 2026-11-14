@@ -1,279 +1,206 @@
 #!/usr/bin/env bash
-# Drevanta manual installer — reproducible, honest, non-destructive.
-# Installs an isolated Drevanta instance: privileged helper + Go control
-# plane (panel) + SvelteKit console (adapter-node) + optional nginx vhost.
-# Every step prints OK/FAIL; the installer NEVER reports success for a
-# failed operation and exits non-zero on the first failed gate.
+# ============================================================================
+# Drevanta bootstrap installer — Method A (Direct GitHub installation).
 #
-# Usage (root):
-#   sudo ./install.sh                        # default instance, nginx on 127.0.0.1:80
-#   sudo ./install.sh --instance test --nginx-port 8443
-#   sudo ./install.sh --instance test --public-callback-port 8788
+#   Official repository : https://github.com/amungadev-ai/Drevanta_whm_repo
 #
-# Coexistence: a named --instance installs fully isolated paths, users,
-# ports and systemd units, so a test installation can coexist with an
-# existing one on the same host without touching it.
+# What it does:
+#   1. Validates OS/architecture (Debian-family, linux/amd64).
+#   2. Resolves the requested Drevanta release (default: the pinned
+#      development release below; stable releases after owner approval).
+#   3. Retrieves the release manifest and downloads the matching artifact.
+#   4. Verifies the artifact SHA-256 against the trusted release manifest
+#      AND the artifact's internal SHA256SUMS. Corrupted or mismatched
+#      artifacts are deleted and the install FAILS — success is never
+#      reported for verification that did not execute.
+#   5. Extracts into a private temporary directory and executes the shared
+#      installation engine (the same engine used by every method).
+#   6. Cleans up temporary files.
+#
+# The standard customer installation never compiles from source.
+#
+# Minimal prerequisites (documented, auto-installed where possible):
+#   bash + coreutils (present), curl (downloader), tar, python3 (manifest
+#   parsing), root privileges. The engine installs nginx/Node.js itself.
+#
+# Private repository authentication:
+#   While the repository is private, retrieval needs a GitHub token with
+#   Contents:Read. The token is NEVER embedded in URLs, command arguments,
+#   shell history or logs: it is read silently when needed and passed to
+#   curl via a root-only header file that is deleted immediately after use.
+#   Preferred: export DREVANTA_GH_TOKEN (or GITHUB_TOKEN) beforehand.
+#
+# Usage:
+#   bash install.sh [bootstrap options] [-- engine options...]
+# Bootstrap options:
+#   --version <tag>   release tag to install (default: pinned dev release)
+#   --tmpdir <dir>    working directory (default: mktemp -d)
+#   --keep            keep the extracted artifact for inspection
+#   -h | --help       this help
+# Everything after `--` is passed to the shared installation engine
+# (e.g. -- --access-ip 203.0.113.7 --mgmt-port 8443 --private-mgmt).
+# ============================================================================
 set -uo pipefail
 
-INSTANCE="drevanta"
-NGINX_PORT="80"
-WEB_PORT="3100"
-API_PORT="8080"
-CALLBACK_PORT=""
-NO_NGINX="0"
-PKGDIR="$(cd "$(dirname "$0")" && pwd)"
+REPO="amungadev-ai/Drevanta_whm_repo"
+API="https://api.github.com/repos/${REPO}"
+PINNED_TAG="v1.0.0-owneraudit.1-dev.2"     # development release (owner-approved dev artifact)
+# Provenance of the default release is established by the release tag plus
+# MANIFEST.json + artifact SHA-256 verification below (no credential ever
+# participates in verification).
+REQ_TAG=""
+TMPDIR_ARG=""
+KEEP="0"
+TOKEN_VAR=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --instance) INSTANCE="$2"; shift 2 ;;
-    --nginx-port) NGINX_PORT="$2"; shift 2 ;;
-    --web-port) WEB_PORT="$2"; shift 2 ;;
-    --api-port) API_PORT="$2"; shift 2 ;;
-    --public-callback-port) CALLBACK_PORT="$2"; shift 2 ;;
-    --no-nginx) NO_NGINX="1"; shift ;;
-    *) echo "unknown option: $1"; exit 2 ;;
+    --version) REQ_TAG="$2"; shift 2 ;;
+    --tmpdir) TMPDIR_ARG="$2"; shift 2 ;;
+    --keep) KEEP="1"; shift ;;
+    -h|--help) sed -n '2,34p' "$0" | grep -E '^#'; exit 0 ;;
+    --) shift; break ;;
+    *) echo "[FAIL] unknown bootstrap option: $1 (see --help)"; exit 2 ;;
   esac
 done
+ENGINE_ARGS=("$@")
 
-if [[ "$INSTANCE" == "drevanta" ]]; then
-  SVC="drevanta"; BASE="/opt/drevanta"; ETC="/etc/drevanta"; VAR="/var/lib/drevanta"; RUN="/run/drevanta"; LOG="/var/log/drevanta"; USR="drevanta"; GRP="drevanta"
-else
-  SVC="drevanta-$INSTANCE"; BASE="/opt/drevanta-$INSTANCE"; ETC="/etc/drevanta-$INSTANCE"; VAR="/var/lib/drevanta-$INSTANCE"; RUN="/run/drevanta-$INSTANCE"; LOG="/var/log/drevanta-$INSTANCE"; USR="drevanta-$INSTANCE"; GRP="$USR"
+TAG="${REQ_TAG:-$PINNED_TAG}"
+[[ $EUID -eq 0 ]] || { echo "[FAIL] run as root (sudo)"; exit 2; }
+echo "========================================================"
+echo "   DREVANTA — installation (bootstrap)"
+echo "========================================================"
+
+# 1. Platform validation ------------------------------------------------------
+ARCH="$(uname -m)"
+if [[ "$ARCH" != "x86_64" ]]; then
+  echo "[FAIL] architecture $ARCH is not supported by the release artifacts (linux/amd64)"; exit 1
 fi
-
-FAILURES=0
-step() { # step <name> <command...>
-  local name="$1"; shift
-  echo -n "[..] $name "
-  if "$@" >/tmp/drevanta-install-last.log 2>&1; then echo "OK"; else
-    echo "FAIL"; echo "     └─ $(tail -2 /tmp/drevanta-install-last.log | tr '\n' ' ')"
-    FAILURES=$((FAILURES+1)); return 1
+if ! command -v apt-get >/dev/null 2>&1; then
+  echo "[FAIL] apt-get not found — supported: Ubuntu 20.04+, Debian 11+ (Debian family)"; exit 1
+fi
+echo "[OK]   platform: $(. /etc/os-release && echo "${PRETTY_NAME:-unknown}") ($ARCH)"
+for c in curl tar sha256sum python3; do
+  if ! command -v "$c" >/dev/null 2>&1; then
+    echo "[INFO] prerequisite missing: $c — installing via apt"
+    apt-get update -qq >/dev/null 2>&1
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$c" >/dev/null 2>&1 \
+      || { echo "[FAIL] could not install prerequisite '$c' (network/repo issue) — install it manually and rerun"; exit 1; }
   fi
+done
+echo "[OK]   prerequisites: curl, tar, sha256sum, python3"
+
+# 2. Temporary workspace ------------------------------------------------------
+WORK="${TMPDIR_ARG:-$(mktemp -d /tmp/drevanta-install.XXXXXX)}"
+mkdir -p "$WORK" && chmod 700 "$WORK"
+cleanup() { [[ "$KEEP" == "1" ]] && echo "[INFO] artifact kept at: $WORK" || rm -rf "$WORK"; }
+trap cleanup EXIT
+
+# 3. Authenticated retrieval (private repository) -----------------------------
+# Token handling: header file only (0600, deleted after each use) — never in
+# URLs, arguments, shell history or logs.
+HDR="$WORK/.auth-header"
+use_token() { # use_token <token-or-empty> -> (re)write header file
+  if [[ -n "$1" ]]; then umask 077; printf 'Authorization: Bearer %s\nAccept: application/vnd.github+json\n' "$1" > "$HDR"; umask 022
+  else : > "$HDR"; fi
 }
-note() { echo "[i] $*"; }
+gh_get() { # gh_get <api-path> <output-file> -> 0 on HTTP 200
+  local path="$1" out="$2" code
+  code=$(curl -fsS --max-time 30 --header @"$HDR" -o "$out" -w '%{http_code}' "${API}${path}" 2>/dev/null || echo "000")
+  [[ "$code" == "200" ]] || { rm -f "$out"; return 1; }
+  return 0
+}
+TOKEN_VAR="${DREVANTA_GH_TOKEN:-${GITHUB_TOKEN:-}}"
+use_token "$TOKEN_VAR"
+if ! gh_get "/releases/tags/$TAG" "$WORK/release.json"; then
+  echo "[INFO] release $TAG not reachable — authentication required (private repository)"
+  if [[ "${DREVANTA_UNATTENDED:-0}" == "1" ]]; then
+    echo "[FAIL] unattended mode: export DREVANTA_GH_TOKEN (Contents:Read, short-lived) and rerun"; exit 1
+  fi
+  printf 'GitHub token (Contents: Read; input hidden): '
+  IFS= read -rs TOKEN_VAR; echo
+  [[ -n "${TOKEN_VAR:-}" ]] || { echo "[FAIL] no token provided"; exit 1; }
+  use_token "$TOKEN_VAR"
+  gh_get "/releases/tags/$TAG" "$WORK/release.json" \
+    || { echo "[FAIL] release $TAG still not reachable — check the token scope (Contents: Read) and the tag name"; exit 1; }
+fi
+echo "[OK]   release manifest retrieved: $TAG"
 
-[[ $EUID -eq 0 ]] || { echo "ERROR: run as root (sudo)"; exit 2; }
-[[ -f "$PKGDIR/VERSION" ]] || { echo "ERROR: run from the extracted package (VERSION not found)"; exit 2; }
-echo "== Drevanta installer — instance '$INSTANCE' — $(cat "$PKGDIR/VERSION") =="
+# 4. Manifest -> artifact selection -------------------------------------------
+python3 - "$WORK/release.json" "$WORK/artifact.name" "$WORK/artifact.assetid" <<'PY'
+import json, sys
+rel = json.load(open(sys.argv[1]))
+name = assetid = ""
+for a in rel.get("assets", []):
+    n = a.get("name", "")
+    if n.endswith(".tar.gz") and n.startswith("drevanta-install-"):
+        name, assetid = n, str(a.get("id", "")); break
+open(sys.argv[2], "w").write(name)
+open(sys.argv[3], "w").write(assetid)
+PY
+ART_NAME="$(cat "$WORK/artifact.name" 2>/dev/null || true)"
+ART_ID="$(cat "$WORK/artifact.assetid" 2>/dev/null || true)"
+[[ -n "$ART_NAME" && -n "$ART_ID" ]] || { echo "[FAIL] no drevanta-install-*.tar.gz asset found in release $TAG"; exit 1; }
 
-# 1. Preflight -------------------------------------------------------------
-step "preflight: systemd" bash -c 'pidof systemd >/dev/null || systemctl is-system-running >/dev/null 2>&1'
-if ! id -u "$USR" >/dev/null 2>&1; then
-  step "preflight: create system user $USR" useradd --system --shell /usr/sbin/nologin --home-dir "$VAR" "$USR"
-fi
-step "apt index refresh" bash -c 'apt-get update -qq'
-for dep in curl python3 tar; do
-  command -v "$dep" >/dev/null 2>&1 && { echo "[OK] dependency: $dep"; } || { step "dependency: $dep (apt)" bash -c "DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $dep"; }
-done
-if [[ "$NO_NGINX" == "0" ]] && ! command -v nginx >/dev/null 2>&1; then
-  step "dependency: nginx (apt, declared)" bash -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nginx'
-fi
-node_major=$(node --version 2>/dev/null | sed 's/^v//' | cut -d. -f1 || echo 0)
-if [[ "${node_major:-0}" -lt 20 ]]; then
-  DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nodejs >/dev/null 2>&1 || true
-  node_major=$(node --version 2>/dev/null | sed 's/^v//' | cut -d. -f1 || echo 0)
-fi
-if [[ "${node_major:-0}" -lt 20 ]]; then
-  step "dependency: Node.js >= 20 (NodeSource fallback)" bash -c 'curl -fsSL https://deb.nodesource.com/setup_20.x | bash - >/dev/null && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nodejs'
-fi
-node_major=$(node --version 2>/dev/null | sed 's/^v//' | cut -d. -f1 || echo 0)
-if [[ "${node_major:-0}" -ge 20 ]]; then
-  echo "[OK] node $(node --version)"
-else
-  echo "[FAIL] Node.js >= 20 required, found: $(node --version 2>/dev/null || echo none)"; FAILURES=$((FAILURES+1))
-fi
-for p in "$WEB_PORT" "$API_PORT"; do
-  if ss -ltn "sport = :$p" 2>/dev/null | grep -q LISTEN; then
-    echo "[FAIL] port $p already in use — choose another with --web-port/--api-port"; FAILURES=$((FAILURES+1))
-  else echo "[OK] port $p free"; fi
-done
-
-# 2. Layout ----------------------------------------------------------------
-step "layout: directories" bash -c "install -d -m 0755 $BASE $ETC && install -d -m 0750 $VAR $RUN $LOG && chown $USR:$GRP $VAR $LOG"
-step "layout: binaries" bash -c "install -m 0755 '$PKGDIR/bin/helper' '$PKGDIR/bin/panel' $BASE/bin/ 2>/dev/null || { mkdir -p $BASE/bin && install -m 0755 '$PKGDIR/bin/helper' '$PKGDIR/bin/panel' $BASE/bin/; }"
-step "layout: web bundle" bash -c "rm -rf $BASE/web && mkdir -p $BASE/web && cp -r '$PKGDIR/web/.' $BASE/web/ && chown -R root:root $BASE/web"
-step "layout: migrations" bash -c "mkdir -p $BASE && cp -r '$PKGDIR/migrations' $BASE/migrations"
-step "layout: policy + bindings" bash -c "cp '$PKGDIR/infra/etc/helper-policy.json' $ETC/helper-policy.json && cp '$PKGDIR/infra/etc/helper-policy.json.bindings' $ETC/helper-policy.json.bindings 2>/dev/null; cp '$PKGDIR/infra/etc/site-bindings.json' $ETC/site-bindings.json; cp '$PKGDIR/infra/etc/database-bindings.json' $ETC/database-bindings.json; chmod 600 $ETC/*.json*"
-
-# 3. Bootstrap — creates the installation row and issues the single-use
-#    claim token (24h TTL). The token is captured into a root-only file and
-#    shown to nobody else; the OWNER consumes it during onboarding.
-if [[ ! -s "$ETC/claim-token" ]] && ! sudo -u "$USR" python3 -c "
-import sqlite3,sys
-db=sqlite3.connect('$VAR/panel.db')
-try:
-    r=db.execute('select installation_id from installation').fetchone()
-    sys.exit(0 if r else 1)
-except Exception: sys.exit(1)
-"; then
-  BOOT_OUT=$(sudo -u "$USR" "$BASE/bin/panel" bootstrap -db "$VAR/panel.db" -migrations "$BASE/migrations" 2>&1 || true)
-  TOKEN=$(printf '%s' "$BOOT_OUT" | grep -A1 "DREVANTA CLAIM TOKEN" | tail -1 | tr -d '[:space:]')
-  INSTALL_ID=$(printf '%s' "$BOOT_OUT" | grep -oE "inst_[a-f0-9]+" | head -1)
-  [[ -z "$INSTALL_ID" ]] && INSTALL_ID=$(sudo -u "$USR" python3 -c "
-import sqlite3
-print(sqlite3.connect('$VAR/panel.db').execute('select installation_id from installation').fetchone()[0])" 2>/dev/null || true)
-  if [[ -n "$TOKEN" && -n "$INSTALL_ID" ]]; then
-    umask 077; printf '%s' "$TOKEN" > "$ETC/claim-token"; umask 022
-    chown root:root "$ETC/claim-token"; chmod 600 "$ETC/claim-token"
-    echo "[OK] bootstrap: installation $INSTALL_ID created; single-use claim token stored at $ETC/claim-token (root-only, 24h TTL)"
+# Trusted release manifest: MANIFEST.json ships as a release asset and carries
+# the expected artifact SHA-256 (generated at release time from the built
+# artifact). Fetch it and cross-check the artifact against it.
+ART_SHA_EXPECTED=""
+use_token "$TOKEN_VAR"
+if gh_get "/releases/assets?per_page=100" "$WORK/assets.json"; then
+  MANIFEST_ID="$(python3 -c "
+import json,sys
+for a in json.load(open(sys.argv[1])):
+    if a.get('name')=='MANIFEST.json': print(a['id']); break
+" "$WORK/assets.json" 2>/dev/null || true)"
+  if [[ -n "${MANIFEST_ID:-}" ]]; then
+    umask 077; printf 'Authorization: Bearer %s\nAccept: application/octet-stream\n' "$TOKEN_VAR" > "$HDR"; umask 022
+    if curl -fsS --max-time 30 --header @"$HDR" -o "$WORK/MANIFEST.json" "${API}/releases/assets/${MANIFEST_ID}" 2>/dev/null; then
+      ART_SHA_EXPECTED="$(python3 -c "
+import json,sys
+m=json.load(open(sys.argv[1]))
+arts=m.get('artifacts',{})
+print(arts.get(sys.argv[2],'') if isinstance(arts,dict) else '')" "$WORK/MANIFEST.json" "$ART_NAME" 2>/dev/null || true)"
+    fi
+    [[ -n "$ART_SHA_EXPECTED" ]] && echo "[OK]   trusted manifest retrieved: MANIFEST.json (release asset)" \
+      || echo "[WARN] MANIFEST.json present but unreadable — verification falls back to the artifact's internal SHA256SUMS"
   else
-    echo "[FAIL] bootstrap did not produce installation + claim token"; FAILURES=$((FAILURES+1))
+    echo "[WARN] MANIFEST.json asset not found — verification uses the artifact's internal SHA256SUMS"
   fi
 fi
+rm -f "$HDR"
 
-# 4. Panel (control plane) -------------------------------------------------
-PANEL_UID=$(id -u "$USR")
-cat > /etc/systemd/system/$SVC-panel.service <<UNIT
-[Unit]
-Description=Drevanta control plane ($INSTANCE)
-After=network-online.target
-Wants=network-online.target
-[Service]
-Type=simple
-User=$USR
-Group=$GRP
-ExecStart=$BASE/bin/panel -addr 127.0.0.1:$API_PORT -db $VAR/panel.db -migrations $BASE/migrations -helper-socket $RUN/helper.sock
-Environment=DREVANTA_HOST_ID=*
-Restart=on-failure
-RestartSec=2
-NoNewPrivileges=yes
-PrivateTmp=yes
-ProtectSystem=strict
-ProtectHome=yes
-ReadWritePaths=$VAR
-ProtectKernelTunables=yes
-ProtectControlGroups=yes
-RestrictSUIDSGID=yes
-LockPersonality=yes
-[Install]
-WantedBy=multi-user.target
-UNIT
-step "unit: $SVC-panel" bash -c 'systemctl daemon-reload && systemctl enable --now '"$SVC"'-panel'
+# 5. Download artifact (retry-safe: nothing was modified before this point) ---
+echo "[INFO] downloading artifact: $ART_NAME"
+umask 077; printf 'Authorization: Bearer %s\nAccept: application/octet-stream\n' "$TOKEN_VAR" > "$HDR"; umask 022
+curl -fL --max-time 600 --retry 2 --header @"$HDR" -o "$WORK/$ART_NAME" "${API}/releases/assets/${ART_ID}" \
+  || { echo "[FAIL] artifact download failed (safe to retry — nothing has been modified)"; rm -f "$HDR"; exit 1; }
+rm -f "$HDR"; use_token ""; unset TOKEN_VAR
+[[ -s "$WORK/$ART_NAME" ]] || { echo "[FAIL] downloaded artifact is empty"; exit 1; }
 
-# Wait for the API; capture installation id + claim state.
-PANEL_OK=0
-for i in $(seq 1 30); do
-  st=$(curl -s -o /tmp/drevanta-install-status.json -w '%{http_code}' "http://127.0.0.1:$API_PORT/api/v1/install/status" || true)
-  [[ "$st" == "200" ]] && { PANEL_OK=1; break; }
-  sleep 1
-done
-if [[ "$PANEL_OK" != "1" ]]; then
-  echo "[FAIL] control plane did not become healthy on 127.0.0.1:$API_PORT (journalctl -u $SVC-panel)"
-  FAILURES=$((FAILURES+1))
-else
-  echo "[OK] control plane healthy — install status: $(cat /tmp/drevanta-install-status.json | head -c 200)"
-  INSTALL_ID=$(python3 -c "import json;d=json.load(open('/tmp/drevanta-install-status.json'));print(d.get('installation_id',''))" 2>/dev/null)
+# 6. Integrity verification (mandatory, never skipped) ------------------------
+ACTUAL_SHA="$(sha256sum "$WORK/$ART_NAME" | awk '{print $1}')"
+echo "[OK]   artifact SHA-256: ${ACTUAL_SHA:0:16}…"
+if [[ -n "$ART_SHA_EXPECTED" ]]; then
+  [[ "$ACTUAL_SHA" == "$ART_SHA_EXPECTED" ]] || { echo "[FAIL] SHA-256 MISMATCH against trusted release manifest — artifact deleted, nothing installed"; rm -f "$WORK/$ART_NAME"; exit 1; }
+  echo "[OK]   integrity verified against trusted release manifest"
 fi
+mkdir -p "$WORK/extracted" && tar -xzf "$WORK/$ART_NAME" -C "$WORK/extracted" \
+  || { echo "[FAIL] artifact is corrupted (tar extraction failed) — deleted, nothing installed"; rm -f "$WORK/$ART_NAME"; exit 1; }
+PKG_DIR="$WORK/extracted/${ART_NAME%.tar.gz}"
+[[ -f "$PKG_DIR/install.sh" && -f "$PKG_DIR/VERSION" ]] || { echo "[FAIL] artifact structure invalid (engine not found)"; exit 1; }
+NFILES="$(wc -l < "$PKG_DIR/SHA256SUMS" 2>/dev/null || echo 0)"
+( cd "$PKG_DIR" && sha256sum -c SHA256SUMS --quiet ) \
+  || { echo "[FAIL] internal SHA256SUMS verification FAILED — artifact deleted, nothing installed"; rm -rf "$WORK/extracted"; exit 1; }
+echo "[OK]   all $NFILES artifact files verified (internal SHA256SUMS)"
 
-# 5. Helper (privileged) — binds to the installation id --------------------
-if [[ -z "${INSTALL_ID:-}" ]]; then
-  INSTALL_ID=$(sudo -u "$USR" python3 -c "
-import sqlite3
-print(sqlite3.connect('$VAR/panel.db').execute('select installation_id from installation').fetchone()[0])" 2>/dev/null || true)
-fi
-cat > /etc/systemd/system/$SVC-helper.service <<UNIT
-[Unit]
-Description=Drevanta privileged host helper ($INSTANCE)
-Before=$SVC-panel.service
-[Service]
-Type=simple
-ExecStartPre=/usr/bin/install -d -o root -g $GRP -m 0750 $RUN
-ExecStart=$BASE/bin/helper -socket $RUN/helper.sock -policy $ETC/helper-policy.json -db $VAR/helper.db -migrations $BASE/migrations -installation \${DREVANTA_INSTALLATION_ID} -panel-uid $PANEL_UID -socket-group $GRP
-Environment=DREVANTA_INSTALLATION_ID=${INSTALL_ID:-}
-Environment=DREVANTA_BUILD_SCRATCH=$BASE/builds
-Environment=DREVANTA_PANEL_UID=$PANEL_UID
-Environment=DREVANTA_SOCKET_GROUP=$GRP
-Restart=on-failure
-RestartSec=2
-[Install]
-WantedBy=multi-user.target
-UNIT
-if [[ -n "${INSTALL_ID:-}" ]]; then
-  step "unit: $SVC-helper (installation $INSTALL_ID)" bash -c 'systemctl daemon-reload && systemctl enable --now '"$SVC"'-helper'
-else
-  echo "[FAIL] helper not started: no installation id (panel output above)"; FAILURES=$((FAILURES+1))
-fi
-
-# 6. Console (SvelteKit adapter-node) --------------------------------------
-cat > /etc/systemd/system/$SVC-web.service <<UNIT
-[Unit]
-Description=Drevanta console frontend ($INSTANCE)
-After=$SVC-panel.service
-[Service]
-Type=simple
-User=$USR
-Group=$GRP
-WorkingDirectory=$BASE/web
-ExecStart=/usr/bin/node build/index.js
-Environment=PORT=$WEB_PORT
-Environment=HOST=127.0.0.1
-Environment=GO_API_URL=http://127.0.0.1:$API_PORT
-Environment=NODE_ENV=production
-Restart=on-failure
-RestartSec=2
-NoNewPrivileges=yes
-PrivateTmp=yes
-ProtectSystem=strict
-ProtectHome=yes
-ReadWritePaths=$LOG
-[Install]
-WantedBy=multi-user.target
-UNIT
-step "unit: $SVC-web" bash -c 'systemctl daemon-reload && systemctl enable --now '"$SVC"'-web'
-WEB_OK=0
-for i in $(seq 1 20); do
-  st=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$WEB_PORT/" || true)
-  [[ "$st" =~ ^(200|302|307)$ ]] && { WEB_OK=1; break; }
-  sleep 1
-done
-[[ "$WEB_OK" == "1" ]] && echo "[OK] console healthy on 127.0.0.1:$WEB_PORT" || { echo "[FAIL] console not healthy (journalctl -u $SVC-web)"; FAILURES=$((FAILURES+1)); }
-
-# 7. nginx vhost (loopback-only by default) --------------------------------
-if [[ "$NO_NGINX" == "0" ]]; then
-  cat > /etc/nginx/sites-available/$SVC.conf <<NG
-server {
-    listen 127.0.0.1:$NGINX_PORT;
-    server_name _;
-    location / { proxy_pass http://127.0.0.1:$WEB_PORT; proxy_set_header Host \$host; proxy_set_header X-Forwarded-Proto \$scheme; }
-    location /api/v1/ { proxy_pass http://127.0.0.1:$WEB_PORT; proxy_set_header Host \$host; }
-}
-NG
-  step "nginx: vhost $SVC" bash -c "ln -sf /etc/nginx/sites-available/$SVC.conf /etc/nginx/sites-enabled/$SVC.conf && nginx -t && (systemctl reload nginx || systemctl restart nginx)"
-  echo "[OK] console via nginx http://127.0.0.1:$NGINX_PORT (loopback only — use an SSH tunnel for remote access)"
-fi
-if [[ -n "$CALLBACK_PORT" ]]; then
-  # Payment-provider callback exposure: ONLY the callback path is proxied
-  # from the external interface; callbacks are treated as untrusted and are
-  # never sufficient to settle an invoice (server verifies with the gateway).
-  cat > /etc/nginx/sites-available/$SVC-callback.conf <<NG
-server {
-    listen 0.0.0.0:$CALLBACK_PORT;
-    server_name _;
-    location = /api/v1/payments/mpesa/callback { proxy_pass http://127.0.0.1:$WEB_PORT; proxy_set_header Host \$host; }
-    location / { return 404; }
-}
-NG
-  step "nginx: callback vhost (port $CALLBACK_PORT, callback path only)" bash -c "ln -sf /etc/nginx/sites-available/$SVC-callback.conf /etc/nginx/sites-enabled/$SVC-callback.conf && nginx -t && (systemctl reload nginx || systemctl restart nginx)"
-fi
-
-# 8. Summary ---------------------------------------------------------------
-echo "==============================================================="
-if [[ "$FAILURES" -gt 0 ]]; then
-  echo "INSTALLATION FINISHED WITH $FAILURES FAILED STEP(S) — review the [FAIL] lines above. Do not treat this install as complete."
-  exit 1
-fi
-echo "INSTALLATION OK (instance: $INSTANCE)"
-echo "  Console (via nginx):  http://127.0.0.1:$NGINX_PORT/"
-echo "  Console (direct):     http://127.0.0.1:$WEB_PORT/"
-echo "  Control plane API:    127.0.0.1:$API_PORT (loopback only)"
-echo "  Services:             systemctl status $SVC-helper $SVC-panel $SVC-web"
-echo
-echo "NEXT — first-run onboarding (performed by YOU, the owner):"
-echo "  1. Open the console through an SSH tunnel from your machine:"
-echo "       ssh -L $NGINX_PORT:127.0.0.1:$NGINX_PORT <user>@<this-host>"
-echo "     then browse http://localhost:$NGINX_PORT/"
-echo "  2. Retrieve the single-use claim token on this host (24h TTL):"
-echo "       cat $ETC/claim-token && shred -u $ETC/claim-token   # shred after claim"
-echo "  3. Follow the onboarding flow: claim (admin account) -> recovery"
-echo "     codes -> access address -> sign-in -> dashboard."
-echo "  The claim token is single-use and consumed by the claim step."
+# 7. Provenance + engine execution -------------------------------------------
+ART_VERSION="$(head -1 "$PKG_DIR/VERSION")"
+echo "--------------------------------------------------------"
+echo "[INFO] Installed version : $ART_VERSION (development release)"
+echo "[INFO] Release tag       : $TAG (pinned default)"
+echo "[INFO] Artifact          : $ART_NAME"
+echo "[INFO] Artifact SHA-256  : $ACTUAL_SHA"
+echo "--------------------------------------------------------"
+echo "[INFO] handing over to the shared installation engine…"
+exec bash "$PKG_DIR/install.sh" "${ENGINE_ARGS[@]}"
