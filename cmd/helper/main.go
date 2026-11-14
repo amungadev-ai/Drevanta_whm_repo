@@ -8,6 +8,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -117,7 +118,14 @@ func run(socket, policyPath, dbPath, migDir, installID string, panelUID int, soc
 	// bindings; untrusted content NEVER executes without a verified
 	// isolation boundary (probe fails closed).
 	_ = helper.LoadBuildBindings(filepath.Join(bindingsDir, "build-bindings.json"))
-	registry.Register("build.execute", helper.BuildExecuteHandler())
+	buildHandler := helper.BuildExecuteHandler()
+	registry.Register("build.execute", func(ctx context.Context, args json.RawMessage) (json.RawMessage, error) {
+		res, err := buildHandler(ctx, args)
+		if err != nil {
+			log.Printf("build.execute: %v", err)
+		}
+		return res, err
+	})
 
 	ctx, cancel = signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()

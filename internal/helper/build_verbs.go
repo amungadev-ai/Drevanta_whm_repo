@@ -65,9 +65,12 @@ func LoadBuildBindings(path string) error {
 var isolationProbeFn = defaultIsolationProbe
 
 func defaultIsolationProbe() error {
-	cmd := exec.Command("systemd-run", "--quiet", "--scope",
+	// Service-mode transient unit (NOT --scope): namespace properties
+	// (PrivateNetwork/NoNewPrivileges) are only valid for services.
+	cmd := exec.Command("systemd-run", "--quiet", "--wait",
 		"-p", "CPUQuota=5%", "-p", "MemoryMax=64M", "-p", "TasksMax=16",
 		"-p", "PrivateNetwork=yes", "-p", "NoNewPrivileges=yes",
+		"-E", "PATH=/usr/bin:/bin",
 		"--uid=nobody", "true")
 	cmd.Stdout = io.Discard
 	cmd.Stderr = io.Discard
@@ -82,17 +85,30 @@ func defaultIsolationProbe() error {
 var sandboxRunner = defaultSandboxRunner
 
 func defaultSandboxRunner(ctx context.Context, argv []string, dir string, env []string) error {
-	args := append([]string{"--quiet", "--scope",
+	args := []string{"--quiet", "--wait",
 		"-p", "CPUQuota=100%", "-p", "MemoryMax=1G", "-p", "TasksMax=256",
 		"-p", "PrivateNetwork=yes", "-p", "NoNewPrivileges=yes",
-		"--uid=nobody", "--"}, argv...)
-	cmd := exec.CommandContext(ctx, "systemd-run", args...)
+		"--uid=nobody"}
 	if dir != "" {
-		cmd.Dir = dir
+		args = append(args, "-p", "WorkingDirectory="+dir)
 	}
-	cmd.Env = env
-	cmd.Stdout, cmd.Stderr = io.Discard, io.Discard
-	return cmd.Run()
+	for _, e := range env {
+		args = append(args, "-E", e) // allowlisted env only; never the host env
+	}
+	args = append(args, "--")
+	args = append(args, argv...)
+	cmd := exec.CommandContext(ctx, "systemd-run", args...)
+	var stderr strings.Builder
+	cmd.Stdout, cmd.Stderr = io.Discard, &stderr
+	if err := cmd.Run(); err != nil {
+		// Diagnosability without leaks: exit code + first stderr line shape.
+		line := strings.SplitN(strings.TrimSpace(stderr.String()), "\n", 2)[0]
+		if len(line) > 120 {
+			line = line[:120]
+		}
+		return fmt.Errorf("sandboxed step failed (exit %v): %s", cmd.ProcessState.ExitCode(), line)
+	}
+	return nil
 }
 
 // buildEnv is the allowlisted environment for the isolated phase: no host
@@ -105,6 +121,23 @@ func buildEnv(scratch string) []string {
 		"GIT_TERMINAL_PROMPT=0",
 		"LC_ALL=C",
 	}
+}
+
+// Sandbox identity: the non-root account the isolated phase runs as.
+// nobody/nogroup (65534) exists on every Debian-family host.
+const (
+	sandboxUID = 65534
+	sandboxGID = 65534
+)
+
+// chownTree recursively hands a directory tree to the sandbox user.
+func chownTree(root string, uid, gid int) error {
+	return filepath.Walk(root, func(path string, _ os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		return os.Chown(path, uid, gid)
+	})
 }
 
 // safeRepoURL allows only https and file schemes (no ssh agents, no scp-like
@@ -173,13 +206,24 @@ func BuildExecuteHandler() VerbHandler {
 			return nil, fmt.Errorf("source fetch failed")
 		}
 
-		// Phase B: isolated checkout (+ optional platform build command) via
-		// systemd-run scope. The work tree is the bare repo's working copy:
-		// use git --git-dir with a work-tree inside the scratch.
+		// Work tree must exist BEFORE the handover so the chown covers it.
 		wt := filepath.Join(work, "tree")
 		if err := os.MkdirAll(wt, 0o700); err != nil {
 			return nil, fmt.Errorf("work tree creation failed")
 		}
+
+		// Hand the work area to the sandbox user: the isolated phase runs as
+		// non-root and needs read/write on the bare repo and work tree.
+		// (Only the privileged helper can hand over; non-root test runs skip.)
+		if os.Geteuid() == 0 {
+			if err := chownTree(work, sandboxUID, sandboxGID); err != nil {
+				return nil, fmt.Errorf("work area handover failed")
+			}
+		}
+
+		// Phase B: isolated checkout (+ optional platform build command) via
+		// systemd-run scope. The work tree is the bare repo's working copy:
+		// use git --git-dir with a work-tree inside the scratch.
 		ref := a.CommitRef
 		if ref == "" || ref == "main" || ref == "master" {
 			ref = "HEAD"
@@ -191,7 +235,7 @@ func BuildExecuteHandler() VerbHandler {
 			"-c", "safe.directory=*",
 			"checkout", "--quiet", "--force", ref}
 		if err := sandboxRunner(cctx, gitArgs, "", buildEnv(work)); err != nil {
-			return nil, fmt.Errorf("ref not checkable in isolation")
+			return nil, fmt.Errorf("ref not checkable: %w", err)
 		}
 
 		if a.BuildCommand != "" {
@@ -200,7 +244,7 @@ func BuildExecuteHandler() VerbHandler {
 			// same scope with shell parsing restricted to the typed command.
 			bcArgv := []string{"sh", "-c", a.BuildCommand}
 			if err := sandboxRunner(cctx, bcArgv, wt, buildEnv(work)); err != nil {
-				return nil, fmt.Errorf("build command failed")
+				return nil, fmt.Errorf("build command failed: %w", err)
 			}
 		}
 
