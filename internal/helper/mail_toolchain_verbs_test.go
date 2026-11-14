@@ -5,6 +5,8 @@ package helper
 
 import (
 	"context"
+	"crypto/sha512"
+	"encoding/base64"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -194,6 +196,27 @@ func TestToolchainEnsureProbe(t *testing.T) {
 	raw, _ := json.Marshal(ToolchainApplyArgs{Toolchain: "cobol85", Op: "ensure"})
 	if _, err := ToolchainApplyHandler()(context.Background(), raw); err == nil {
 		t.Fatal("unknown toolchain must reject")
+	}
+}
+
+func TestSSHA512DovecotOrder(t *testing.T) {
+	// Round-trip: dovecot hashes PASSWORD FIRST then salt — decode a fresh
+	// digest and verify with the same order dovecot uses (doveadm pw -t).
+	pw := "TestPasswordOnly-xyz-123456"
+	digest, err := hashSSHA512(pw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(digest, "{SSHA512}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(raw) != 64+16 {
+		t.Fatalf("digest length: %d", len(raw))
+	}
+	h := sha512.Sum512(append([]byte(pw), raw[64:]...))
+	if string(h[:]) != string(raw[:64]) {
+		t.Fatal("digest does not follow dovecot password-first order")
 	}
 }
 

@@ -150,7 +150,7 @@ type DNSApplyArgs struct {
 		Value string `json:"value"`
 		TTL   int    `json:"ttl,omitempty"`
 	} `json:"records,omitempty"`
-	Primary string `json:"primary_ns,omitempty"` // primary nameserver host for SOA
+	Primary string `json:"primary,omitempty"` // primary nameserver host for SOA
 }
 
 var dnsRoots = map[string]bool{}
@@ -320,7 +320,7 @@ func ContainerApplyHandler() VerbHandler {
 				argv = append(argv, a.Cmd)
 			}
 			if err := containerRunner(ctx, argv...); err != nil {
-				return nil, fmt.Errorf("container run failed")
+				return nil, fmt.Errorf("container run failed: %w", err)
 			}
 			return json.Marshal(map[string]string{"name": a.Name, "state": "running", "image": a.Image})
 		case "stop":

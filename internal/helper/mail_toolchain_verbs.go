@@ -25,6 +25,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 )
 
 // MailApplyArgs is the typed argument for mail.apply.
@@ -491,14 +492,15 @@ func loadMailPassword(ref string) (string, error) {
 }
 
 // hashSSHA512 produces a dovecot-compatible {SSHA512} digest:
-// base64( sha512(salt || password) || salt ), 16-byte random salt. Plaintext
+// base64( sha512(password || salt) || salt ), 16-byte random salt (dovecot
+// hashes PASSWORD FIRST — verified against doveadm pw -t). Plaintext
 // passwords never persist: the passdb carries only this digest.
 func hashSSHA512(password string) (string, error) {
 	salt := make([]byte, 16)
 	if _, err := rand.Read(salt); err != nil {
 		return "", err
 	}
-	h := sha512.Sum512(append(salt[:], []byte(password)...))
+	h := sha512.Sum512(append([]byte(password), salt...))
 	return "{SSHA512}" + base64.StdEncoding.EncodeToString(append(h[:], salt...)), nil
 }
 
@@ -516,7 +518,24 @@ func loadPassdb(root string) ([]string, error) {
 }
 
 func savePassdb(root string, lines []string) error {
-	return os.WriteFile(passdbPath(root), []byte(strings.Join(lines, "\n")+"\n"), 0o600)
+	p := passdbPath(root)
+	// Preserve activation-tuned ownership/mode (the dovecot auth process
+	// needs its group read); the verb only replaces CONTENT.
+	var uid, gid int = -1, -1
+	var mode os.FileMode = 0o600
+	if st, err := os.Stat(p); err == nil {
+		if sys, ok := st.Sys().(*syscall.Stat_t); ok {
+			uid, gid = int(sys.Uid), int(sys.Gid)
+		}
+		mode = st.Mode().Perm()
+	}
+	if err := os.WriteFile(p, []byte(strings.Join(lines, "\n")+"\n"), mode); err != nil {
+		return err
+	}
+	if uid >= 0 {
+		return os.Chown(p, uid, gid)
+	}
+	return nil
 }
 
 func passdbIndex(lines []string, addr string) int {

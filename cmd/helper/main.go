@@ -142,10 +142,19 @@ func run(socket, policyPath, dbPath, migDir, installID string, panelUID int, soc
 			}
 		}
 		cmd := exec.CommandContext(ctx, p, argv...)
+		var stderr strings.Builder
 		cmd.Stdout = io.Discard
-		cmd.Stderr = io.Discard
-		return cmd.Run()
+		cmd.Stderr = &stderr
+		if err := cmd.Run(); err != nil {
+			line := strings.SplitN(strings.TrimSpace(stderr.String()), "\n", 2)[0]
+			if len(line) > 120 {
+				line = line[:120]
+			}
+			return fmt.Errorf("oci runtime failed (%v): %s", cmd.ProcessState.ExitCode(), line)
+		}
+		return nil
 	})
+	registry.Register("exec.session", helper.ExecSessionHandler())
 	registry.Register("cache.apply", helper.CacheApplyHandler())
 	registry.Register("dns.apply", helper.DNSApplyHandler())
 	registry.Register("container.apply", helper.ContainerApplyHandler())

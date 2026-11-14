@@ -56,6 +56,7 @@ var DefaultMappings = map[string]VerbMapping{
 	"mailbox.provision":           {Verb: "mail.apply", Arguments: passthroughArgs},
 	"runtime.toolchain.configure": {Verb: "toolchain.apply", Arguments: passthroughArgs},
 	"cache.configure":             {Verb: "cache.apply", Arguments: passthroughArgs},
+	"terminal.session":            {Verb: "exec.session", Arguments: passthroughArgs},
 	"dns.zone.configure":          {Verb: "dns.apply", Arguments: passthroughArgs},
 	"container.deploy":            {Verb: "container.apply", Arguments: passthroughArgs},
 }
