@@ -55,6 +55,9 @@ var DefaultMappings = map[string]VerbMapping{
 	"mail.domain.configure":       {Verb: "mail.apply", Arguments: passthroughArgs},
 	"mailbox.provision":           {Verb: "mail.apply", Arguments: passthroughArgs},
 	"runtime.toolchain.configure": {Verb: "toolchain.apply", Arguments: passthroughArgs},
+	"cache.configure":             {Verb: "cache.apply", Arguments: passthroughArgs},
+	"dns.zone.configure":          {Verb: "dns.apply", Arguments: passthroughArgs},
+	"container.deploy":            {Verb: "container.apply", Arguments: passthroughArgs},
 }
 
 // VerbExecutor implements jobs.Executor over the helper client.

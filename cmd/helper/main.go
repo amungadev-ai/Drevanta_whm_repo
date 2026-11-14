@@ -114,6 +114,41 @@ func run(socket, policyPath, dbPath, migDir, installID string, panelUID int, soc
 	})
 	registry.Register("mail.apply", helper.MailApplyHandler())
 	registry.Register("toolchain.apply", helper.ToolchainApplyHandler())
+	// DEC-016-RULING infrastructure services: cache (DB-03), authoritative
+	// DNS (DNS-01), OCI containers (APP-08) — independently installable.
+	_ = helper.LoadCacheBindings(filepath.Join(bindingsDir, "cache-bindings.json"))
+	_ = helper.LoadDNSBindings(filepath.Join(bindingsDir, "dns-bindings.json"))
+	_ = helper.LoadContainerBindings(filepath.Join(bindingsDir, "container-bindings.json"))
+	aptInstall := func(ctx context.Context, packages string) error {
+		cmd := exec.Command("apt-get", "install", "-y")
+		cmd.Args = append(cmd.Args, strings.Fields(packages)...)
+		cmd.Env = append(os.Environ(), "DEBIAN_FRONTEND=noninteractive")
+		cmd.Stdout = io.Discard
+		cmd.Stderr = io.Discard
+		return cmd.Run()
+	}
+	sysctl := func(ctx context.Context, action, unit string) error {
+		cmd := exec.Command("systemctl", action, unit)
+		cmd.Stdout = io.Discard
+		cmd.Stderr = io.Discard
+		return cmd.Run()
+	}
+	helper.SetInfraRunners(aptInstall, sysctl)
+	helper.SetContainerRunner(func(ctx context.Context, argv ...string) error {
+		p, err := exec.LookPath("podman")
+		if err != nil {
+			if p, err = exec.LookPath("docker"); err != nil {
+				return fmt.Errorf("no OCI runtime available")
+			}
+		}
+		cmd := exec.CommandContext(ctx, p, argv...)
+		cmd.Stdout = io.Discard
+		cmd.Stderr = io.Discard
+		return cmd.Run()
+	})
+	registry.Register("cache.apply", helper.CacheApplyHandler())
+	registry.Register("dns.apply", helper.DNSApplyHandler())
+	registry.Register("container.apply", helper.ContainerApplyHandler())
 	// G30: isolated developer builds — scratch roots from root-owned
 	// bindings; untrusted content NEVER executes without a verified
 	// isolation boundary (probe fails closed).

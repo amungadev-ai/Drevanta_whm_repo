@@ -148,7 +148,15 @@ def main():
         ambiguous = "requires owner ruling" in r["final_release_disposition"]
         ev = find_evidence(r)
         if ambiguous:
-            status, code, tests, note = "AMBIGUOUS-OWNER", "", "", r["final_release_disposition"]
+            # DEC-016-RULING (2026-11-14): scope APPROVED; implementation and
+            # verification status is tracked per-row like every other row.
+            status, code, tests, note = "APPROVED-SCOPE", "", "", "DEC-016-RULING approved; implementation status below"
+        elif ev is None:
+            status, code, tests, note = "NOT-IMPLEMENTED", "", "", "no evidence matched in tree"
+        else:
+            code, tests, note = ev
+            status = "IMPLEMENTED-TESTED" if tests else "IMPLEMENTED-UNTESTED"
+        if ambiguous:
             summary["ambiguous"].append(cid)
         elif ev is None:
             status, code, tests, note = "NOT-IMPLEMENTED", "", "", "no evidence matched in tree"

@@ -88,11 +88,11 @@ func TestMailboxLifecycle(t *testing.T) {
 		t.Fatalf("provision result: %v", res)
 	}
 	users, err := os.ReadFile(filepath.Join(root, "dovecot", "users"))
-	if err != nil || !strings.Contains(string(users), "alice@mail.drevanta.test:{PLAIN}") {
-		t.Fatalf("passdb entry missing: %v %q", err, users)
+	if err != nil || !strings.Contains(string(users), "alice@mail.drevanta.test:{SSHA512}") {
+		t.Fatalf("hashed passdb entry missing: %v %q", err, users)
 	}
-	if strings.Contains(string(users), strings.Repeat("p", 16)) == false {
-		// password IS in the passdb (that is its function) but must be 0600
+	if strings.Contains(string(users), strings.Repeat("p", 16)) {
+		t.Fatal("plaintext password persisted in passdb")
 	}
 	st, _ := os.Stat(filepath.Join(root, "dovecot", "users"))
 	if st.Mode().Perm() != 0o600 {
@@ -194,5 +194,91 @@ func TestToolchainEnsureProbe(t *testing.T) {
 	raw, _ := json.Marshal(ToolchainApplyArgs{Toolchain: "cobol85", Op: "ensure"})
 	if _, err := ToolchainApplyHandler()(context.Background(), raw); err == nil {
 		t.Fatal("unknown toolchain must reject")
+	}
+}
+
+func TestMailAliasesPasswordSuspendQuota(t *testing.T) {
+	root := mailFixture(t)
+	mailCall(t, MailApplyArgs{Op: "configure_domain", Binding: root, Domain: "mail.drevanta.test"})
+	mailCall(t, MailApplyArgs{Op: "provision_mailbox", Binding: root, Domain: "mail.drevanta.test",
+		Mailbox: "alice", PasswordRef: "env:DREVANTA_TEST_MAIL_PW"})
+
+	// Aliases: provision (idempotent) and remove.
+	res := mailCall(t, MailApplyArgs{Op: "alias.provision", Binding: root, Domain: "mail.drevanta.test",
+		Alias: "info", Target: "alice@mail.drevanta.test"})
+	if res["state"] != "provisioned" {
+		t.Fatalf("alias: %v", res)
+	}
+	am, err := os.ReadFile(filepath.Join(root, "postfix", "valiases"))
+	if err != nil || !strings.Contains(string(am), "info@mail.drevanta.test alice@mail.drevanta.test") {
+		t.Fatalf("alias map missing: %v %q", err, am)
+	}
+	mailCall(t, MailApplyArgs{Op: "alias.provision", Binding: root, Domain: "mail.drevanta.test",
+		Alias: "info", Target: "alice@mail.drevanta.test"})
+	am2, _ := os.ReadFile(filepath.Join(root, "postfix", "valiases"))
+	if strings.Count(string(am2), "info@") != 1 {
+		t.Fatal("duplicate alias created")
+	}
+	if err := os.WriteFile(filepath.Join(root, "postfix", "valiases"), []byte("info@mail.drevanta.test alice@mail.drevanta.test\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	res = mailCall(t, MailApplyArgs{Op: "alias.remove", Binding: root, Domain: "mail.drevanta.test", Alias: "info"})
+	if res["state"] != "removed" {
+		t.Fatalf("alias remove: %v", res)
+	}
+
+	// Generated password: returned ONCE, hashed in passdb, old hash replaced.
+	res = mailCall(t, MailApplyArgs{Op: "mailbox.password", Binding: root, Domain: "mail.drevanta.test",
+		Mailbox: "alice", GeneratePW: true})
+	gen := res["generated_password"].(string)
+	if len(gen) < 20 {
+		t.Fatalf("generated password too short: %q", gen)
+	}
+	users, _ := os.ReadFile(filepath.Join(root, "dovecot", "users"))
+	if strings.Contains(string(users), gen) {
+		t.Fatal("generated plaintext persisted in passdb")
+	}
+	if !strings.Contains(string(users), "{SSHA512}") {
+		t.Fatal("passdb not hashed")
+	}
+
+	// Suspension: entry leaves passdb (auth impossible), mail preserved.
+	os.WriteFile(filepath.Join(root, "vmail", "mail.drevanta.test", "alice", "Maildir", "cur", "m1"), []byte("keep me"), 0o600)
+	res = mailCall(t, MailApplyArgs{Op: "mailbox.suspend", Binding: root, Domain: "mail.drevanta.test", Mailbox: "alice"})
+	if !strings.Contains(res["state"].(string), "suspended") {
+		t.Fatalf("suspend: %v", res)
+	}
+	users, _ = os.ReadFile(filepath.Join(root, "dovecot", "users"))
+	if strings.Contains(string(users), "alice@") {
+		t.Fatal("suspended entry still in passdb")
+	}
+	if _, err := os.Stat(filepath.Join(root, "vmail", "mail.drevanta.test", "alice", "Maildir", "cur", "m1")); err != nil {
+		t.Fatal("suspension destroyed mail")
+	}
+	// Resume restores the SAME digest.
+	res = mailCall(t, MailApplyArgs{Op: "mailbox.resume", Binding: root, Domain: "mail.drevanta.test", Mailbox: "alice"})
+	if res["state"] != "resumed" {
+		t.Fatalf("resume: %v", res)
+	}
+	users, _ = os.ReadFile(filepath.Join(root, "dovecot", "users"))
+	if !strings.Contains(string(users), "alice@mail.drevanta.test:{SSHA512}") {
+		t.Fatal("resume did not restore entry")
+	}
+
+	// Quota rule synthesis.
+	res = mailCall(t, MailApplyArgs{Op: "mailbox.quota", Binding: root, Domain: "mail.drevanta.test",
+		Mailbox: "alice", QuotaBytes: 1 << 30})
+	if res["state"] != "configured" {
+		t.Fatalf("quota: %v", res)
+	}
+	q, err := os.ReadFile(filepath.Join(root, "dovecot", "quota", "alice@mail.drevanta.test"))
+	if err != nil || !strings.Contains(string(q), "quota_rule=*:bytes=1073741824") {
+		t.Fatalf("quota rule: %v %q", err, q)
+	}
+
+	// SPF/DMARC synthesis for the domain.
+	rec, err := os.ReadFile(filepath.Join(root, "dns-records", "mail.drevanta.test.txt"))
+	if err != nil || !strings.Contains(string(rec), "v=spf1") || !strings.Contains(string(rec), "v=DMARC1") {
+		t.Fatalf("deliverability records: %v %q", err, rec)
 	}
 }

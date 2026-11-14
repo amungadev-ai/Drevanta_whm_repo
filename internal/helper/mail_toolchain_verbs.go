@@ -16,6 +16,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha512"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
@@ -28,11 +29,15 @@ import (
 
 // MailApplyArgs is the typed argument for mail.apply.
 type MailApplyArgs struct {
-	Op          string `json:"op"`                     // configure_domain | provision_mailbox | remove_mailbox
-	Binding     string `json:"binding"`                // mail root binding (root-owned)
-	Domain      string `json:"domain,omitempty"`       // mail domain
-	Mailbox     string `json:"mailbox,omitempty"`      // local part
-	PasswordRef string `json:"password_ref,omitempty"` // env:NAME
+	Op          string `json:"op"`                          // configure_domain | provision_mailbox | remove_mailbox | alias.provision | alias.remove | mailbox.password | mailbox.suspend | mailbox.resume | mailbox.quota
+	Binding     string `json:"binding"`                     // mail root binding (root-owned)
+	Domain      string `json:"domain,omitempty"`            // mail domain
+	Mailbox     string `json:"mailbox,omitempty"`           // local part
+	PasswordRef string `json:"password_ref,omitempty"`      // env:NAME | file:/abs (never the value)
+	Alias       string `json:"alias,omitempty"`             // local part of the alias
+	Target      string `json:"target,omitempty"`            // forwarding target address
+	QuotaBytes  int64  `json:"quota_bytes,omitempty"`       // per-mailbox storage quota
+	GeneratePW  bool   `json:"generate_password,omitempty"` // securely generate (returned ONCE)
 }
 
 var mailRoots = map[string]bool{}
@@ -107,6 +112,18 @@ func MailApplyHandler() VerbHandler {
 			return mailProvisionMailbox(ctx, a)
 		case "remove_mailbox":
 			return mailRemoveMailbox(ctx, a)
+		case "alias.provision":
+			return mailAliasProvision(ctx, a)
+		case "alias.remove":
+			return mailAliasRemove(ctx, a)
+		case "mailbox.password":
+			return mailPasswordChange(ctx, a)
+		case "mailbox.suspend":
+			return mailSuspendResume(ctx, a, true)
+		case "mailbox.resume":
+			return mailSuspendResume(ctx, a, false)
+		case "mailbox.quota":
+			return mailQuota(a)
 		default:
 			return nil, fmt.Errorf("invalid mail operation")
 		}
@@ -152,13 +169,208 @@ func mailConfigureDomain(ctx context.Context, a MailApplyArgs) (json.RawMessage,
 			return nil, fmt.Errorf("dkim record write failed")
 		}
 	}
+	// Deliverability DNS records (SPF + DMARC) — synthesis for the owner's
+	// DNS host; DNS-01 authoritative zones may consume the same file.
+	dnsDir := filepath.Join(root, "dns-records")
+	if err := os.MkdirAll(dnsDir, 0o750); err != nil {
+		return nil, fmt.Errorf("dns dir failed")
+	}
+	records := fmt.Sprintf(
+		"%s. IN TXT \"v=spf1 mx a ip4:<server-ip> -all\"\n"+
+			"_dmarc.%s. IN TXT \"v=DMARC1; p=quarantine; rua=mailto:postmaster@%s\"\n",
+		a.Domain, a.Domain, a.Domain)
+	if err := os.WriteFile(filepath.Join(dnsDir, a.Domain+".txt"), []byte(records), 0o644); err != nil {
+		return nil, fmt.Errorf("dns record write failed")
+	}
 	if err := mailReload(ctx, "postfix", "opendkim"); err != nil {
 		return nil, err
 	}
 	return json.Marshal(map[string]string{
 		"domain": a.Domain, "state": "configured",
 		"dkim_record_ref": filepath.Join("dkim", a.Domain, "mail.txt"),
+		"dns_records_ref": filepath.Join("dns-records", a.Domain+".txt"),
 	})
+}
+
+// mailAliasProvision provisions an alias/forwarding rule (postfix virtual
+// alias map inside the mail root; activation copies it per runbook).
+func mailAliasProvision(ctx context.Context, a MailApplyArgs) (json.RawMessage, error) {
+	if err := validMailDomain(a.Domain); err != nil {
+		return nil, err
+	}
+	if err := validMailboxLocal(a.Alias); err != nil {
+		return nil, err
+	}
+	if a.Target == "" || !strings.Contains(a.Target, "@") || strings.ContainsAny(a.Target, " \t\n\x00") {
+		return nil, fmt.Errorf("invalid forwarding target")
+	}
+	root := a.Binding
+	am := filepath.Join(root, "postfix", "valiases")
+	if err := os.MkdirAll(filepath.Dir(am), 0o750); err != nil {
+		return nil, fmt.Errorf("mail root prep failed")
+	}
+	line := a.Alias + "@" + a.Domain + " " + a.Target
+	if err := appendUniqueLine(am, line); err != nil {
+		return nil, fmt.Errorf("alias write failed")
+	}
+	if err := mailReload(ctx, "postfix"); err != nil {
+		return nil, err
+	}
+	return json.Marshal(map[string]string{"alias": a.Alias + "@" + a.Domain, "target": a.Target, "state": "provisioned"})
+}
+
+func mailAliasRemove(ctx context.Context, a MailApplyArgs) (json.RawMessage, error) {
+	if err := validMailDomain(a.Domain); err != nil {
+		return nil, err
+	}
+	if err := validMailboxLocal(a.Alias); err != nil {
+		return nil, err
+	}
+	am := filepath.Join(a.Binding, "postfix", "valiases")
+	if err := removeLineWithPrefix(am, a.Alias+"@"+a.Domain+" "); err != nil {
+		return nil, err
+	}
+	if err := mailReload(ctx, "postfix"); err != nil {
+		return nil, err
+	}
+	return json.Marshal(map[string]string{"alias": a.Alias + "@" + a.Domain, "state": "removed"})
+}
+
+// mailPasswordChange replaces a mailbox's digest. With GeneratePW the helper
+// generates the password and returns it EXACTLY ONCE (never journaled,
+// never persisted in plaintext anywhere).
+func mailPasswordChange(ctx context.Context, a MailApplyArgs) (json.RawMessage, error) {
+	if err := validMailDomain(a.Domain); err != nil {
+		return nil, err
+	}
+	if err := validMailboxLocal(a.Mailbox); err != nil {
+		return nil, err
+	}
+	addr := a.Mailbox + "@" + a.Domain
+	lines, err := loadPassdb(a.Binding)
+	if err != nil || passdbIndex(lines, addr) < 0 {
+		return nil, fmt.Errorf("mailbox not found")
+	}
+	var newPW string
+	if a.GeneratePW {
+		raw := make([]byte, 18)
+		if _, err := rand.Read(raw); err != nil {
+			return nil, fmt.Errorf("generation failed")
+		}
+		newPW = base64.RawURLEncoding.EncodeToString(raw)
+	} else {
+		pw, err := loadMailPassword(a.PasswordRef)
+		if err != nil {
+			return nil, err
+		}
+		if len(pw) < 12 {
+			return nil, fmt.Errorf("mailbox password too short")
+		}
+		newPW = pw
+	}
+	hash, err := hashSSHA512(newPW)
+	if err != nil {
+		return nil, fmt.Errorf("password digest failed")
+	}
+	lines[passdbIndex(lines, addr)] = addr + ":" + hash
+	if err := savePassdb(a.Binding, lines); err != nil {
+		return nil, fmt.Errorf("passdb write failed")
+	}
+	if err := mailReload(ctx, "dovecot"); err != nil {
+		return nil, err
+	}
+	out := map[string]string{"mailbox": addr, "state": "password-changed"}
+	if a.GeneratePW {
+		out["generated_password"] = newPW // one-time delivery to the caller
+	}
+	return json.Marshal(out)
+}
+
+// mailSuspendResume removes/restores the passdb entry: suspension revokes
+// AUTHENTICATION while preserving the stored mail (data safety).
+func mailSuspendResume(ctx context.Context, a MailApplyArgs, suspend bool) (json.RawMessage, error) {
+	if err := validMailDomain(a.Domain); err != nil {
+		return nil, err
+	}
+	if err := validMailboxLocal(a.Mailbox); err != nil {
+		return nil, err
+	}
+	addr := a.Mailbox + "@" + a.Domain
+	lines, err := loadPassdb(a.Binding)
+	if err != nil {
+		return nil, fmt.Errorf("passdb read failed")
+	}
+	i := passdbIndex(lines, addr)
+	if suspend {
+		if i < 0 {
+			return nil, fmt.Errorf("mailbox not found")
+		}
+		suspendedPath := filepath.Join(a.Binding, "dovecot", "users.suspended")
+		if err := appendUniqueLine(suspendedPath, lines[i]); err != nil {
+			return nil, fmt.Errorf("suspend write failed")
+		}
+		lines = append(lines[:i], lines[i+1:]...)
+	} else {
+		if i >= 0 {
+			return nil, fmt.Errorf("mailbox not suspended")
+		}
+		sp, err := os.ReadFile(filepath.Join(a.Binding, "dovecot", "users.suspended"))
+		if err != nil {
+			return nil, fmt.Errorf("no suspended entry")
+		}
+		found := false
+		for _, l := range strings.Split(strings.TrimRight(string(sp), "\n"), "\n") {
+			if strings.HasPrefix(l, addr+":") {
+				lines = append(lines, l)
+				found = true
+			}
+		}
+		if !found {
+			return nil, fmt.Errorf("no suspended entry")
+		}
+		// drop from suspended file
+		var kept []string
+		for _, l := range strings.Split(strings.TrimRight(string(sp), "\n"), "\n") {
+			if !strings.HasPrefix(l, addr+":") {
+				kept = append(kept, l)
+			}
+		}
+		os.WriteFile(filepath.Join(a.Binding, "dovecot", "users.suspended"), []byte(strings.Join(kept, "\n")+"\n"), 0o600)
+	}
+	if err := savePassdb(a.Binding, lines); err != nil {
+		return nil, fmt.Errorf("passdb write failed")
+	}
+	if err := mailReload(ctx, "dovecot"); err != nil {
+		return nil, err
+	}
+	state := "resumed"
+	if suspend {
+		state = "suspended (mail preserved)"
+	}
+	return json.Marshal(map[string]string{"mailbox": addr, "state": state})
+}
+
+// mailQuota records a per-mailbox storage quota rule consumed by the
+// dovecot userdb activation (quota_rule extra field).
+func mailQuota(a MailApplyArgs) (json.RawMessage, error) {
+	if err := validMailDomain(a.Domain); err != nil {
+		return nil, err
+	}
+	if err := validMailboxLocal(a.Mailbox); err != nil {
+		return nil, err
+	}
+	if a.QuotaBytes <= 0 || a.QuotaBytes > 1<<40 {
+		return nil, fmt.Errorf("invalid quota")
+	}
+	qdir := filepath.Join(a.Binding, "dovecot", "quota")
+	if err := os.MkdirAll(qdir, 0o750); err != nil {
+		return nil, fmt.Errorf("quota dir failed")
+	}
+	qp := filepath.Join(qdir, a.Mailbox+"@"+a.Domain)
+	if err := os.WriteFile(qp, []byte(fmt.Sprintf("quota_rule=*:bytes=%d\n", a.QuotaBytes)), 0o600); err != nil {
+		return nil, fmt.Errorf("quota write failed")
+	}
+	return json.Marshal(map[string]any{"mailbox": a.Mailbox + "@" + a.Domain, "quota_bytes": a.QuotaBytes, "state": "configured"})
 }
 
 func mailProvisionMailbox(ctx context.Context, a MailApplyArgs) (json.RawMessage, error) {
@@ -182,7 +394,21 @@ func mailProvisionMailbox(ctx context.Context, a MailApplyArgs) (json.RawMessage
 	if err := os.MkdirAll(filepath.Dir(users), 0o750); err != nil {
 		return nil, fmt.Errorf("mail root prep failed")
 	}
-	if err := appendUniqueLine(users, addr+":{PLAIN}"+pw); err != nil {
+	hash, err := hashSSHA512(pw)
+	if err != nil {
+		return nil, fmt.Errorf("password digest failed")
+	}
+	lines, err := loadPassdb(root)
+	if err != nil {
+		return nil, fmt.Errorf("passdb read failed")
+	}
+	entry := addr + ":" + hash
+	if i := passdbIndex(lines, addr); i >= 0 {
+		lines[i] = entry // idempotent re-provision: replace, never duplicate
+	} else {
+		lines = append(lines, entry)
+	}
+	if err := savePassdb(root, lines); err != nil {
 		return nil, fmt.Errorf("passdb write failed")
 	}
 	if err := os.Chmod(users, 0o600); err != nil {
@@ -264,6 +490,45 @@ func loadMailPassword(ref string) (string, error) {
 	}
 }
 
+// hashSSHA512 produces a dovecot-compatible {SSHA512} digest:
+// base64( sha512(salt || password) || salt ), 16-byte random salt. Plaintext
+// passwords never persist: the passdb carries only this digest.
+func hashSSHA512(password string) (string, error) {
+	salt := make([]byte, 16)
+	if _, err := rand.Read(salt); err != nil {
+		return "", err
+	}
+	h := sha512.Sum512(append(salt[:], []byte(password)...))
+	return "{SSHA512}" + base64.StdEncoding.EncodeToString(append(h[:], salt...)), nil
+}
+
+func passdbPath(root string) string { return filepath.Join(root, "dovecot", "users") }
+
+func loadPassdb(root string) ([]string, error) {
+	b, err := os.ReadFile(passdbPath(root))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return strings.Split(strings.TrimRight(string(b), "\n"), "\n"), nil
+}
+
+func savePassdb(root string, lines []string) error {
+	return os.WriteFile(passdbPath(root), []byte(strings.Join(lines, "\n")+"\n"), 0o600)
+}
+
+func passdbIndex(lines []string, addr string) int {
+	for i, l := range lines {
+		if strings.HasPrefix(l, addr+":") {
+			return i
+		}
+	}
+	return -1
+}
+
+// appendUniqueLine adds line unless a line with the same prefix exists (idempotent).
 func appendUniqueLine(path, line string) error {
 	existing, err := os.ReadFile(path)
 	if err == nil {
