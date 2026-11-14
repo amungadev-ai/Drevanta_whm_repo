@@ -175,7 +175,7 @@ release-readiness report states exactly which gates remain FAIL/BLOCKED/NOT_RUN.
 | Observability (OBS-01) | observations, latest-per-name, notifications | metrics sampler worker, status pages |
 | Backups (WEB-09) | manifests (digest+key+schema), verify+key restore gates | encrypted backup creation + isolated restore drill (G50) |
 
-## Frontend directive wave (2026-11-13, DEC-020/DEC-021)
+## Frontend directive wave (2026-11-13, DEC-020/DEC-023)
 
 | Directive deliverable | Disposition | Artifact |
 | --- | --- | --- |
@@ -219,7 +219,7 @@ DEC-016 infrastructure services implemented + drilled: Redis/Valkey
 (verb-driven install, isolated port, PING PONG), authoritative DNS zones
 (nsd-checkzone ok), OCI containers (hardened lifecycle via verb). WEB-07
 scoped terminal sessions (sandboxed, audited, interpreter allowlist).
-Commercial core: DEC-022 validated configuration + tax math; sandbox payment
+Commercial core: DEC-026 validated configuration + tax math; sandbox payment
 adapter (idempotency, webhook HMAC + replay). Remaining engineering is
 explicitly owned by engineering (BLK-006b/009); owner input only for the
 second clean-VPS DR environment (BLK-010).

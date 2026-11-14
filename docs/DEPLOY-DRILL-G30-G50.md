@@ -124,7 +124,7 @@ helper serving with the installation binding. No manual intervention.
 ## Honest limits
 
 - ACME/Let's Encrypt issuance is implemented as a fail-closed seam; real issuance
-  needs an owner-provided public domain (DEC-019).
+  needs an owner-provided public domain (DEC-024).
 - IMAP/POP3 authentication against the provisioned passdb file (dovecot 2.4
   userdb wiring) is the remaining mail item — delivery itself is complete.
 - Backup off-host target here is an rsync path on the drill host acting as the

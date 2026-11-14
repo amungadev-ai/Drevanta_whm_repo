@@ -24,7 +24,7 @@ checkpoint cycle of implementation + drill + evidence).
 | --- | --- | --- | --- | --- |
 | B1 | Full-stack browser→host chains (fresh panel E2E per persona) | A2 | 1.5 waves | OPEN (H wave) |
 | B2 | DR extension: second clean VPS restore + full app boot | owner input (BLK-010) | 0.5 wave | WAITING |
-| B3 | ACME staging verification (public domain) | owner input (DEC-019) | 0.5 wave | WAITING |
+| B3 | ACME staging verification (public domain) | owner input (DEC-024) | 0.5 wave | WAITING |
 | B4 | Security regression suite across new surfaces | A2, A8 | 1 wave | OPEN |
 
 ## Phase C — Release certification
@@ -35,6 +35,6 @@ on the final commit; RC build (gates pass) + checksum archive; owner sign-off.
 
 ## Genuine owner inputs outstanding
 1. Second disposable VPS for independent off-host DR verification (BLK-010).
-2. Public domain for ACME staging/prod TLS (DEC-019).
-3. Gateway provider choice + TEST credentials (DEC-020).
+2. Public domain for ACME staging/prod TLS (DEC-024).
+3. Gateway provider choice + TEST credentials (DEC-025).
 4. Tax/SLA/ops VALUES (docs/OWNER-DECISIONS-REQUIRED.md) — configurable now, values needed before commercial acceptance.

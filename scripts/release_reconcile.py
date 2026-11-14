@@ -26,6 +26,13 @@ OUT = os.path.join(ROOT, "spec", "registers", "release-reconciliation.csv")
 # Evidence index: family/title keywords → code paths + test refs that really exist.
 # Each entry: (match_keywords, code_refs, test_refs, coverage_note)
 EVIDENCE = [
+    # G32 §2 corrections: FP-P3-052 analytics + FP-P4-026 webhooks implemented
+    (("analytics",), ["internal/domains/analytics.go"],
+     ["internal/domains/webhooks_analytics_test.go", "docs/TEST-RESULTS.md"],
+     "first-party site analytics (P3 #52): parse/aggregate/retention/privacy"),
+    (("webhook",), ["internal/domains/webhooks.go"],
+     ["internal/domains/webhooks_analytics_test.go", "internal/domains/payments_test.go"],
+     "source webhooks (P4 #26): HMAC/replay/dedup/rate/size/approval-preserving"),
     (("identity", "mfa", "session", "login", "authentication"),
      ["internal/api/handlers_identity.go", "internal/api/handlers_mfa.go"],
      ["internal/api/identity_test.go", "internal/api/contract_test.go"], "authN/authZ suites"),
@@ -142,7 +149,8 @@ def find_evidence(row):
 def main():
     scope = rows_for(SCOPE)
     out_rows = []
-    summary = {"total": len(scope), "status": {}, "ambiguous": [], "by_family_missing": {}}
+    summary = {"total": len(scope), "status": {}, "ambiguous": [], "by_family_missing": {},
+               "audit": {"implemented_tested_with_code_tests": 0, "implemented_tested_attested_by_registers": 0}}
     for r in scope:
         cid = r["capability_id"]
         ambiguous = "requires owner ruling" in r["final_release_disposition"]
@@ -156,6 +164,12 @@ def main():
         else:
             code, tests, note = ev
             status = "IMPLEMENTED-TESTED" if tests else "IMPLEMENTED-UNTESTED"
+            if status == "IMPLEMENTED-TESTED":
+                flat = [t for t in (tests if isinstance(tests, (list, tuple)) else [tests]) if isinstance(t, str)]
+                if any(t.endswith(".go") for t in flat):
+                    summary["audit"]["implemented_tested_with_code_tests"] += 1
+                else:
+                    summary["audit"]["implemented_tested_attested_by_registers"] += 1
         if ambiguous:
             summary["ambiguous"].append(cid)
         elif ev is None:
@@ -166,6 +180,12 @@ def main():
         else:
             code, tests, note = ev
             status = "IMPLEMENTED-TESTED" if tests else "IMPLEMENTED-UNTESTED"
+            if status == "IMPLEMENTED-TESTED":
+                flat = [t for t in (tests if isinstance(tests, (list, tuple)) else [tests]) if isinstance(t, str)]
+                if any(t.endswith(".go") for t in flat):
+                    summary["audit"]["implemented_tested_with_code_tests"] += 1
+                else:
+                    summary["audit"]["implemented_tested_attested_by_registers"] += 1
         summary["status"][status] = summary["status"].get(status, 0) + 1
         out_rows.append({
             "capability_id": cid, "origin": r["origin"], "title": r["title"],

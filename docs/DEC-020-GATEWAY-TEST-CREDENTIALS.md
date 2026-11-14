@@ -1,4 +1,4 @@
-# DEC-020 — Commercial Gateway Integration Path (test credentials until production authorization)
+# DEC-025 — Commercial Gateway Integration Path (formerly numbered DEC-020; DEC-020 remains the frontend framework decision) (test credentials until production authorization)
 
 Status: DOCUMENTED · Date: 2026-11-14 · Relates to: BLK-001, BIZ-01/02/03
 
@@ -27,7 +27,7 @@ configured.
    with the gateway reference. The existing billing tests already pin the
    platform-side behavior; the adapter adds provider-side integration tests.
 4. **Production switch (explicit owner gate)**: production keys are a separate,
-   owner-issued configuration change (DEC-020 sign-off), never a test→prod flag.
+   owner-issued configuration change (DEC-025 sign-off), never a test→prod flag.
 
 ## What the platform needs from the owner (when ready)
 
