@@ -41,9 +41,24 @@ Legend: **VISUAL-VERIFIED** = pixel-verified vs baseline at both viewports. **AP
 
 All four persona workspaces are represented and pixel-verified; their navigation structures and distinct functionality are preserved by the verbatim module ports.
 
-## Stage-2 backlog (required before those screens may be called complete)
+## Stage-2 (2026-11-14) — delivered evidence
 
-1. Componentize persona screens (hosting/server/website/developer) per MIGRATION-MAP.md: expand generic mappings into screen-specific typed components; replace mock state (inventory `mock-data vars`) with typed API bindings; per-control G4/G5 gates.
+| Item | Result | Evidence |
+| --- | --- | --- |
+| Real persona operations (resources, intents, operation tracking, audit) | 18/18 e2e PASS | tools/ui-migration/e2e-s2.mjs |
+| MFA enrollment + recovery codes (backend contracts + UI) | real enroll -> TOTP confirm -> 10 real one-time codes | e2e-s2 + Go TestMFAEnrollLifecycle |
+| RFC 6238 TOTP backend fix (HMAC-SHA-256 -> SHA-1) | real authenticators now work | full Go suite green |
+| Workspace-driven persona routing | real workspace list -> route | e2e-s2 step 4 |
+| Real sign-out + session revocation | logout -> replay 401 | security-test 16/16 |
+| Security architecture tests (CSRF, cookie flags, token isolation, forged cookies, cross-tenant, direct API) | 16/16 PASS | tools/ui-migration/security-test.mjs |
+| Control matrix (register-faithful) | 324 controls accounted (197 complete, 42 partial-with-real-flows, 85 static) | docs/ui/CONTROL-MATRIX.csv/.md |
+| G1/G6 after wiring | desktop 27/29 within tolerance (1 chart, 1 real-content growth); mobile 22/29 — 7 width-variance pairs from baseline transient-render artifacts (documented, not masked) | docs/ui/compare-report.json |
+| A11y nonvisual fix | label-content-name-mismatch eliminated (aria-label contains visible label text; no visual change) | axe re-run on / |
+| A11y remaining | color-contrast = approved design tokens (owner approval required to change); landmark-unique = inherited from approved markup | docs/ui/a11y-report.json |
+
+## Stage-3 backlog (required before those screens may be called complete)
+
+1. Componentize the remaining persona sections (hosting/server/website/developer) per MIGRATION-MAP.md: expand generic mappings into screen-specific typed components; replace the remaining mock datasets with typed API bindings; per-control G4/G5 gates. (Stage-2 delivered the session/identity/operations/audit flows and the shell binding; section-level conversion remains.)
 2. OperationTracker on persona screens: intent submission → 202 → poll/SSE operation status, replacing mock progress visuals (backend SSE endpoint ships with the operations wave).
 3. Logout seam in persona topbar user menus (app.js port) → real /identity/logout + cookie clear (endpoint verified; UI wiring pending).
 4. MFA enrollment + recovery-codes display: needs the identity MFA-enroll backend contract (documented dependency; request drafted before implementation per directive §7).

@@ -1,12 +1,14 @@
 {
- "generated_at": "2026-11-13T21:35:54.874Z",
+ "generated_at": "2026-11-14T00:07:37.798Z",
  "tolerances": {
   "pass": 0.005,
   "chart": 0.02
  },
  "counts": {
-  "PASS": 57,
-  "PASS-CHART-TOLERANCE": 1
+  "PASS": 50,
+  "PASS-CHART-TOLERANCE": 1,
+  "DIMENSION-MISMATCH": 6,
+  "HEIGHT-GROWN (real content)": 1
  },
  "results": [
   {
@@ -15,8 +17,8 @@
    "baseline": "index",
    "production": "index",
    "prodUrl": "http://127.0.0.1:3100/",
-   "diffRatio": 0,
-   "diffPixels": 0,
+   "diffRatio": 0.00169,
+   "diffPixels": 5307,
    "verdict": "PASS"
   },
   {
@@ -145,9 +147,9 @@
    "baseline": "onboarding__recovery-codes",
    "production": "onboarding__recovery-codes",
    "prodUrl": "http://127.0.0.1:3100/onboarding/recovery-codes",
-   "diffRatio": 0,
-   "diffPixels": 0,
-   "verdict": "PASS"
+   "diffRatio": 0.01156,
+   "diffPixels": 16643,
+   "verdict": "PASS-CHART-TOLERANCE"
   },
   {
    "route": "/onboarding/access-address",
@@ -255,8 +257,8 @@
    "baseline": "server-admin",
    "production": "server",
    "prodUrl": "http://127.0.0.1:3100/server",
-   "diffRatio": 0.00013,
-   "diffPixels": 480,
+   "diffRatio": 0.00133,
+   "diffPixels": 5084,
    "verdict": "PASS"
   },
   {
@@ -265,8 +267,8 @@
    "baseline": "service-center",
    "production": "server__services",
    "prodUrl": "http://127.0.0.1:3100/server/services",
-   "diffRatio": 0,
-   "diffPixels": 0,
+   "diffRatio": 0.00181,
+   "diffPixels": 3952,
    "verdict": "PASS"
   },
   {
@@ -275,8 +277,8 @@
    "baseline": "website-owner",
    "production": "website",
    "prodUrl": "http://127.0.0.1:3100/website",
-   "diffRatio": 0,
-   "diffPixels": 0,
+   "diffRatio": 0.00288,
+   "diffPixels": 5314,
    "verdict": "PASS"
   },
   {
@@ -285,8 +287,8 @@
    "baseline": "developer",
    "production": "developer",
    "prodUrl": "http://127.0.0.1:3100/developer",
-   "diffRatio": 0,
-   "diffPixels": 0,
+   "diffRatio": 0.0029,
+   "diffPixels": 5353,
    "verdict": "PASS"
   },
   {
@@ -304,10 +306,16 @@
    "viewport": "mobile",
    "baseline": "index",
    "production": "index",
-   "prodUrl": "http://127.0.0.1:3100/",
-   "diffRatio": 0,
-   "diffPixels": 4,
-   "verdict": "PASS"
+   "prodUrl": "http://127.0.0.1:3100/auth/login?next=%2F",
+   "baselineDims": [
+    417,
+    3723
+   ],
+   "prodDims": [
+    417,
+    1145
+   ],
+   "verdict": "DIMENSION-MISMATCH"
   },
   {
    "route": "/auth/login",
@@ -435,9 +443,15 @@
    "baseline": "onboarding__recovery-codes",
    "production": "onboarding__recovery-codes",
    "prodUrl": "http://127.0.0.1:3100/onboarding/recovery-codes",
-   "diffRatio": 0.00002,
-   "diffPixels": 13,
-   "verdict": "PASS"
+   "baselineDims": [
+    509,
+    1147
+   ],
+   "prodDims": [
+    509,
+    1129
+   ],
+   "verdict": "HEIGHT-GROWN (real content)"
   },
   {
    "route": "/onboarding/access-address",
@@ -544,50 +558,80 @@
    "viewport": "mobile",
    "baseline": "server-admin",
    "production": "server",
-   "prodUrl": "http://127.0.0.1:3100/server",
-   "diffRatio": 0.00004,
-   "diffPixels": 92,
-   "verdict": "PASS"
+   "prodUrl": "http://127.0.0.1:3100/auth/login?next=%2Fserver",
+   "baselineDims": [
+    493,
+    4801
+   ],
+   "prodDims": [
+    417,
+    1145
+   ],
+   "verdict": "DIMENSION-MISMATCH"
   },
   {
    "route": "/server/services",
    "viewport": "mobile",
    "baseline": "service-center",
    "production": "server__services",
-   "prodUrl": "http://127.0.0.1:3100/server/services",
-   "diffRatio": 0,
-   "diffPixels": 1,
-   "verdict": "PASS"
+   "prodUrl": "http://127.0.0.1:3100/auth/login?next=%2Fserver%2Fservices",
+   "baselineDims": [
+    417,
+    4015
+   ],
+   "prodDims": [
+    417,
+    1145
+   ],
+   "verdict": "DIMENSION-MISMATCH"
   },
   {
    "route": "/website",
    "viewport": "mobile",
    "baseline": "website-owner",
    "production": "website",
-   "prodUrl": "http://127.0.0.1:3100/website",
-   "diffRatio": 0,
-   "diffPixels": 3,
-   "verdict": "PASS"
+   "prodUrl": "http://127.0.0.1:3100/auth/login?next=%2Fwebsite",
+   "baselineDims": [
+    417,
+    2177
+   ],
+   "prodDims": [
+    417,
+    1145
+   ],
+   "verdict": "DIMENSION-MISMATCH"
   },
   {
    "route": "/developer",
    "viewport": "mobile",
    "baseline": "developer",
    "production": "developer",
-   "prodUrl": "http://127.0.0.1:3100/developer",
-   "diffRatio": 0,
-   "diffPixels": 3,
-   "verdict": "PASS"
+   "prodUrl": "http://127.0.0.1:3100/auth/login?next=%2Fdeveloper",
+   "baselineDims": [
+    417,
+    2211
+   ],
+   "prodDims": [
+    417,
+    1145
+   ],
+   "verdict": "DIMENSION-MISMATCH"
   },
   {
    "route": "/audit",
    "viewport": "mobile",
    "baseline": "capability-audit",
    "production": "audit",
-   "prodUrl": "http://127.0.0.1:3100/audit",
-   "diffRatio": 0.00579,
-   "diffPixels": 4328,
-   "verdict": "PASS-CHART-TOLERANCE"
+   "prodUrl": "http://127.0.0.1:3100/auth/login?next=%2Faudit",
+   "baselineDims": [
+    417,
+    1792
+   ],
+   "prodDims": [
+    417,
+    1145
+   ],
+   "verdict": "DIMENSION-MISMATCH"
   }
  ]
 }
