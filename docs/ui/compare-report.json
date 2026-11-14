@@ -1,14 +1,14 @@
 {
- "generated_at": "2026-11-14T00:07:37.798Z",
+ "generated_at": "2026-11-14T01:21:49.935Z",
  "tolerances": {
   "pass": 0.005,
   "chart": 0.02
  },
  "counts": {
-  "PASS": 50,
+  "DIMENSION-MISMATCH": 11,
+  "PASS": 44,
   "PASS-CHART-TOLERANCE": 1,
-  "DIMENSION-MISMATCH": 6,
-  "HEIGHT-GROWN (real content)": 1
+  "HEIGHT-GROWN (real content)": 2
  },
  "results": [
   {
@@ -16,10 +16,16 @@
    "viewport": "desktop",
    "baseline": "index",
    "production": "index",
-   "prodUrl": "http://127.0.0.1:3100/",
-   "diffRatio": 0.00169,
-   "diffPixels": 5307,
-   "verdict": "PASS"
+   "prodUrl": "http://127.0.0.1:3100/auth/login?next=%2F",
+   "baselineDims": [
+    1600,
+    1959
+   ],
+   "prodDims": [
+    1600,
+    900
+   ],
+   "verdict": "DIMENSION-MISMATCH"
   },
   {
    "route": "/auth/login",
@@ -256,50 +262,80 @@
    "viewport": "desktop",
    "baseline": "server-admin",
    "production": "server",
-   "prodUrl": "http://127.0.0.1:3100/server",
-   "diffRatio": 0.00133,
-   "diffPixels": 5084,
-   "verdict": "PASS"
+   "prodUrl": "http://127.0.0.1:3100/auth/login?next=%2Fserver",
+   "baselineDims": [
+    1600,
+    2397
+   ],
+   "prodDims": [
+    1600,
+    900
+   ],
+   "verdict": "DIMENSION-MISMATCH"
   },
   {
    "route": "/server/services",
    "viewport": "desktop",
    "baseline": "service-center",
    "production": "server__services",
-   "prodUrl": "http://127.0.0.1:3100/server/services",
-   "diffRatio": 0.00181,
-   "diffPixels": 3952,
-   "verdict": "PASS"
+   "prodUrl": "http://127.0.0.1:3100/auth/login?next=%2Fserver%2Fservices",
+   "baselineDims": [
+    1600,
+    1364
+   ],
+   "prodDims": [
+    1600,
+    900
+   ],
+   "verdict": "DIMENSION-MISMATCH"
   },
   {
    "route": "/website",
    "viewport": "desktop",
    "baseline": "website-owner",
    "production": "website",
-   "prodUrl": "http://127.0.0.1:3100/website",
-   "diffRatio": 0.00288,
-   "diffPixels": 5314,
-   "verdict": "PASS"
+   "prodUrl": "http://127.0.0.1:3100/auth/login?next=%2Fwebsite",
+   "baselineDims": [
+    1600,
+    1152
+   ],
+   "prodDims": [
+    1600,
+    900
+   ],
+   "verdict": "DIMENSION-MISMATCH"
   },
   {
    "route": "/developer",
    "viewport": "desktop",
    "baseline": "developer",
    "production": "developer",
-   "prodUrl": "http://127.0.0.1:3100/developer",
-   "diffRatio": 0.0029,
-   "diffPixels": 5353,
-   "verdict": "PASS"
+   "prodUrl": "http://127.0.0.1:3100/auth/login?next=%2Fdeveloper",
+   "baselineDims": [
+    1600,
+    1152
+   ],
+   "prodDims": [
+    1600,
+    900
+   ],
+   "verdict": "DIMENSION-MISMATCH"
   },
   {
    "route": "/audit",
    "viewport": "desktop",
    "baseline": "capability-audit",
    "production": "audit",
-   "prodUrl": "http://127.0.0.1:3100/audit",
-   "diffRatio": 0.00245,
-   "diffPixels": 4315,
-   "verdict": "PASS"
+   "prodUrl": "http://127.0.0.1:3100/auth/login?next=%2Faudit",
+   "baselineDims": [
+    1600,
+    1103
+   ],
+   "prodDims": [
+    1600,
+    900
+   ],
+   "verdict": "HEIGHT-GROWN (real content)"
   },
   {
    "route": "/",
@@ -323,8 +359,8 @@
    "baseline": "authentication__login",
    "production": "auth__login",
    "prodUrl": "http://127.0.0.1:3100/auth/login",
-   "diffRatio": 0.00005,
-   "diffPixels": 22,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -333,8 +369,8 @@
    "baseline": "authentication__verify",
    "production": "auth__verify",
    "prodUrl": "http://127.0.0.1:3100/auth/verify",
-   "diffRatio": 0.00005,
-   "diffPixels": 22,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -343,8 +379,8 @@
    "baseline": "authentication__forgot-password",
    "production": "auth__forgot-password",
    "prodUrl": "http://127.0.0.1:3100/auth/forgot-password",
-   "diffRatio": 0.00005,
-   "diffPixels": 22,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -353,8 +389,8 @@
    "baseline": "authentication__check-email",
    "production": "auth__check-email",
    "prodUrl": "http://127.0.0.1:3100/auth/check-email",
-   "diffRatio": 0.00005,
-   "diffPixels": 22,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -363,8 +399,8 @@
    "baseline": "authentication__email-recovery",
    "production": "auth__email-recovery",
    "prodUrl": "http://127.0.0.1:3100/auth/email-recovery",
-   "diffRatio": 0.00006,
-   "diffPixels": 25,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -373,8 +409,8 @@
    "baseline": "authentication__server-recovery",
    "production": "auth__server-recovery",
    "prodUrl": "http://127.0.0.1:3100/auth/server-recovery",
-   "diffRatio": 0.00004,
-   "diffPixels": 22,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -383,8 +419,8 @@
    "baseline": "authentication__reset-password",
    "production": "auth__reset-password",
    "prodUrl": "http://127.0.0.1:3100/auth/reset-password",
-   "diffRatio": 0.00005,
-   "diffPixels": 25,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -393,8 +429,8 @@
    "baseline": "authentication__reset-success",
    "production": "auth__reset-success",
    "prodUrl": "http://127.0.0.1:3100/auth/reset-success",
-   "diffRatio": 0.00006,
-   "diffPixels": 23,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -403,8 +439,8 @@
    "baseline": "authentication__login-success",
    "production": "auth__login-success",
    "prodUrl": "http://127.0.0.1:3100/auth/login-success",
-   "diffRatio": 0.00006,
-   "diffPixels": 23,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -413,8 +449,8 @@
    "baseline": "onboarding",
    "production": "onboarding",
    "prodUrl": "http://127.0.0.1:3100/onboarding/administrator",
-   "diffRatio": 0.00002,
-   "diffPixels": 12,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -423,8 +459,8 @@
    "baseline": "onboarding__administrator",
    "production": "onboarding__administrator",
    "prodUrl": "http://127.0.0.1:3100/onboarding/administrator",
-   "diffRatio": 0.00002,
-   "diffPixels": 12,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -433,8 +469,8 @@
    "baseline": "onboarding__mfa",
    "production": "onboarding__mfa",
    "prodUrl": "http://127.0.0.1:3100/onboarding/mfa",
-   "diffRatio": 0.00002,
-   "diffPixels": 13,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -459,8 +495,8 @@
    "baseline": "onboarding__access-address",
    "production": "onboarding__access-address",
    "prodUrl": "http://127.0.0.1:3100/onboarding/access-address",
-   "diffRatio": 0.00002,
-   "diffPixels": 14,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -469,8 +505,8 @@
    "baseline": "onboarding__setup-complete",
    "production": "onboarding__setup-complete",
    "prodUrl": "http://127.0.0.1:3100/onboarding/setup-complete",
-   "diffRatio": 0.00002,
-   "diffPixels": 12,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -479,8 +515,8 @@
    "baseline": "onboarding__claim",
    "production": "onboarding__claim",
    "prodUrl": "http://127.0.0.1:3100/onboarding/onboarding",
-   "diffRatio": 0.00002,
-   "diffPixels": 12,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -489,8 +525,8 @@
    "baseline": "onboarding__installation",
    "production": "onboarding__installation",
    "prodUrl": "http://127.0.0.1:3100/onboarding/installation",
-   "diffRatio": 0.00003,
-   "diffPixels": 26,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -499,8 +535,8 @@
    "baseline": "onboarding__domain-setup",
    "production": "onboarding__domain-setup",
    "prodUrl": "http://127.0.0.1:3100/onboarding/domain-setup",
-   "diffRatio": 0.00002,
-   "diffPixels": 14,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -509,8 +545,8 @@
    "baseline": "onboarding__handoff",
    "production": "onboarding__handoff",
    "prodUrl": "http://127.0.0.1:3100/onboarding/handoff",
-   "diffRatio": 0.00005,
-   "diffPixels": 26,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -519,8 +555,8 @@
    "baseline": "onboarding__login",
    "production": "onboarding__login",
    "prodUrl": "http://127.0.0.1:3100/auth/login",
-   "diffRatio": 0.00005,
-   "diffPixels": 22,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -529,8 +565,8 @@
    "baseline": "onboarding__verify",
    "production": "onboarding__verify",
    "prodUrl": "http://127.0.0.1:3100/auth/verify",
-   "diffRatio": 0.00005,
-   "diffPixels": 22,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -539,8 +575,8 @@
    "baseline": "onboarding__recover",
    "production": "onboarding__recover",
    "prodUrl": "http://127.0.0.1:3100/auth/forgot-password",
-   "diffRatio": 0.00005,
-   "diffPixels": 22,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {
@@ -549,8 +585,8 @@
    "baseline": "onboarding__reset-password",
    "production": "onboarding__reset-password",
    "prodUrl": "http://127.0.0.1:3100/auth/reset-password",
-   "diffRatio": 0.00005,
-   "diffPixels": 25,
+   "diffRatio": 0,
+   "diffPixels": 0,
    "verdict": "PASS"
   },
   {

@@ -53,3 +53,9 @@ VPS targets per graph G20+. CI adds `-race`.
 2. Results recorded here with commit SHA; failures recorded as FAIL with failing case IDs, never omitted.
 3. Parametrized case IDs from the JSONL specs are marked covered only when a test binds the exact
    fixture, procedure and oracle from the specification row.
+
+| G40-S3 per-control shell e2e (42 controls: skip link, account menu w/ real MFA status, mobile drawer a11y, palette/theme persistence, real-route links, real-data search palette, real audit notifications, service-center scope/filter controls) | browser e2e (fresh install, real claim+MFA, real API data) | tools/ui-migration/e2e-s3.mjs | **PASS (45/45)** | this wave |
+| G40-S3 G2/G3/G5 gates (typography/token inheritance, focus/hover/disabled states) | browser computed-style + state forcing | tools/ui-migration/gates-s3.mjs | **PASS (6/6)** | this wave |
+| G40-S3 a11y re-run (6 routes + mobile drawer state) | axe-core WCAG 2.1 AA | tools/ui-migration/a11y-s3.mjs | PASS — no new violation kinds vs Stage-2; /audit counts grew because the crash fix renders the real catalog | this wave |
+| G40-S3 nginx security regression (template pins BFF-only routing) | Go unit (CI) | internal/api/nginx_template_test.go | **PASS** | this wave |
+| G40-S3 deployed-config guard (loaded nginx -T, no direct Go routing/token exposure) | VPS verification | tools/deploy/nginx-guard.sh | **PASS** (after regenerating the helper-managed drill vhost that still carried the pre-BFF split routing) | this wave |

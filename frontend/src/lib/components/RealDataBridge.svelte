@@ -8,12 +8,14 @@
 	 */
 	import { onMount } from 'svelte';
 	import { loadSession, session } from '$lib/stores/session';
+	import { accountMenuOpen } from '$lib/stores/ui';
 	import { api, routeForWorkspaceKind } from '$lib/api';
 
 	let { preferredKind = '' } = $props<{ preferredKind?: string }>();
 
-	let menuOpen = $state(false);
 	let signingOut = $state(false);
+	// Real MFA enrollment state for the signed-in principal (G40-S3 §3).
+	let mfaEnrolled = $state<boolean | null>(null);
 
 	const initials = (name: string) =>
 		name
@@ -55,7 +57,8 @@
 		// Crumb title follows the active nav section title if present.
 		const crumb = document.getElementById('crumbTitle');
 		if (crumb && !crumb.textContent?.trim()) crumb.textContent = s.active.name;
-		// User card identity.
+		// User card identity. Click ownership lives in ModuleShellControls
+		// (capture-phase takeover of the module handlers, shared menu state).
 		const card = document.getElementById('userMenu');
 		if (card) {
 			const strong = card.querySelector('strong');
@@ -64,11 +67,6 @@
 			if (strong) strong.textContent = s.me.display_name || s.me.email;
 			if (small) small.textContent = s.active.role || '';
 			if (avatar) avatar.textContent = initials(s.me.display_name || s.me.email);
-			card.addEventListener('click', (ev) => {
-				ev.preventDefault();
-				ev.stopImmediatePropagation();
-				menuOpen = !menuOpen;
-			});
 		}
 	}
 
@@ -83,16 +81,24 @@
 		} catch {
 			// Cookie is the only client-side session state.
 		}
+		accountMenuOpen.set(false);
 		location.href = '/auth/login?next=%2F';
 	}
 
 	onMount(async () => {
 		await loadSession(preferredKind);
 		bindShell();
+		if ($session.active) {
+			try {
+				mfaEnrolled = (await api.mfaStatus()).enrolled;
+			} catch {
+				mfaEnrolled = null; // real failure state; never claim an outcome
+			}
+		}
 	});
 </script>
 
-{#if menuOpen && $session.me}
+{#if $accountMenuOpen && $session.me}
 	<!-- Real account menu (approved token classes; security-functional addition). -->
 	<div class="menu card real-account-menu" role="menu" aria-label="Account">
 		<div class="menu-head">
@@ -107,6 +113,16 @@
 				</button>
 			{/each}
 		{/if}
+		<div class="menu-section" role="menuitem" aria-live="polite">
+			Multi-factor authentication:
+			{#if mfaEnrolled === null}
+				status unavailable
+			{:else if mfaEnrolled}
+				enrolled
+			{:else}
+				not enrolled
+			{/if}
+		</div>
 		<button class="btn primary" role="menuitem" disabled={signingOut} onclick={signOut}>
 			{signingOut ? 'Signing out…' : 'Sign out'}
 		</button>
