@@ -89,8 +89,11 @@ func (g *SandboxGateway) VerifyWebhook(rawBody []byte, signature string, eventID
 		g.seenEvents = map[string]time.Time{}
 	}
 	now := at
-	if g.NowFn != nil {
+	if now.IsZero() && g.NowFn != nil {
 		now = g.NowFn()
+	}
+	if now.IsZero() {
+		now = time.Now()
 	}
 	if first, ok := g.seenEvents[eventID]; ok && now.Sub(first) < 24*time.Hour {
 		return fmt.Errorf("webhook replay rejected (event already processed)")
