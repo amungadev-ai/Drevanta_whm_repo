@@ -61,6 +61,7 @@ step "preflight: systemd" bash -c 'pidof systemd >/dev/null || systemctl is-syst
 if ! id -u "$USR" >/dev/null 2>&1; then
   step "preflight: create system user $USR" useradd --system --shell /usr/sbin/nologin --home-dir "$VAR" "$USR"
 fi
+step "apt index refresh" bash -c 'apt-get update -qq'
 for dep in curl python3 tar; do
   command -v "$dep" >/dev/null 2>&1 && { echo "[OK] dependency: $dep"; } || { step "dependency: $dep (apt)" bash -c "DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $dep"; }
 done
@@ -69,9 +70,18 @@ if [[ "$NO_NGINX" == "0" ]] && ! command -v nginx >/dev/null 2>&1; then
 fi
 node_major=$(node --version 2>/dev/null | sed 's/^v//' | cut -d. -f1 || echo 0)
 if [[ "${node_major:-0}" -lt 20 ]]; then
-  step "dependency: Node.js >= 20 (NodeSource)" bash -c 'curl -fsSL https://deb.nodesource.com/setup_20.x | bash - >/dev/null && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nodejs'
+  DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nodejs >/dev/null 2>&1 || true
+  node_major=$(node --version 2>/dev/null | sed 's/^v//' | cut -d. -f1 || echo 0)
 fi
-echo "[OK] node $(node --version 2>/dev/null || echo MISSING)"
+if [[ "${node_major:-0}" -lt 20 ]]; then
+  step "dependency: Node.js >= 20 (NodeSource fallback)" bash -c 'curl -fsSL https://deb.nodesource.com/setup_20.x | bash - >/dev/null && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nodejs'
+fi
+node_major=$(node --version 2>/dev/null | sed 's/^v//' | cut -d. -f1 || echo 0)
+if [[ "${node_major:-0}" -ge 20 ]]; then
+  echo "[OK] node $(node --version)"
+else
+  echo "[FAIL] Node.js >= 20 required, found: $(node --version 2>/dev/null || echo none)"; FAILURES=$((FAILURES+1))
+fi
 for p in "$WEB_PORT" "$API_PORT"; do
   if ss -ltn "sport = :$p" 2>/dev/null | grep -q LISTEN; then
     echo "[FAIL] port $p already in use — choose another with --web-port/--api-port"; FAILURES=$((FAILURES+1))
@@ -228,7 +238,7 @@ server {
     location /api/v1/ { proxy_pass http://127.0.0.1:$WEB_PORT; proxy_set_header Host \$host; }
 }
 NG
-  step "nginx: vhost $SVC" bash -c "ln -sf /etc/nginx/sites-available/$SVC.conf /etc/nginx/sites-enabled/$SVC.conf && nginx -t && systemctl reload nginx"
+  step "nginx: vhost $SVC" bash -c "ln -sf /etc/nginx/sites-available/$SVC.conf /etc/nginx/sites-enabled/$SVC.conf && nginx -t && (systemctl reload nginx || systemctl restart nginx)"
   echo "[OK] console via nginx http://127.0.0.1:$NGINX_PORT (loopback only — use an SSH tunnel for remote access)"
 fi
 if [[ -n "$CALLBACK_PORT" ]]; then
@@ -243,7 +253,7 @@ server {
     location / { return 404; }
 }
 NG
-  step "nginx: callback vhost (port $CALLBACK_PORT, callback path only)" bash -c "ln -sf /etc/nginx/sites-available/$SVC-callback.conf /etc/nginx/sites-enabled/$SVC-callback.conf && nginx -t && systemctl reload nginx"
+  step "nginx: callback vhost (port $CALLBACK_PORT, callback path only)" bash -c "ln -sf /etc/nginx/sites-available/$SVC-callback.conf /etc/nginx/sites-enabled/$SVC-callback.conf && nginx -t && (systemctl reload nginx || systemctl restart nginx)"
 fi
 
 # 8. Summary ---------------------------------------------------------------
