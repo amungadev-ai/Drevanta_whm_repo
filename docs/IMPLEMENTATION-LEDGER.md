@@ -188,7 +188,7 @@ release-readiness report states exactly which gates remain FAIL/BLOCKED/NOT_RUN.
 | §7 Backend protection | RESPECTED — zero backend changes made for the frontend directive; Go/SQLite/helper/tests unchanged | git diff scope |
 | §9 Independent work continues | see domain waves (a15c8cd) + web-server drill below | ledger |
 
-Migration implementation: **DEC-020 APPROVED 2026-11-13 — Stage-1 EXECUTED** (commits facd209, 13954b7): SvelteKit+TS production frontend, 29 routes covering all 31 approved pages, fidelity 58/58 within tolerance, auth e2e 11/11, deployment drill PASS; Stage-2 componentization backlog in docs/ui/MIGRATION-LEDGER.md.
+Migration implementation: **Stage-1 EXECUTED** (facd209..5651d8c) and **Stage-2 EXECUTED** (084b05c..8d5c8db): real MFA enrollment + recovery codes (incl. the RFC 6238 TOTP backend fix), real persona operations (resources/intents/operations/audit) behind Go permission enforcement, workspace-driven routing, real logout, security suite 16/16, real-flow e2e 18/18, control matrix 324/324 accounted, nonvisual a11y fix. Remaining: Stage-3 section-level componentization (42 partial controls), SMTP wave (G34), VPS re-verification + push (credentials expired — blockers recorded in TEST-RESULTS.md).
 
 ## Requirement → implementation traceability
 
