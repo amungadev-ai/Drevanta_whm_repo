@@ -18,6 +18,7 @@ import (
 	"drevanta/internal/audit"
 	"drevanta/internal/authn"
 	"drevanta/internal/authz"
+	"drevanta/internal/domains"
 	"drevanta/internal/hostagent"
 	"drevanta/internal/install"
 	"drevanta/internal/jobs"
@@ -134,10 +135,27 @@ func run(addr, dbPath, migDir, helperSocket string) error {
 	}
 	exec := &hostagent.VerbExecutor{Client: client, HostID: hostID, InstallID: installID}
 	worker := jobs.NewWorker(db, eng, exec, dispatchRecheck(db, checker), aw, 2*time.Minute)
+	// Successful host.inspect operations become real health observations
+	// (G40-F2): the monitoring sections render live host facts.
+	worker.Observer = (&jobs.HostInspectObserver{Service: domains.NewObserveService(db)}).Observe
 	if n, err := worker.ReconcileExpired(context.Background()); err == nil && n > 0 {
 		log.Printf("worker: %d operations requeued after restart", n)
 	}
 	go workerLoop(worker)
+
+	// Build execution worker (G40-F2): drives queued pipeline builds with
+	// real git fetches; failures map through the build state machine.
+	buildRunner := jobs.NewBuildRunner(db, &jobs.GitBuildExecutor{Timeout: 5 * time.Minute})
+	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			if _, err := buildRunner.RunOnce(context.Background()); err != nil {
+				log.Printf("build runner tick: %v", err)
+			}
+		}
+	}()
+	log.Printf("panel: build execution worker started (30s tick)")
 
 	httpSrv := &http.Server{
 		Addr:              addr,
