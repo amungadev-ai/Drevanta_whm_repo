@@ -60,3 +60,8 @@ VPS targets per graph G20+. CI adds `-race`.
 | G40-S3 nginx security regression (template pins BFF-only routing) | Go unit (CI) | internal/api/nginx_template_test.go | **PASS** | this wave |
 | G40-S3 deployed-config guard (loaded nginx -T, no direct Go routing/token exposure) | VPS verification | tools/deploy/nginx-guard.sh | **PASS** (after regenerating the helper-managed drill vhost that still carried the pre-BFF split routing) | this wave |
 | G40-S2/S3 security suite (cookie flags from Set-Cookie, token isolation in localStorage/sessionStorage/DOM, cross-site CSRF denial, direct Go 401, forged cookie rejection, foreign-scope 404 uniformity, logout revocation + replay denial) — re-run MFA-aware (password -> verify -> cookie ceremony) | browser + raw-header probes | tools/ui-migration/security-test.mjs | **PASS (16/16)** | this wave (MFA-aware re-run) |
+
+| G40-F1 domain capability API (support, commercial, pipeline, mail, observations, notifications, templates, backups, schedules — 34 routes) | API integration (isolated SQLite, httptest) | internal/api/domains_test.go | **PASS (6 suites: lifecycle + grant denial + tenant isolation + strict decode + state conflicts)** | this wave |
+| G40-F1 SMTP recovery delivery (G34) | SMTP integration (fake relay) | internal/mailsmtp | **PASS (delivery, envelope, token, config validation)** | this wave |
+| G40-F1 functional browser suite (persona sections real data, real mutations via UI forms, honest empty/denial states) | browser e2e (fresh install) | tools/ui-migration/e2e-s4.mjs | **PASS (12/12)** | this wave |
+| G40-F1 regressions after persona wave | browser e2e (fresh installs) | e2e-s2.mjs, e2e-s3.mjs | **PASS (18/18, 45/45)** | this wave |

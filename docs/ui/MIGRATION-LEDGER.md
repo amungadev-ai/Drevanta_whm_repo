@@ -151,3 +151,16 @@ immutable prototype.
 - Pixel equality proves visual fidelity, not behavioral completeness: persona screens still run prototype mock logic behind identical visuals; they are NOT claimed complete.
 - The a11y color-contrast findings are the approved design's own contrast ratios; altering them requires owner approval (design change), which has NOT been requested.
 - The baseline `login` page alias (meta-refresh) is paired to `/auth/login`; approved redirect stubs are ported as real redirects.
+
+## Full-persona functional wave (G40-F1, 2026-11-14)
+
+The domain service layer (support, commercial hosting, developer pipeline, mail,
+observability, templates, backups) was implemented but unexposed; this wave opened it
+through 34 scope-pinned, grant-authorized endpoints and replaced the persona pages'
+demonstration datasets with real sections in the approved markup (PersonaRealData).
+The installer now provisions one workspace per persona kind at claim; workspace lists
+order primary-first. SMTP recovery delivery (G34) is implemented and relay-tested.
+Functional classification lives in FUNCTIONAL-COVERAGE.csv (12 capabilities: 10
+OPERATIONAL, 1 OPERATIONAL-API, 1 OPERATIONAL with deployment-input caveat). Known
+honest gaps: build execution worker, external payment gateway (BLK-001), mail UI slot
+(no approved nav section), host-connected effects (require a connected host).
