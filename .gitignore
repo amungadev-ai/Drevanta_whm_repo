@@ -13,7 +13,7 @@ coverage.txt
 /var/
 
 # Toolchains and local env (never commit tooling or credentials)
-/tools/
+/tools/go/
 .env
 *.env
 !*.example.env
