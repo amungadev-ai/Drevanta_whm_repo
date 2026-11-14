@@ -105,6 +105,18 @@ isolated namespace; downloads use REAL curl end to end.
   survive a sandbox recycle by design (the durable copy lives only in the
   write-only Actions secret store), so a fresh keypair was generated and
   re-stored.
+- Latest-resolution policy (owner-directed, dedicated repo): dev releases
+  publish with the GitHub prerelease flag OFF and `make_latest: true` so the
+  permanent `/releases/latest` command resolves; the FAILED dev.5 is flagged
+  prerelease + titled FAILED (excluded from latest). `/releases/latest`
+  redirects are CDN-cached for some minutes after a new release — the
+  explicitly versioned command is always current.
+- Published: v1.0.0-owneraudit.1-dev.6 @ 2777f9567c41 (bootstrap digest
+  a63a98db873318e29d9e149864d9856f1684d3922790ab60adf467dbb9e14c81),
+  correcting the FAILED dev.5 owner-VPS installation (see
+  docs/OWNER-INSTALL-DEV5-FAILED.md). Anonymous literal-command verification:
+  fresh flow 51 gates + INSTALLATION COMPLETE; recovery flow
+  RECOVERY COMPLETE with state preserved; both token-free.
 - Private key storage: GitHub Actions secret `DREVANTA_DIST_SIGNING_KEY` on
   THIS repository (write-only secret store) — never in git history, release
   assets, review packages, logs or CI artifacts. Public key additionally
