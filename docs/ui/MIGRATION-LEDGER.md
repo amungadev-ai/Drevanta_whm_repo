@@ -56,6 +56,22 @@ All four persona workspaces are represented and pixel-verified; their navigation
 | A11y nonvisual fix | label-content-name-mismatch eliminated (aria-label contains visible label text; no visual change) | axe re-run on / |
 | A11y remaining | color-contrast = approved design tokens (owner approval required to change); landmark-unique = inherited from approved markup | docs/ui/a11y-report.json |
 
+## Stage-2 VPS verification + deployment-architecture correction (2026-11-14)
+
+- **Vhost template defect found and fixed**: infra/nginx/drevanta-panel-vhost.conf.example
+  routed `/api/v1/` straight to the Go panel, bypassing the SvelteKit BFF. Through that
+  path the login response carried the raw bearer token in the page-visible body and the
+  HttpOnly session cookie was never established (browser-evidenced on the VPS: claim 201,
+  login 200, zero cookies, all subsequent calls 401). Corrected shape: every client path
+  terminates at the BFF; the BFF alone performs the token->cookie ceremony; the Go panel
+  stays loopback-only. Template updated; VPS vhost corrected and verified.
+- **VPS drill PASS**: fresh disposable installation behind nginx (self-signed TLS for the
+  drill, the production shape per DEC-014), full real-flow e2e 18/18 (claim, real MFA
+  enrollment, TOTP confirm, 10 real recovery codes, address write, MFA login, workspace
+  routing, real resource registration, real intent + operation tracking, real audit,
+  logout revocation) + security spot-checks through nginx. Drill pair torn down; the
+  main installation runs the Stage-2 build (panel + web replaced, services active).
+
 ## Stage-3 backlog (required before those screens may be called complete)
 
 1. Componentize the remaining persona sections (hosting/server/website/developer) per MIGRATION-MAP.md: expand generic mappings into screen-specific typed components; replace the remaining mock datasets with typed API bindings; per-control G4/G5 gates. (Stage-2 delivered the session/identity/operations/audit flows and the shell binding; section-level conversion remains.)
