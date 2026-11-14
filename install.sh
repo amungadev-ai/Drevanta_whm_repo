@@ -254,8 +254,14 @@ PKG_BASE="${ART_NAME%.tar.gz}"
 tar -tvzf "$WORK/$ART_NAME" > "$WORK/entries.txt" 2>/dev/null \
   || { echo "[FAIL] artifact is corrupted (tar listing failed) — deleted, nothing installed"; rm -f "$WORK/$ART_NAME"; exit 1; }
 python3 - "$WORK/entries.txt" "$PKG_BASE" <<'PY' || { echo "[FAIL] unsafe archive entries detected — artifact deleted, nothing installed"; rm -f "$WORK/$ART_NAME"; exit 1; }
-import sys
+import os, sys
 pkg = sys.argv[2]
+ROOT = "/drevanta-extraction-root"   # synthetic mount point for containment math
+def escapes(base_rel, target):
+    # Resolve the target relative to the entry's directory inside the
+    # extraction root; unsafe only if it escapes that root.
+    resolved = os.path.normpath(os.path.join(ROOT, os.path.dirname(base_rel), target))
+    return not (resolved == ROOT or resolved.startswith(ROOT + "/"))
 bad = []
 # tar -tvz lines: <mode> <owner/group> <size> <date> <time> <name> [-> <target>]
 for line in open(sys.argv[1]):
@@ -269,14 +275,14 @@ for line in open(sys.argv[1]):
     target = ""
     if " -> " in name:
         name, target = name.split(" -> ", 1)
-    if name.startswith("/") or ".." in name.split("/"):
+    if name.startswith("/") or ".." in name.split("/") or not name.startswith(pkg + "/"):
         bad.append("unsafe path: " + name)
-    if mode.startswith("l") and (target.startswith("/") or ".." in target.split("/")):
-        bad.append("unsafe link target: " + name + " -> " + target)
+        continue
+    if mode.startswith("l"):
+        if target.startswith("/") or escapes(name, target):
+            bad.append("unsafe link target (escapes extraction root): " + name + " -> " + target)
     if mode[0] in "bcpDs":
         bad.append("unsafe special entry: " + name)
-    if not name.startswith(pkg + "/"):
-        bad.append("unexpected top-level entry: " + name)
 if bad:
     print("\n".join(bad[:5])); sys.exit(1)
 PY
