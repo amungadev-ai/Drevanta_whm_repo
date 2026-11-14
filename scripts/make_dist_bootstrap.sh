@@ -79,7 +79,15 @@ $( [[ "$CHANNEL" == "dev" ]] && echo "#  Pinned:     $DEV_TAG @ $DEV_COMMIT
 #    curl -fsSL <release-url>/bootstrap.sh | bash
 #  Options (append after a ' -- ' when piping, or run the downloaded file):
 #    --version <tag>     install an explicit release version
-#    --artifact <path>   offline install from a local verified package
+#    --artifact <path>   install from a local verified package — mandatory
+#                        dependencies (nginx, Node.js, npm, curl, git) are
+#                        still provisioned online; add nothing to stay online
+#    --recover           repair an existing installation in place: installs
+#                        missing dependencies, re-creates the nginx
+#                        configuration, restarts the console and re-verifies
+#                        every management access path. Data, TLS material,
+#                        installation identity and the pending owner claim
+#                        are preserved (no OS reinstall, no data loss)
 #    --private-mgmt      management listener on loopback only (SSH tunnel)
 #    --instance <name>   multi-instance name (default: drevanta)
 #    --web-port/--api-port/--nginx-port/--mgmt-port <n>
@@ -109,7 +117,7 @@ while [[ \$# -gt 0 ]]; do
   case "\$1" in
     --version) EXPLICIT_VERSION="\$2"; shift 2 ;;
     --artifact) ARTIFACT_LOCAL="\$2"; shift 2 ;;
-    --private-mgmt|--upgrade) ENGINE_ARGS+=("\$1"); shift ;;
+    --private-mgmt|--upgrade|--recover) ENGINE_ARGS+=("\$1"); shift ;;
     --instance|--web-port|--api-port|--nginx-port|--mgmt-port|--access-ip) ENGINE_ARGS+=("\$1" "\$2"); shift 2 ;;
     --tmpdir) WORK="\$2"; shift 2 ;;
     --keep) KEEP=1; shift ;;

@@ -28,7 +28,18 @@
 #   sudo ./install.sh --upgrade                # version-aware in-place upgrade
 #   sudo ./install.sh --upgrade --mgmt-port 9443      # change management port
 #   sudo ./install.sh --upgrade --private-mgmt        # withdraw public listener
-#   sudo ./install.sh --offline                # no network required post-extract
+#   sudo ./install.sh --recover                # repair an existing install: installs
+#                                              # missing dependencies, re-creates nginx
+#                                              # configuration, restarts the frontend and
+#                                              # re-verifies every management access path;
+#                                              # data, TLS, identity and claim preserved
+#   sudo ./install.sh --offline                # GENUINE offline: no network, no apt — all
+#                                              # mandatory dependencies must already be
+#                                              # present and are strictly verified (missing
+#                                              # ones abort before any deployment)
+#   Modes: online (default) provisions mandatory dependencies (nginx, Node.js,
+#   npm, curl, git) via apt; passing a local --artifact does NOT disable
+#   online provisioning — only --offline does.
 set -uo pipefail
 
 # --- Configuration ----------------------------------------------------------
@@ -43,6 +54,7 @@ PRIVATE_MGMT="0"
 UNATTENDED_FLAG="${DREVANTA_UNATTENDED:-0}"
 OFFLINE="0"
 DO_UPGRADE="0"
+RECOVER="0"
 ACCESS_IP="${DREVANTA_ACCESS_IP:-}"
 MGMT_DOMAIN=""
 SHOW_HELP="0"
@@ -61,6 +73,7 @@ while [[ $# -gt 0 ]]; do
     --unattended) UNATTENDED_FLAG="1"; shift ;;
     --offline) OFFLINE="1"; shift ;;
     --upgrade) DO_UPGRADE="1"; shift ;;
+    --recover) RECOVER="1"; DO_UPGRADE="1"; shift ;;
     --access-ip) ACCESS_IP="$2"; shift 2 ;;
     --mgmt-domain) MGMT_DOMAIN="$2"; shift 2 ;;
     -h|--help) SHOW_HELP="1"; shift ;;
@@ -127,6 +140,105 @@ info()  { echo "[INFO] $*"; }
 warn()  { echo "[WARN] $*"; WARNINGS=$((WARNINGS+1)); }
 fail()  { echo "[FAIL] $*"; FAILURES=$((FAILURES+1)); }
 ok()    { echo "[OK]   $*"; }
+
+# Systemd unit rendering (functions so upgrades/recovery re-render the CURRENT
+# templates — hardening and build-boundary env reach existing installs too).
+write_panel_unit() {
+  cat > /etc/systemd/system/$SVC-panel.service <<UNIT
+[Unit]
+Description=Drevanta control plane ($INSTANCE)
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+[Service]
+Type=simple
+User=$USR
+Group=$GRP
+ExecStart=$BASE/bin/panel -addr 127.0.0.1:$API_PORT -db $VAR/panel.db -migrations $BASE/migrations -helper-socket $RUN/helper.sock
+Environment=DREVANTA_HOST_ID=*
+Environment=DREVANTA_BUILD_SCRATCH=$BASE/builds
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=$VAR
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+[Install]
+WantedBy=multi-user.target
+UNIT
+}
+write_web_unit() {
+  cat > /etc/systemd/system/$SVC-web.service <<UNIT
+[Unit]
+Description=Drevanta console frontend ($INSTANCE)
+After=$SVC-panel.service
+ConditionPathExists=/usr/bin/node
+StartLimitIntervalSec=60
+StartLimitBurst=5
+[Service]
+Type=simple
+User=$USR
+Group=$GRP
+WorkingDirectory=$BASE/web
+ExecStart=/usr/bin/node build/index.js
+Environment=PORT=$WEB_PORT
+Environment=HOST=127.0.0.1
+Environment=GO_API_URL=http://127.0.0.1:$API_PORT
+Environment=NODE_ENV=production
+Environment=PROTOCOL_HEADER=x-forwarded-proto
+Environment=HOST_HEADER=host
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=$LOGD
+[Install]
+WantedBy=multi-user.target
+UNIT
+}
+write_helper_unit() { # $1 = installation id (may be empty)
+  cat > /etc/systemd/system/$SVC-helper.service <<UNIT
+[Unit]
+Description=Drevanta privileged host helper ($INSTANCE)
+Before=$SVC-panel.service
+StartLimitIntervalSec=60
+StartLimitBurst=5
+[Service]
+Type=simple
+ExecStartPre=/usr/bin/install -d -o root -g $GRP -m 0750 $RUN
+ExecStart=$BASE/bin/helper -socket $RUN/helper.sock -policy $ETC/helper-policy.json -db $VAR/helper.db -migrations $BASE/migrations -installation \${DREVANTA_INSTALLATION_ID} -panel-uid $PANEL_UID -socket-group $GRP
+Environment=DREVANTA_INSTALLATION_ID=${1:-}
+Environment=DREVANTA_BUILD_SCRATCH=$BASE/builds
+Environment=DREVANTA_PANEL_UID=$PANEL_UID
+Environment=DREVANTA_SOCKET_GROUP=$GRP
+Restart=on-failure
+RestartSec=2
+[Install]
+WantedBy=multi-user.target
+UNIT
+}
+configure_build_boundary() {
+  # Build execution isolation boundary (G30, fail closed by design): scratch
+  # root + root-owned allowlist + panel-side env + probe of the SAME
+  # systemd-run sandbox properties builds use. A failed probe is disclosed
+  # and builds fail closed — there is no insecure fallback.
+  step "build boundary: scratch root (root-owned, $BASE/builds)" bash -c "install -d -o root -g root -m 0755 '$BASE/builds'"
+  step "build boundary: root-allowlisted build-bindings.json" bash -c "umask 077; printf '%s\n' '[\"$BASE/builds\"]' > '$ETC/build-bindings.json' && chmod 600 '$ETC/build-bindings.json'"
+  info "build boundary: isolation probe (systemd-run: CPU/mem/task caps, PrivateNetwork, NoNewPrivileges, uid=nobody)"
+  if systemd-run --quiet --wait -p CPUQuota=5% -p MemoryMax=64M -p TasksMax=16 -p PrivateNetwork=yes -p NoNewPrivileges=yes -E PATH=/usr/bin:/bin --uid=nobody true >/dev/null 2>&1; then
+    ok "build boundary: verified — builds route through the isolated helper executor"
+  else
+    warn "build boundary probe FAILED on this host — builds will fail closed until it passes (no insecure fallback exists)"
+  fi
+}
 hyperlink() { # clickable terminal link with plain-text fallback (always visible)
   local url="$1"
   if [[ -t 3 && "${TERM:-}" != "dumb" && "${NO_COLOR:-}" != "1" ]]; then
@@ -255,6 +367,52 @@ else
   step "preflight: outbound connectivity" bash -c 'curl -fsSI --max-time 8 http://archive.ubuntu.com >/dev/null 2>&1 || curl -fsSI --max-time 8 https://deb.nodesource.com >/dev/null'
 fi
 
+# Mandatory dependency provisioning + verification --------------------------------
+# Modes: online (default) and local-artifact (--artifact) PROVISION via apt and
+# verify; ONLY an explicit --offline skips provisioning, and then a missing
+# dependency aborts before any deployment. Verification is mandatory in every
+# mode and failure aborts BEFORE any Drevanta service/config/data is deployed.
+echo "[INFO] Stage 1.5/7 — Mandatory dependency provisioning and verification"
+DEP_BINS="nginx node npm curl git"
+DEP_PKGS="nginx nodejs npm curl git"
+APT_PKGS=""
+for pkg in $DEP_PKGS; do
+  bin="$pkg"; [[ "$pkg" == "nodejs" ]] && bin="node"
+  command -v "$bin" >/dev/null 2>&1 || APT_PKGS="$APT_PKGS $pkg"
+done
+if [[ "$OFFLINE" == "1" ]]; then
+  warn "offline mode: no dependency provisioning — verifying mandatory dependencies only"
+elif [[ -n "$APT_PKGS" ]]; then
+  info "provisioning mandatory dependencies:$APT_PKGS (apt-get)"
+  # Normal apt drops download privileges to _apt; in user-namespace/container
+  # environments that chown is not permitted. Try normal first (real hosts);
+  # retry with the apt sandbox disabled and DISCLOSE it.
+  step "deps: apt-get update" bash -c 'DEBIAN_FRONTEND=noninteractive apt-get update -qq || DEBIAN_FRONTEND=noninteractive apt-get -o APT::Sandbox::User=root update -qq'
+  step "deps: apt-get install$APT_PKGS" bash -c "DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends$APT_PKGS || DEBIAN_FRONTEND=noninteractive apt-get -o APT::Sandbox::User=root install -y --no-install-recommends$APT_PKGS"
+  command -v apt-get >/dev/null 2>&1 && DEBIAN_FRONTEND=noninteractive apt-get -o APT::Sandbox::User=root update -qq >/dev/null 2>&1 && warn "apt privilege-drop unavailable in this environment — packages installed with the apt sandbox disabled (container/userns quirk; on a standard host the normal apt sandbox is used)"
+else
+  ok "deps: all mandatory dependencies already present"
+fi
+DEP_FAIL=0
+for bin in $DEP_BINS; do
+  if ! command -v "$bin" >/dev/null 2>&1; then
+    fail "mandatory dependency missing: $bin — install it, or rerun WITHOUT --offline for automatic provisioning"
+    DEP_FAIL=1
+  fi
+done
+NODE_MAJOR="$(node --version 2>/dev/null | sed 's/^v//' | cut -d. -f1 || true)"
+if [[ -n "$NODE_MAJOR" && "$NODE_MAJOR" =~ ^[0-9]+$ ]] && [[ "$NODE_MAJOR" -lt 20 ]]; then
+  fail "unsupported Node.js runtime: $(node --version 2>/dev/null) — the console requires Node >= 20 (the apt nodejs package on supported releases satisfies this)"
+  DEP_FAIL=1
+fi
+if [[ "$DEP_FAIL" == "1" ]]; then
+  echo "[INFO] dependency provisioning may have installed packages, but NO Drevanta services, configuration or data were deployed."
+elif [[ "$OFFLINE" == "1" ]]; then
+  ok "deps verified (offline mode): nginx, node $(node --version 2>/dev/null), npm, curl, git"
+else
+  ok "deps verified: nginx, node $(node --version 2>/dev/null), npm, curl, git"
+fi
+
 # Existing-installation state (fresh vs upgrade separation).
 if [[ -f "$ETC/helper-policy.json" && -f "$VAR/panel.db" && "$DO_UPGRADE" != "1" ]]; then
   fail "existing installation detected in $ETC — refusing to modify it"
@@ -337,6 +495,13 @@ NG
 }
 
 TLS_DIR="$ETC/tls"
+if [[ "$RECOVER" == "1" ]]; then
+  echo "[INFO] Recovery mode: existing data, configuration, TLS material and claim state are PRESERVED; missing dependencies are installed; nginx configuration is re-created and every management access path is re-verified."
+  if [[ ! -f "$VAR/panel.db" || ! -f "$ETC/helper-policy.json" ]]; then
+    echo "[FAIL] recovery: no existing installation found at $VAR / $ETC — nothing to recover. Run a fresh installation instead."
+    exit 1
+  fi
+fi
 if [[ "$DO_UPGRADE" == "1" ]]; then
   # ------------------------------------------------------------------
   # Method E — version-aware in-place upgrade with verified rollback.
@@ -366,7 +531,9 @@ if [[ "$DO_UPGRADE" == "1" ]]; then
   step "upgrade: backup binaries" bash -c "tar -czf '$BK/bin.tar.gz' -C '$BASE' bin && chmod 600 '$BK/bin.tar.gz' && tar -tzf '$BK/bin.tar.gz' | grep -q 'bin/panel'"
   step "upgrade: backup frontend bundle" bash -c "tar -czf '$BK/web.tar.gz' -C '$BASE' web && chmod 600 '$BK/web.tar.gz' && tar -tzf '$BK/web.tar.gz' | grep -q 'web/build'"
   step "upgrade: backup migrations" bash -c "tar -czf '$BK/migrations.tar.gz' -C '$BASE' migrations && chmod 600 '$BK/migrations.tar.gz' && tar -tzf '$BK/migrations.tar.gz' | grep -q 'migrations/'"
-  step "upgrade: backup systemd + nginx state + VERSION" bash -c "tar -czf '$BK/system-nginx.tar.gz' /etc/systemd/system/$SVC-panel.service /etc/systemd/system/$SVC-web.service /etc/systemd/system/$SVC-helper.service /etc/nginx/sites-available/$SVC*.conf /etc/nginx/sites-enabled/$SVC*.conf '$BASE/VERSION' && chmod 600 '$BK/system-nginx.tar.gz' && tar -tzf '$BK/system-nginx.tar.gz' | grep -q '$SVC-panel.service'"
+  # Partial-install safe: units and nginx state are optional (a dev.5-era
+  # partial install may have neither) — pack what exists, always pack VERSION.
+  step "upgrade: backup systemd + nginx state + VERSION" bash -c "tar -czf '$BK/system-nginx.tar.gz' \$(ls /etc/systemd/system/$SVC-panel.service /etc/systemd/system/$SVC-web.service /etc/systemd/system/$SVC-helper.service /etc/nginx/sites-available/$SVC*.conf /etc/nginx/sites-enabled/$SVC*.conf 2>/dev/null) '$BASE/VERSION' && chmod 600 '$BK/system-nginx.tar.gz' && TARLIST=\$(tar -tzf '$BK/system-nginx.tar.gz') && [[ \$TARLIST == *drevanta*VERSION* ]]"
   step "upgrade: backup completeness verified" bash -c "for a in data-etc bin web migrations system-nginx; do b='$BK/'\$a.tar.gz; [[ -s \$b ]] || exit 1; tar -tzf \$b >/dev/null || exit 1; done"
   step "upgrade: staged replacement — binaries" bash -c "mkdir -p '$BASE/.staging/bin' && install -m 0755 '$PKGDIR/bin/helper' '$PKGDIR/bin/panel' '$BASE/.staging/bin/' && rm -rf '$BASE/bin' && mv '$BASE/.staging/bin' '$BASE/bin' && rmdir '$BASE/.staging'"
   step "upgrade: staged replacement — console bundle" bash -c "mkdir -p '$BASE/.staging' && cp -r '$PKGDIR/web' '$BASE/.staging/web' && rm -rf '$BASE/web' && mv '$BASE/.staging/web' '$BASE/web' && chown -R root:root '$BASE/web' && rmdir '$BASE/.staging'"
@@ -409,6 +576,19 @@ if [[ "$DO_UPGRADE" == "1" ]]; then
       [[ "$PRIVATE_MGMT" != "1" ]] && step "upgrade: firewall allow TCP $MGMT_PORT (ufw active)" ufw allow "$MGMT_PORT/tcp"
     fi
   fi
+  # Re-render systemd units from the CURRENT templates + configure the build
+  # boundary. Rendering runs in an explicit subshell: called directly in this
+  # context the heredoc functions crash some bash builds (SIGSEGV).
+  INSTALL_ID=$(sudo -u "$USR" python3 -c "
+import sqlite3
+print(sqlite3.connect('$VAR/panel.db').execute('select installation_id from installation').fetchone()[0])" 2>/dev/null || true)
+  PANEL_UID="$(id -u "$USR")"
+  (
+    write_panel_unit
+    write_web_unit
+    write_helper_unit "${INSTALL_ID:-}"
+  )
+  configure_build_boundary
   step "upgrade: restart services (migrations run at panel start)" bash -c "systemctl daemon-reload && systemctl start $SVC-helper $SVC-panel $SVC-web"
   UP_OK=1
   for i in $(seq 1 30); do
@@ -474,6 +654,46 @@ except Exception: print('unknown')" 2>/dev/null || echo unknown)
   ok "upgrade complete — running $VERSION (previous version backed up at $BK)"
   echo "[INFO] Data, configuration, claim state and customized policies were preserved."
   echo "[INFO] External reachability is NOT verified from inside this host — confirm from your browser."
+  if [[ "$RECOVER" == "1" ]]; then
+    echo "[INFO] Recovery verification — complete management access path"
+    RV_FAIL=0
+    # Capture once: `ss | grep -q` under pipefail can report a MATCHED
+    # listener as failed (grep -q exits early, ss gets SIGPIPE -> exit 141).
+    SSOUT="$(ss -ltn 2>/dev/null || true)"
+    lp() { [[ "$SSOUT" == *"127.0.0.1:$1"* ]] || { fail "recovery: expected listener on 127.0.0.1:$1 ($2)"; RV_FAIL=1; }; }
+    lp "$API_PORT" "panel control plane"
+    lp "$WEB_PORT" "console frontend"
+    if [[ "$NO_NGINX" == "0" ]]; then
+      [[ "$SSOUT" == *"127.0.0.1:$NGINX_PORT "* ]] || { fail "recovery: nginx loopback listener :$NGINX_PORT missing"; RV_FAIL=1; }
+      [[ "$SSOUT" == *":$MGMT_PORT "* ]] || { fail "recovery: nginx management listener :$MGMT_PORT missing"; RV_FAIL=1; }
+    fi
+    pcode=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "http://127.0.0.1:$API_PORT/api/v1/install/status" 2>/dev/null || true)
+    [[ "$pcode" == "200" ]] && ok "recovery: panel API healthy on 127.0.0.1:$API_PORT" || { fail "recovery: panel API not healthy ($pcode)"; RV_FAIL=1; }
+    wcode=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "http://127.0.0.1:$WEB_PORT/" 2>/dev/null || true)
+    [[ "$wcode" =~ ^(200|302|307)$ ]] && ok "recovery: console healthy on 127.0.0.1:$WEB_PORT" || { fail "recovery: console not healthy ($wcode)"; RV_FAIL=1; }
+    if [[ "$NO_NGINX" == "0" ]]; then
+      mcode=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 5 --resolve "drevanta-mgmt:$MGMT_PORT:127.0.0.1" "https://drevanta-mgmt:$MGMT_PORT/" 2>/dev/null || true)
+      [[ "$mcode" =~ ^(200|302|307)$ ]] && ok "recovery: management HTTPS path verified locally on :$MGMT_PORT" || { fail "recovery: management HTTPS path not healthy ($mcode)"; RV_FAIL=1; }
+    fi
+    CLAIM_STATE=$(sudo -u "$USR" python3 -c "
+import sqlite3
+try: print(sqlite3.connect('$VAR/panel.db').execute('select state from installation limit 1').fetchone()[0])
+except Exception: print('unknown')" 2>/dev/null || echo unknown)
+    if [[ -s "$ETC/claim-token" && "$CLAIM_STATE" == "pending" ]]; then
+      ok "recovery: pending owner claim and installation identity preserved (state: $CLAIM_STATE)"
+      echo "[INFO] Onboarding URL (confidential): run 'sudo drevanta-claim-token' in your interactive terminal."
+    elif [[ "$CLAIM_STATE" == "pending" ]]; then
+      warn "recovery: installation is pending but no claim-token file exists — regenerate with the claim-token command when ready"
+    else
+      ok "recovery: installation state is '$CLAIM_STATE' — no outstanding claim to preserve"
+    fi
+    [[ -f "$ETC/build-bindings.json" ]] && ok "recovery: build isolation boundary configured (build-bindings.json present)" || warn "recovery: build boundary bindings file missing"
+    if [[ "$RV_FAIL" == "1" ]]; then
+      echo "[FAIL] recovery verification FAILED — see the [FAIL] lines above (journalctl -u $SVC-web / -u nginx)"
+      exit 1
+    fi
+    echo "[OK]   RECOVERY COMPLETE — all management access paths verified locally"
+  fi
   exit 0
 fi
 
@@ -578,31 +798,7 @@ fi
 echo "========================================================"
 echo "[INFO] Stage 5/7 — Service configuration"
 PANEL_UID=$(id -u "$USR")
-cat > /etc/systemd/system/$SVC-panel.service <<UNIT
-[Unit]
-Description=Drevanta control plane ($INSTANCE)
-After=network-online.target
-Wants=network-online.target
-[Service]
-Type=simple
-User=$USR
-Group=$GRP
-ExecStart=$BASE/bin/panel -addr 127.0.0.1:$API_PORT -db $VAR/panel.db -migrations $BASE/migrations -helper-socket $RUN/helper.sock
-Environment=DREVANTA_HOST_ID=*
-Restart=on-failure
-RestartSec=2
-NoNewPrivileges=yes
-PrivateTmp=yes
-ProtectSystem=strict
-ProtectHome=yes
-ReadWritePaths=$VAR
-ProtectKernelTunables=yes
-ProtectControlGroups=yes
-RestrictSUIDSGID=yes
-LockPersonality=yes
-[Install]
-WantedBy=multi-user.target
-UNIT
+write_panel_unit
 step "unit: $SVC-panel" bash -c 'systemctl daemon-reload && systemctl enable --now '"$SVC"'-panel'
 
 PANEL_OK=0
@@ -624,23 +820,7 @@ if [[ -z "${INSTALL_ID:-}" ]]; then
 import sqlite3
 print(sqlite3.connect('$VAR/panel.db').execute('select installation_id from installation').fetchone()[0])" 2>/dev/null || true)
 fi
-cat > /etc/systemd/system/$SVC-helper.service <<UNIT
-[Unit]
-Description=Drevanta privileged host helper ($INSTANCE)
-Before=$SVC-panel.service
-[Service]
-Type=simple
-ExecStartPre=/usr/bin/install -d -o root -g $GRP -m 0750 $RUN
-ExecStart=$BASE/bin/helper -socket $RUN/helper.sock -policy $ETC/helper-policy.json -db $VAR/helper.db -migrations $BASE/migrations -installation \${DREVANTA_INSTALLATION_ID} -panel-uid $PANEL_UID -socket-group $GRP
-Environment=DREVANTA_INSTALLATION_ID=${INSTALL_ID:-}
-Environment=DREVANTA_BUILD_SCRATCH=$BASE/builds
-Environment=DREVANTA_PANEL_UID=$PANEL_UID
-Environment=DREVANTA_SOCKET_GROUP=$GRP
-Restart=on-failure
-RestartSec=2
-[Install]
-WantedBy=multi-user.target
-UNIT
+write_helper_unit
 if [[ -n "${INSTALL_ID:-}" ]]; then
   step "unit: $SVC-helper (installation $INSTALL_ID)" bash -c 'systemctl daemon-reload && systemctl enable --now '"$SVC"'-helper'
   HELPER_OK=0
@@ -660,35 +840,7 @@ else
   fail "helper not started: no installation id (panel output above)"
 fi
 
-cat > /etc/systemd/system/$SVC-web.service <<UNIT
-[Unit]
-Description=Drevanta console frontend ($INSTANCE)
-After=$SVC-panel.service
-[Service]
-Type=simple
-User=$USR
-Group=$GRP
-WorkingDirectory=$BASE/web
-ExecStart=/usr/bin/node build/index.js
-Environment=PORT=$WEB_PORT
-Environment=HOST=127.0.0.1
-Environment=GO_API_URL=http://127.0.0.1:$API_PORT
-Environment=NODE_ENV=production
-# Behind nginx: derive the external origin (https://ip:8443 / tunnel http)
-# from the forwarded headers so SvelteKit origin validation, secure-cookie
-# behavior and CSRF checks match what the browser actually used.
-Environment=PROTOCOL_HEADER=x-forwarded-proto
-Environment=HOST_HEADER=host
-Restart=on-failure
-RestartSec=2
-NoNewPrivileges=yes
-PrivateTmp=yes
-ProtectSystem=strict
-ProtectHome=yes
-ReadWritePaths=$LOGD
-[Install]
-WantedBy=multi-user.target
-UNIT
+write_web_unit
 step "unit: $SVC-web" bash -c 'systemctl daemon-reload && systemctl enable --now '"$SVC"'-web'
 WEB_OK=0
 for i in $(seq 1 20); do
@@ -705,6 +857,8 @@ if ss -ltn "sport = :$API_PORT" 2>/dev/null | grep -qE '(0\.0\.0\.0|\*):'$API_PO
 else
   ok "isolation: control-plane API bound to 127.0.0.1:$API_PORT only"
 fi
+
+configure_build_boundary
 
 # 7. nginx --------------------------------------------------------------------
 echo "========================================================"

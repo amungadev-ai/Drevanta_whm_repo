@@ -54,7 +54,22 @@ esac
 exit 0
 EOF
 printf '#!/usr/bin/env bash\nexit 0\n' > "$STUB/nginx"
-printf '#!/usr/bin/env bash\nexit 0\n' > "$STUB/apt-get"
+# Provisioning-aware apt-get stub: "installs" the packages the engine asks
+# for by materializing their command stubs (mirrors real apt behavior: after
+# apt-get install nginx, the nginx binary exists).
+cat > "$STUB/apt-get" <<APEOF
+#!/usr/bin/env bash
+if [[ "\$1" == "install" ]]; then
+  for p in "\$@"; do case "\$p" in
+    nginx)  printf '#!/usr/bin/env bash\nexit 0\n' > "$STUB/nginx" ;;
+    nodejs) printf '#!/usr/bin/env bash\n[[ "\$1" == "--version" ]] && echo v22.11.0\nexit 0\n' > "$STUB/node" ;;
+    npm)    printf '#!/usr/bin/env bash\nexit 0\n' > "$STUB/npm" ;;
+    git)    printf '#!/usr/bin/env bash\nexit 0\n' > "$STUB/git" ;;
+    curl)   : ;;  # real curl stays in PATH
+  esac; done
+fi
+exit 0
+APEOF
 printf '#!/usr/bin/env bash\nexit 1\n' > "$STUB/ss"   # no listeners: ports free
 printf '#!/usr/bin/env bash\n[[ "$1" == status ]] && echo "Status: inactive"\nexit 0\n' > "$STUB/ufw"
 cat > "$STUB/ss" <<'SSEOF'
@@ -565,6 +580,161 @@ sys.exit(0 if h == hashlib.sha256(sys.argv[2].encode()).hexdigest() else 1)
 PY
 ( cd "$REPO_DIR" && go test ./internal/install/ -run "TestConcurrentClaimAttempts" -count=1 ) >/dev/null 2>&1 \
   && ok "T5: concurrent claim protection (4 racers, exactly 1 winner)" || bad "T5: concurrent claim"
+
+echo "================ T6: dependency provisioning + recovery (dev.6) ================"
+if unshare -rm true 2>/dev/null; then
+  T6="$WORK/t6"; mkdir -p "$T6"
+  PKG6="$WORK/pkg6"; mkdir -p "$PKG6"
+  tar --no-same-owner -xzf "$REPO_DIR"/drevanta-install-*.tar.gz -C "$PKG6"
+  PKGDIR6="$(echo "$PKG6"/drevanta-install-*)"
+  # Dependency-EMPTY stub environment: nginx/node/npm/git invisible to the
+  # engine; the recording apt-get materializes them on 'install'. systemd-run
+  # records the isolation probe. These are PROVISIONING-path tests; real-apt
+  # provisioning evidence is collected separately (T7 / namespace e2e).
+  STUB6="$T6/stub6"; mkdir -p "$STUB6"
+  for t in systemctl sudo ss ufw useradd curl; do cp "$STUB/$t" "$STUB6/"; done
+  cat > "$STUB6/apt-get" <<APEOF
+#!/usr/bin/env bash
+echo "apt-get \$*" >> "$T6/apt.record"
+if [[ "\$1" == "install" ]]; then
+  for p in "\$@"; do case "\$p" in
+    nginx)  printf '#!/usr/bin/env bash\nexit 0\n' > "$STUB6/nginx"; chmod +x "$STUB6/nginx" ;;
+    nodejs) printf '#!/usr/bin/env bash\n[[ "\$1" == "--version" ]] && echo v22.11.0\nexit 0\n' > "$STUB6/node"; chmod +x "$STUB6/node" ;;
+    npm)    printf '#!/usr/bin/env bash\nexit 0\n' > "$STUB6/npm"; chmod +x "$STUB6/npm" ;;
+    git)    printf '#!/usr/bin/env bash\nexit 0\n' > "$STUB6/git"; chmod +x "$STUB6/git" ;;
+  esac; done
+fi
+exit 0
+APEOF
+  printf '#!/usr/bin/env bash\necho "systemd-run \$*" >> "%s"\nexit 0\n' "$T6/sdrun.record" > "$STUB6/systemd-run"
+  chmod +x "$STUB6"/*
+  cat > "$T6/session.sh" <<SEOF
+#!/usr/bin/env bash
+set -u
+cp -a /etc /tmp/etc.keep
+mount -t tmpfs -o size=8g tmpfs /etc && mount -t tmpfs -o size=8g tmpfs /opt && mount -t tmpfs -o size=8g tmpfs /var && mount -t tmpfs tmpfs /usr/local && mount -t tmpfs tmpfs /run
+cp -a /tmp/etc.keep/. /etc/ && rm -rf /tmp/etc.keep
+export HOME=/root
+E6="$PKGDIR6/install.sh"
+r6() { local f="\$1"; shift; PATH="$STUB6:/usr/bin:/bin" bash "\$E6" "\$@" > "$T6/\$f.log" 2>&1; echo \$? > "$T6/\$f.rc"; }
+rf() { local f="\$1"; local stub="\$2"; shift 2; PATH="\$stub:/usr/bin:/bin" bash "\$E6" "\$@" > "$T6/\$f.log" 2>&1; echo \$? > "$T6/\$f.rc"; }
+rw() { local f="\$1"; local stub="\$2"; shift 2; PATH="\$stub" bash "\$E6" "\$@" > "$T6/\$f.log" 2>&1; echo \$? > "$T6/\$f.rc"; }
+
+# d1: dep-empty host, ONLINE mode -> provision the missing, verify, install
+r6 d1 --instance d1 --access-ip 203.0.113.7
+cp /etc/systemd/system/drevanta-d1-web.service "$T6/d1-web.service" 2>/dev/null
+cp /etc/systemd/system/drevanta-d1-panel.service "$T6/d1-panel.service" 2>/dev/null
+{ grep -q "ConditionPathExists=/usr/bin/node" /etc/systemd/system/drevanta-d1-web.service \
+    && grep -q "StartLimitBurst=5" /etc/systemd/system/drevanta-d1-web.service \
+    && echo ok || echo missing; } > "$T6/m.webunit"
+{ grep -q "DREVANTA_BUILD_SCRATCH=/opt/drevanta-d1/builds" /etc/systemd/system/drevanta-d1-panel.service \
+    && grep -q "StartLimitBurst=5" /etc/systemd/system/drevanta-d1-panel.service \
+    && echo ok || echo missing; } > "$T6/m.panelunit"
+{ grep -q "StartLimitBurst=5" /etc/systemd/system/drevanta-d1-helper.service && echo ok || echo missing; } > "$T6/m.helperunit"
+cp /etc/drevanta-d1/build-bindings.json "$T6/d1-bindings.json" 2>/dev/null
+{ [[ -f /etc/drevanta-d1/build-bindings.json ]] \
+    && [[ "\$(stat -c %a /etc/drevanta-d1/build-bindings.json)" == "600" ]] \
+    && grep -q "/opt/drevanta-d1/builds" /etc/drevanta-d1/build-bindings.json \
+    && echo ok || echo missing; } > "$T6/m.bindings"
+[[ -s "$T6/sdrun.record" ]] && echo ok > "$T6/m.sdrun" || echo missing > "$T6/m.sdrun"
+{ grep -q "builds will fail closed" /etc/systemd/system/drevanta-d1-panel.service 2>/dev/null; } || true
+
+# d2: provisioning FAILS -> abort BEFORE any service deployment
+mkdir -p "$T6/stub6fail"; for t in systemctl sudo ss ufw useradd curl systemd-run; do cp "$STUB/\$t" "$T6/stub6fail/" 2>/dev/null || true; done
+printf '#!/usr/bin/env bash\nexit 1\n' > "$T6/stub6fail/apt-get"
+chmod +x "$T6/stub6fail"/*
+rf d2 "$T6/stub6fail" --instance d2 --access-ip 203.0.113.7
+[[ -f /etc/systemd/system/drevanta-d2-web.service ]] && echo deployed > "$T6/m.d2nodesvc" || echo nodeploy > "$T6/m.d2nodesvc"
+[[ -d /var/lib/drevanta-d2 && -f /var/lib/drevanta-d2/panel.db ]] && echo datadeployed > "$T6/m.d2data" || echo nodata > "$T6/m.d2data"
+
+# d3: --offline with missing deps -> precise abort listing, nothing deployed
+# Genuinely dependency-empty offline host: a WHITELIST bin dir (stubs + the
+# coreutils/python/openssl the engine itself needs) — NO node/npm/git, and
+# /usr/bin is NOT on PATH so the container's real runtimes cannot leak in.
+mkdir -p "$T6/stub6off"
+for t in systemctl sudo ss ufw useradd curl systemd-run; do cp "$STUB/\$t" "$T6/stub6off/" 2>/dev/null || true; done
+for t in bash sh mkfifo install chown df free tee awk readlink realpath groups ps pgrep which command flock ip python3 python openssl sha256sum tar mktemp date id stat ls cat sed grep sleep seq head tail wc tr cut sort uniq chmod touch cp mv rm mkdir rmdir ln basename dirname env uname shred; do
+  p="\$(command -v "\$t" 2>/dev/null || true)"; [[ -n "\$p" ]] && ln -sf "\$p" "$T6/stub6off/\$t"
+done
+chmod +x "$T6/stub6off"/* 2>/dev/null
+rw d3 "$T6/stub6off" --instance d3 --access-ip 203.0.113.7 --offline
+[[ -f /etc/systemd/system/drevanta-d3-web.service ]] && echo deployed > "$T6/m.d3svc" || echo nodeploy > "$T6/m.d3svc"
+
+# d4: node too old -> unsupported-runtime abort (before deployment)
+mkdir -p "$T6/stub6old"; for t in systemctl sudo ss ufw useradd curl systemd-run nginx npm git; do cp "$STUB/\$t" "$T6/stub6old/" 2>/dev/null || true; done
+printf '#!/usr/bin/env bash\n[[ "\$1" == "--version" ]] && echo v18.19.0\nexit 0\n' > "$T6/stub6old/node"
+chmod +x "$T6/stub6old"/*
+rf d4 "$T6/stub6old" --instance d4 --access-ip 203.0.113.7
+
+# d5: RECOVERY of a partial dev.5-era install: deps provisioned, data/claim/TLS preserved
+"$T6/stub6/useradd" drevanta-d5
+mkdir -p /opt/drevanta-d5/bin /opt/drevanta-d5/web/build /opt/drevanta-d5/migrations /var/lib/drevanta-d5 /etc/drevanta-d5/tls
+printf '1.0.0-owneraudit.1-dev.5\n' > /opt/drevanta-d5/VERSION
+printf 'placeholder\n' > /opt/drevanta-d5/bin/panel
+printf 'console\n' > /opt/drevanta-d5/web/build/index.js
+python3 - <<'PYD5'
+import sqlite3
+db = sqlite3.connect('/var/lib/drevanta-d5/panel.db')
+db.execute("create table installation (installation_id text, state text)")
+db.execute("insert into installation values ('inst_d5aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa','pending')")
+db.commit()
+PYD5
+printf 'clm_d5existingpendingownerclaimtokenvalue' > /etc/drevanta-d5/claim-token
+printf '{"policy":true}\n' > /etc/drevanta-d5/helper-policy.json
+openssl req -x509 -newkey rsa:2048 -keyout /etc/drevanta-d5/tls/key.pem -out /etc/drevanta-d5/tls/cert.pem -days 5 -nodes -subj "/CN=203.0.113.7" -addext "subjectAltName=IP:203.0.113.7" >/dev/null 2>&1
+sha256sum /etc/drevanta-d5/claim-token /var/lib/drevanta-d5/panel.db /etc/drevanta-d5/tls/cert.pem /etc/drevanta-d5/tls/key.pem > "$T6/d5.before.sha"
+touch /tmp/drevanta-simulate-owned-ports
+r6 d5 --instance d5 --recover --access-ip 203.0.113.7
+rm -f /tmp/drevanta-simulate-owned-ports
+sha256sum -c "$T6/d5.before.sha" > "$T6/d5.preserved" 2>&1; echo \$? > "$T6/d5.preserved.rc"
+{ grep -q "ConditionPathExists=/usr/bin/node" /etc/systemd/system/drevanta-d5-web.service && echo ok || echo missing; } > "$T6/m.d5webunit"
+{ grep -q "DREVANTA_BUILD_SCRATCH=/opt/drevanta-d5/builds" /etc/systemd/system/drevanta-d5-panel.service && echo ok || echo missing; } > "$T6/m.d5panelunit"
+{ [[ -f /etc/drevanta-d5/build-bindings.json ]] && echo ok || echo missing; } > "$T6/m.d5bindings"
+
+# d6: recovery refuses when nothing exists to recover
+r6 d6 --instance d6 --recover --access-ip 203.0.113.7
+SEOF
+  unshare -rm bash "$T6/session.sh"
+
+  r=$(cat "$T6/d1.rc"); [[ "$r" == "0" ]] && ok "T6: dep-empty host installs after provisioning (exit $r)" || bad "T6: dep-empty install failed (exit $r; see d1.log)"
+  grep -q "apt-get update" "$T6/apt.record" 2>/dev/null && ok "T6: apt-get update invoked" || bad "T6: apt-get update not invoked"
+  grep -qE "apt-get install -y --no-install-recommends( nginx| nginx nodejs npm git)$" "$T6/apt.record" 2>/dev/null \
+    && ok "T6: exactly the missing mandatory packages provisioned" || bad "T6: wrong provisioning list ($(tail -1 "$T6/apt.record" 2>/dev/null))"
+  has   "T6: provisioning reported" "$T6/d1.log" "provisioning mandatory dependencies"
+  has   "T6: deps verified after provisioning" "$T6/d1.log" "deps verified: nginx, node v"
+  has   "T6: INSTALLATION COMPLETE on dep-empty host" "$T6/d1.log" "INSTALLATION COMPLETE"
+  has   "T6: build boundary probe verified" "$T6/d1.log" "build boundary: verified"
+  [[ "$(cat "$T6/m.webunit")" == "ok" ]] && ok "T6: web unit hardened (node condition + restart cap)" || bad "T6: web unit hardening missing"
+  [[ "$(cat "$T6/m.panelunit")" == "ok" ]] && ok "T6: panel unit carries build-boundary env + restart cap" || bad "T6: panel unit boundary env missing"
+  [[ "$(cat "$T6/m.helperunit")" == "ok" ]] && ok "T6: helper unit restart cap present" || bad "T6: helper unit cap missing"
+  [[ "$(cat "$T6/m.bindings")" == "ok" ]] && ok "T6: build-bindings.json root-allowlisted (0600)" || bad "T6: build bindings missing/wrong"
+  [[ "$(cat "$T6/m.sdrun")" == "ok" ]] && ok "T6: isolation probe executed (systemd-run)" || bad "T6: isolation probe not executed"
+
+  r=$(cat "$T6/d2.rc"); [[ "$r" != "0" ]] && ok "T6: provisioning failure aborts install (exit $r)" || bad "T6: provisioning failure NOT fatal"
+  has "T6: apt failure surfaced" "$T6/d2.log" "deps: apt-get install"
+  [[ "$(cat "$T6/m.d2nodesvc")" == "nodeploy" ]] && ok "T6: NO service units deployed after provisioning failure" || bad "T6: services deployed despite failed provisioning"
+  [[ "$(cat "$T6/m.d2data")" == "nodata" ]] && ok "T6: no Drevanta data deployed after provisioning failure" || bad "T6: data deployed despite failed provisioning"
+
+  r=$(cat "$T6/d3.rc"); [[ "$r" != "0" ]] && ok "T6: --offline with missing deps refused (exit $r)" || bad "T6: offline missing deps accepted"
+  has "T6: offline abort lists nginx" "$T6/d3.log" "mandatory dependency missing: nginx"
+  has "T6: offline abort lists node" "$T6/d3.log" "mandatory dependency missing: node"
+  [[ "$(cat "$T6/m.d3svc")" == "nodeploy" ]] && ok "T6: offline abort deployed NOTHING" || bad "T6: offline abort still deployed units"
+
+  r=$(cat "$T6/d4.rc"); [[ "$r" != "0" ]] && ok "T6: unsupported Node.js runtime refused (exit $r)" || bad "T6: node 18 accepted"
+  has "T6: node version gate message" "$T6/d4.log" "unsupported Node.js runtime"
+
+  r=$(cat "$T6/d5.rc"); [[ "$r" == "0" ]] && ok "T6: recovery of partial install completes (exit $r)" || bad "T6: recovery failed (exit $r)"
+  has "T6: RECOVERY COMPLETE banner" "$T6/d5.log" "RECOVERY COMPLETE"
+  has "T6: recovery preserved pending claim" "$T6/d5.log" "pending owner claim and installation identity preserved"
+  [[ "$(cat "$T6/d5.preserved.rc")" == "0" ]] && ok "T6: claim-token, panel.db, TLS cert+key byte-preserved" || bad "T6: recovery modified preserved state ($(cat "$T6/d5.preserved"))"
+  [[ "$(cat "$T6/m.d5webunit")" == "ok" ]] && ok "T6: recovery re-rendered hardened web unit" || bad "T6: recovery kept old web unit"
+  [[ "$(cat "$T6/m.d5panelunit")" == "ok" ]] && ok "T6: recovery re-rendered panel unit with boundary env" || bad "T6: recovery panel unit missing boundary env"
+  [[ "$(cat "$T6/m.d5bindings")" == "ok" ]] && ok "T6: recovery created build bindings" || bad "T6: recovery bindings missing"
+  grep -q "apt-get install" "$T6/apt.record" && ok "T6: recovery provisions missing dependencies" || bad "T6: recovery skipped provisioning"
+
+  r=$(cat "$T6/d6.rc"); [[ "$r" != "0" ]] && ok "T6: recovery refuses when no installation exists (exit $r)" || bad "T6: empty-host recovery accepted"
+  has "T6: recovery refusal message" "$T6/d6.log" "no existing installation found"
+fi
 
 echo "========================================================"
 echo "VERIFICATION SUMMARY: $PASS passed, $FAIL failed"
