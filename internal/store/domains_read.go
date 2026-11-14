@@ -136,12 +136,12 @@ func (db *DB) ListCustomers(ctx context.Context, scopeID string) ([]CustomerRow,
 }
 
 type AccountRow struct {
-	AccountID  string
-	CustomerID string
-	PlanID     string
+	AccountID   string
+	CustomerID  string
+	PlanID      string
 	WorkspaceID sql.NullString
-	State      string
-	CreatedAt  string
+	State       string
+	CreatedAt   string
 }
 
 func (db *DB) ListAccounts(ctx context.Context, scopeID string) ([]AccountRow, error) {

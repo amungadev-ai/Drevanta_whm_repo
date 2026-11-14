@@ -19,9 +19,9 @@ import (
 	"drevanta/internal/authn"
 	"drevanta/internal/authz"
 	"drevanta/internal/hostagent"
-	"drevanta/internal/mailsmtp"
 	"drevanta/internal/install"
 	"drevanta/internal/jobs"
+	"drevanta/internal/mailsmtp"
 	"drevanta/internal/operations"
 	"drevanta/internal/store"
 )

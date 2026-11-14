@@ -356,9 +356,9 @@ func (s *Server) handleCreateInvoice(w http.ResponseWriter, r *http.Request) {
 		TaxCents    int64  `json:"tax_cents"`
 	}
 	var req struct {
-		CustomerID string     `json:"customer_id"`
-		DueInDays  int        `json:"due_in_days"`
-		Lines      []lineReq  `json:"lines"`
+		CustomerID string    `json:"customer_id"`
+		DueInDays  int       `json:"due_in_days"`
+		Lines      []lineReq `json:"lines"`
 	}
 	if err := decodeStrict(r, &req); err != nil || len(req.Lines) == 0 {
 		writeError(w, http.StatusUnprocessableEntity, CodeInvalidInput, "invalid invoice schema")

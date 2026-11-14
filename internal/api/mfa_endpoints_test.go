@@ -14,7 +14,6 @@ import (
 	"net/http"
 	"strings"
 	"testing"
-
 )
 
 func TestMFAEnrollLifecycle(t *testing.T) {
