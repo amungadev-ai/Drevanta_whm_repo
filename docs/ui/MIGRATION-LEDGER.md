@@ -164,3 +164,12 @@ Functional classification lives in FUNCTIONAL-COVERAGE.csv (12 capabilities: 10
 OPERATIONAL, 1 OPERATIONAL-API, 1 OPERATIONAL with deployment-input caveat). Known
 honest gaps: build execution worker, external payment gateway (BLK-001), mail UI slot
 (no approved nav section), host-connected effects (require a connected host).
+
+## G40-F2 wave (2026-11-14, same day)
+
+The last service-layer gap in the developer pipeline closed: queued builds now EXECUTE
+(build worker: real git clone at the commit ref, deterministic sha256 tree digest,
+redacted logs, CAS claim, safe failure mapping) and successful host.inspect operations
+derive real health observations into the monitoring sections. With this, the
+pipeline capability chain — connect → build → promote — runs end-to-end on real
+execution, not fixtures.
