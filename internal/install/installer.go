@@ -165,6 +165,29 @@ func (in *Installer) Claim(ctx context.Context, claimToken, adminEmail, adminPas
 	}); err != nil {
 		return nil, err
 	}
+	// Full-persona provisioning (G40-F1): the platform is four-persona, so
+	// the install administrator receives one workspace per persona kind with
+	// the respective owner role. Each workspace is independently scoped —
+	// tenancy isolation applies across them exactly as between principals.
+	extra := []struct {
+		kind, name, role string
+	}{
+		{"hosting_org", "Hosting Organization", "hosting.owner"},
+		{"website", "Website Workspace", "website.owner"},
+		{"developer_project", "Developer Project", "developer.owner"},
+	}
+	for _, spec := range extra {
+		w, err := in.db.CreateWorkspace(ctx, spec.kind, p.PrincipalID, spec.name)
+		if err != nil {
+			return nil, err
+		}
+		if err := in.db.AddMembership(ctx, store.Membership{
+			PrincipalID: p.PrincipalID, WorkspaceID: w.WorkspaceID,
+			RoleID: spec.role, Revision: 1, State: "active",
+		}); err != nil {
+			return nil, err
+		}
+	}
 	_, _ = in.db.ExecContext(ctx,
 		`UPDATE installation SET state=?, checkpoint='workspace_ready' WHERE installation_id=?`,
 		StateActive, instID)

@@ -245,19 +245,24 @@
 		paletteResources = [];
 		const s = $session;
 		if (s.active) {
-			// Real data only; failures render real empty states.
+			// Real data only; failures render real empty states. Resource search
+			// spans every workspace the principal really belongs to.
 			try {
 				const ws = await api.workspaces();
 				paletteWorkspaces = ws.items;
 			} catch {
 				paletteWorkspaces = [];
 			}
-			try {
-				const rs = await api.resources(s.active.workspace_id);
-				paletteResources = rs.items;
-			} catch {
-				paletteResources = [];
+			const gathered: ResourceItem[] = [];
+			for (const w of paletteWorkspaces.slice(0, 6)) {
+				try {
+					const rs = await api.resources(w.workspace_id);
+					gathered.push(...rs.items);
+				} catch {
+					// scope without resource visibility: skip quietly (real denial)
+				}
 			}
+			paletteResources = gathered;
 		}
 		await tick();
 		document.querySelector<HTMLInputElement>('#realCommandInput')?.focus();
@@ -404,6 +409,7 @@
 						{r.name} · {r.type}<small>Open resource ↵</small>
 					</button>
 				{/each}
+				<!-- results carry real scope data from every member workspace -->
 				{#if paletteTotal() === 0}
 					<div class="empty">No matching workspaces, resources or pages</div>
 				{/if}

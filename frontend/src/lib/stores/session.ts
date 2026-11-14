@@ -19,13 +19,20 @@ export const session = writable<SessionState>({
 });
 
 /** Load the real session: /me + /workspaces; pick the active workspace. */
+const KIND_ALIASES: Record<string, string> = {
+	server_admin: 'server',
+	hosting: 'hosting_org',
+	developer: 'developer_project'
+};
+
 export async function loadSession(preferredKind?: string): Promise<SessionState> {
 	session.update((s) => ({ ...s, loading: true, error: null }));
 	try {
 		const me = await api.me();
 		const ws = await api.workspaces();
+		const wanted = preferredKind ? (KIND_ALIASES[preferredKind] ?? preferredKind) : preferredKind;
 		const active =
-			(preferredKind && ws.items.find((w) => w.kind === preferredKind)) ||
+			(wanted && ws.items.find((w) => w.kind === wanted)) ||
 			ws.items.find((w) => w.kind === 'hosting') ||
 			ws.items[0] ||
 			null;

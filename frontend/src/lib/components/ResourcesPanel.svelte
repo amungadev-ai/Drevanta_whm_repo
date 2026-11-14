@@ -120,13 +120,15 @@
 					<option value={r.resource_id}>{r.name} ({r.type})</option>
 				{/each}
 			</select>
-			{#if selected}
+			{#if selected && actionId}
 				<OperationTracker
 					actionId={actionId}
 					resourceId={selected.resource_id}
 					label={actionLabel}
 					onDone={refresh}
 				/>
+			{:else if selected}
+				<div class="real-no-action">Registered. No intent verb is mapped for this resource type yet — commercial actions run through the workspace sections.</div>
 			{/if}
 		</div>
 	{/if}

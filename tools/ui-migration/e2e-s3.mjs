@@ -91,7 +91,7 @@ step('S3 setup: signed in with real session', !p.url().includes('/auth/'), p.url
 // session cookie from inside the page — real API, no fixtures).
 const real = await p.evaluate(async () => {
   const ws = await (await fetch('/api/v1/workspaces', { credentials: 'include' })).json();
-  const first = ws.items?.[0];
+  const first = ws.items?.find(w => w.kind === 'server') ?? ws.items?.[0];
   const rs = first
     ? await (await fetch(`/api/v1/resources?scope_id=${encodeURIComponent(first.workspace_id)}`, { credentials: 'include' })).json()
     : { items: [] };
@@ -112,7 +112,7 @@ if (Boolean(real.wsName) && real.resCount === 0) {
   step('S3 setup: resource registered via real createResource API (server.owner: host snapshot)', created === 201, `status=${created}`);
   Object.assign(real, await p.evaluate(async () => {
     const ws = await (await fetch('/api/v1/workspaces', { credentials: 'include' })).json();
-    const first = ws.items?.[0];
+    const first = ws.items?.find(w => w.kind === 'server') ?? ws.items?.[0];
     const rs = await (await fetch(`/api/v1/resources?scope_id=${encodeURIComponent(first.workspace_id)}`, { credentials: 'include' })).json();
     return { resName: rs.items?.[0]?.name ?? '', resCount: rs.items?.length ?? 0 };
   }));

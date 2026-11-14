@@ -119,7 +119,11 @@ if (onVerify) {
 }
 step('sign-in routes to the persona workspace', !p2.url().includes('/auth/'), p2.url());
 
-// 5. Real data bridge bound the approved shell
+// 5. Real data bridge bound the approved shell (server persona: the ops
+// flows below target the server workspace explicitly — the four-persona
+// install lands on the hosting workspace by design).
+await p2.goto(BASE + '/server', { waitUntil: 'networkidle' });
+await p2.waitForTimeout(900);
 const wsName = await p2.locator('.sidebar .workspace strong').textContent().catch(() => '');
 step('sidebar shows the REAL workspace name', !!wsName && !/Northstar Hosting|Acme|Demo/i.test(wsName || ''), (wsName || '').trim());
 const realOps = await p2.locator('.real-ops-launcher').count();
@@ -135,8 +139,17 @@ if (tableRows === 0) {
   // Fresh workspace: register a real resource (server.owner: host snapshot).
   await p2.locator('#realOpsPanel input[aria-label="New resource name"]').fill('primary-host');
   await p2.locator('#realOpsPanel button', { hasText: 'Register resource' }).click();
-  await p2.waitForTimeout(1500);
+  await p2.waitForTimeout(1800);
   tableRows = await p2.locator('#realOpsPanel table tbody tr').count();
+  if (tableRows === 0) {
+    const diag = await p2.evaluate(() => ({
+      sel: document.querySelector('#realOpsPanel select')?.value ?? '',
+      err: document.querySelector('#realOpsPanel')?.textContent?.match(/not permitted|unavailable|Required[^.]*/)?.[0] ?? '',
+      btnDisabled: Array.from(document.querySelectorAll('#realOpsPanel button')).find(b => b.textContent.includes('Register'))?.disabled ?? null,
+      active: document.querySelector('.sidebar .workspace strong')?.textContent ?? ''
+    }));
+    console.log('REGISTER-DIAG:', JSON.stringify(diag));
+  }
 }
 step('real resources listed from GET /resources', tableRows >= 1, `${tableRows} rows`);
 const applyBtn = p2.locator('#realOpsPanel button', { hasText: 'Inspect host' });

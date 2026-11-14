@@ -21,7 +21,7 @@
 				? { type: 'filesystem entry', action: 'file.apply', label: 'Publish change' }
 				: $session.active?.kind === 'developer_project'
 					? { type: 'environment', action: 'runtime.toolchain.configure', label: 'Configure runtime' }
-					: { type: 'host snapshot', action: 'host.inspect', label: 'Inspect host' }
+					: { type: 'hosting account', action: '', label: '' } // hosting: real resource.link; account.provision is service-level (no intent verb yet)
 	);
 </script>
 
