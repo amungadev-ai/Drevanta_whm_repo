@@ -1,5 +1,33 @@
 # Installing Drevanta
 
+## Recovery (repair an existing installation without data loss)
+
+If an installation is partially broken (for example a dev.5 install that
+could not provision its dependencies), the recovery command repairs it in
+place — no operating-system reinstallation, no manual dependency
+installation, no deletion of existing Drevanta data:
+
+```bash
+curl -fsSL https://github.com/amungadev-ai/drevanta-distribution/releases/latest/download/bootstrap.sh | bash -s -- --recover
+```
+
+Recovery preserves the installation identity, SQLite databases, TLS
+certificate and pending owner claim; installs missing mandatory dependencies
+(nginx, Node.js, npm, curl, git); re-creates the nginx configuration;
+restarts the console frontend; and re-verifies every management access path
+before reporting `RECOVERY COMPLETE`. The onboarding URL is retrieved with
+`sudo drevanta-claim-token` in an interactive terminal (unchanged).
+
+## Dependency provisioning (what the installer installs)
+
+In every online mode — fresh, upgrade, recovery, or a locally downloaded
+artifact — the installer provisions the mandatory platform dependencies with
+apt: nginx, a supported Node.js runtime (>= 20), npm, curl and git, then
+verifies each one before anything is deployed. A missing or failing
+mandatory dependency aborts the installation BEFORE any Drevanta service is
+deployed or started. Only an explicit `--offline` invocation skips
+provisioning, and it then strictly verifies all dependencies first.
+
 ## The standard installation (recommended)
 
 1. SSH to your server as root:
