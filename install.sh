@@ -64,7 +64,7 @@ REPO="amungadev-ai/Drevanta_whm_repo"
 # scenarios) and verification harnesses. Default is GitHub. HTTPS-only.
 API="${DREVANTA_API_BASE:-https://api.github.com/repos/${REPO}}"
 PINNED_TAG="v1.0.0-owneraudit.1-dev.2"        # development release (owner-approved dev artifact)
-PINNED_COMMIT="PINNED_COMMIT_PLACEHOLDER"     # full commit the pinned dev release must be cut from
+PINNED_COMMIT="9bdce4da2656466512a2748bcea35d36f9b4129d"     # full commit the pinned dev release must be cut from
 REQ_TAG=""
 REQ_COMMIT=""
 TMPDIR_ARG=""
