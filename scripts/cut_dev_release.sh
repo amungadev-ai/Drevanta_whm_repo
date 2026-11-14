@@ -26,9 +26,19 @@ git diff --quiet || { echo "[FAIL] working tree not clean — commit first"; exi
 echo "== building artifact (gates included) =="
 bash scripts/build_install_package.sh
 COMMIT=$(git rev-parse HEAD)
-TARBALL="$(ls drevanta-install-*.tar.gz | head -1)"
+# Release-identity agreement: the packaged tarball must be the one cut from
+# THIS commit — never a stale artifact from an earlier commit (this exact
+# defect shipped dev.3: a stale -335c67d tarball was released under a
+# -dev.3/9bdce4d manifest).
+SHORT=$(git rev-parse --short HEAD)
+TARBALL="drevanta-install-1.0.0-owneraudit.1-${SHORT}.tar.gz"
+[[ -s "$TARBALL" ]] || { echo "[FAIL] expected artifact for THIS commit missing: $TARBALL"; ls drevanta-install-*.tar.gz 2>/dev/null; exit 1; }
+ls drevanta-install-*.tar.gz | grep -v "^$TARBALL$" >/dev/null && { echo "[FAIL] multiple artifacts present — clean stale artifacts first"; exit 1; }
 SHA256="$(sha256sum "$TARBALL" | awk '{print $1}')"
+[[ "$SHA256" == "$(awk '{print $1}' "$TARBALL.sha256")" ]] || { echo "[FAIL] sidecar digest mismatch"; exit 1; }
 VERSION_LINE="$(tar -xzOf "$TARBALL" "$(basename "${TARBALL%.tar.gz}")/VERSION" | head -1)"
+[[ "$VERSION_LINE" == "1.0.0-owneraudit.1+${COMMIT}" ]] || { echo "[FAIL] artifact VERSION '$VERSION_LINE' does not carry this commit ($COMMIT)"; exit 1; }
+echo "[OK] release identity agreement: tag=$TAG commit=$COMMIT artifact=$(basename "$TARBALL") version=$VERSION_LINE"
 
 echo "== generating MANIFEST.json =="
 python3 - "$TAG" "$COMMIT" "$TARBALL" "$SHA256" "$VERSION_LINE" > MANIFEST.json <<'PY'

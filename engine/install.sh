@@ -170,8 +170,11 @@ echo "========================================================"
 echo "[INFO] Stage 1/7 — System requirements (validation only — no changes yet)"
 ARCH="$(uname -m)"
 if [[ "$ARCH" == "x86_64" ]]; then ok "architecture x86_64 (supported)"; else fail "architecture $ARCH not supported by these artifacts (linux/amd64 required)"; fi
-OS_ID=""; OS_VER=""
-. /etc/os-release 2>/dev/null && { OS_ID="${ID:-}"; OS_VER="${VERSION_ID:-}"; }
+# Parse os-release in a SUBSHELL: sourcing it would clobber this engine's
+# $VERSION variable (os-release sets VERSION="13 (trixie)" etc.), which
+# corrupts the installation VERSION record and version-compatibility checks.
+OS_LINE="$(. /etc/os-release 2>/dev/null && printf '%s|%s' "${ID:-}" "${VERSION_ID:-}")"
+OS_ID="${OS_LINE%%|*}"; OS_VER="${OS_LINE#*|}"
 case "$OS_ID" in
   ubuntu) [[ "${OS_VER%%.*}" -ge 20 ]] && ok "OS: Ubuntu $OS_VER (supported)" || fail "OS: Ubuntu $OS_VER < 20.04 not supported" ;;
   debian) [[ "${OS_VER%%.*}" -ge 11 ]] && ok "OS: Debian $OS_VER (supported)" || fail "OS: Debian $OS_VER < 11 not supported" ;;
@@ -207,13 +210,26 @@ if [[ -n "$MGMT_DOMAIN" && ! "$MGMT_DOMAIN" =~ ^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.
   fail "management hostname '$MGMT_DOMAIN' is not a valid DNS name"
 fi
 
-# Port availability (including the public management port).
-for p in "$WEB_PORT" "$API_PORT" "$NGINX_PORT"; do
-  if ss -ltn "sport = :$p" 2>/dev/null | grep -q LISTEN; then fail "port $p already in use — choose another with --web-port/--api-port/--nginx-port"; else ok "port $p free"; fi
-done
-if [[ "$PRIVATE_MGMT" != "1" ]]; then
-  if ss -ltn "sport = :$MGMT_PORT" 2>/dev/null | grep -q LISTEN; then fail "management port $MGMT_PORT already in use — choose another with --mgmt-port"; else ok "management port $MGMT_PORT free"; fi
-fi
+# Port availability, distinguishing Drevanta-owned listeners (legitimate
+# during an upgrade: the replacement re-binds them) from unrelated conflicts
+# (always a hard failure).
+port_owner() { # port_owner <port> -> process name owning the listener or ""
+  ss -ltnp "sport = :$1" 2>/dev/null | grep LISTEN | grep -oP 'users:\(\("\K[^"]+' | head -1
+}
+check_port() { # check_port <port> <flag-name>
+  local p="$1" flag="$2" owner
+  if ! ss -ltn "sport = :$p" 2>/dev/null | grep -q LISTEN; then ok "port $p free ($flag)"; return 0; fi
+  owner="$(port_owner "$p")"
+  if [[ "$DO_UPGRADE" == "1" && "$owner" =~ ^(panel|helper|node|nginx)$ ]]; then
+    info "port $p in use by Drevanta ($owner) — legitimate during upgrade; the replacement re-binds it"
+  else
+    fail "port $p already in use${owner:+ by '$owner'} — choose another with $flag"
+  fi
+}
+check_port "$WEB_PORT" "--web-port"
+check_port "$API_PORT" "--api-port"
+check_port "$NGINX_PORT" "--nginx-port"
+[[ "$PRIVATE_MGMT" == "1" ]] || check_port "$MGMT_PORT" "--mgmt-port"
 
 # Management access address (detected; validation only — used later).
 if [[ -n "$ACCESS_IP" ]]; then
@@ -342,12 +358,16 @@ if [[ "$DO_UPGRADE" == "1" ]]; then
     exit 1
   fi
   BK="/var/backups/drevanta/upgrade-$(date -u +%Y%m%dT%H%M%SZ)"
-  step "upgrade: stop services (consistent backup follows)" bash -c "systemctl stop $SVC-panel $SVC-web $SVC-helper 2>/dev/null || true"
-  step "upgrade: backup data + config -> $BK" bash -c "mkdir -p '$BK' && chmod 700 '$BK' && tar -czf '$BK/data-etc.tar.gz' '$VAR' '$ETC' && chmod 600 '$BK/data-etc.tar.gz'"
-  step "upgrade: backup binaries" bash -c "tar -czf '$BK/bin.tar.gz' -C '$BASE' bin && chmod 600 '$BK/bin.tar.gz'"
-  step "upgrade: backup frontend bundle" bash -c "tar -czf '$BK/web.tar.gz' -C '$BASE' web && chmod 600 '$BK/web.tar.gz'"
-  step "upgrade: backup migrations" bash -c "tar -czf '$BK/migrations.tar.gz' -C '$BASE' migrations && chmod 600 '$BK/migrations.tar.gz'"
-  step "upgrade: backup systemd + nginx state + VERSION" bash -c "tar -czf '$BK/system-nginx.tar.gz' /etc/systemd/system/$SVC-panel.service /etc/systemd/system/$SVC-web.service /etc/systemd/system/$SVC-helper.service /etc/nginx/sites-available/$SVC*.conf /etc/nginx/sites-enabled/$SVC*.conf '$BASE/VERSION' 2>/dev/null; chmod 600 '$BK/system-nginx.tar.gz'"
+  # A failed service stop or an incomplete backup MUST prevent software
+  # replacement: no failure suppression on any mandatory operation below.
+  step "upgrade: stop services (failure aborts the upgrade)" bash -c "systemctl stop $SVC-panel $SVC-web $SVC-helper"
+  step "upgrade: database integrity check (stopped, consistent)" bash -c "sudo -u $USR python3 -c \"import sqlite3; r=sqlite3.connect('$VAR/panel.db').execute('PRAGMA integrity_check').fetchone()[0]; assert r=='ok', r\""
+  step "upgrade: backup data + config -> $BK" bash -c "mkdir -p '$BK' && chmod 700 '$BK' && tar -czf '$BK/data-etc.tar.gz' '$VAR' '$ETC' && chmod 600 '$BK/data-etc.tar.gz' && tar -tzf '$BK/data-etc.tar.gz' | grep -q '^var/lib/'"
+  step "upgrade: backup binaries" bash -c "tar -czf '$BK/bin.tar.gz' -C '$BASE' bin && chmod 600 '$BK/bin.tar.gz' && tar -tzf '$BK/bin.tar.gz' | grep -q 'bin/panel'"
+  step "upgrade: backup frontend bundle" bash -c "tar -czf '$BK/web.tar.gz' -C '$BASE' web && chmod 600 '$BK/web.tar.gz' && tar -tzf '$BK/web.tar.gz' | grep -q 'web/build'"
+  step "upgrade: backup migrations" bash -c "tar -czf '$BK/migrations.tar.gz' -C '$BASE' migrations && chmod 600 '$BK/migrations.tar.gz' && tar -tzf '$BK/migrations.tar.gz' | grep -q 'migrations/'"
+  step "upgrade: backup systemd + nginx state + VERSION" bash -c "tar -czf '$BK/system-nginx.tar.gz' /etc/systemd/system/$SVC-panel.service /etc/systemd/system/$SVC-web.service /etc/systemd/system/$SVC-helper.service /etc/nginx/sites-available/$SVC*.conf /etc/nginx/sites-enabled/$SVC*.conf '$BASE/VERSION' && chmod 600 '$BK/system-nginx.tar.gz' && tar -tzf '$BK/system-nginx.tar.gz' | grep -q '$SVC-panel.service'"
+  step "upgrade: backup completeness verified" bash -c "for a in data-etc bin web migrations system-nginx; do b='$BK/'\$a.tar.gz; [[ -s \$b ]] || exit 1; tar -tzf \$b >/dev/null || exit 1; done"
   step "upgrade: staged replacement — binaries" bash -c "mkdir -p '$BASE/.staging/bin' && install -m 0755 '$PKGDIR/bin/helper' '$PKGDIR/bin/panel' '$BASE/.staging/bin/' && rm -rf '$BASE/bin' && mv '$BASE/.staging/bin' '$BASE/bin' && rmdir '$BASE/.staging'"
   step "upgrade: staged replacement — console bundle" bash -c "mkdir -p '$BASE/.staging' && cp -r '$PKGDIR/web' '$BASE/.staging/web' && rm -rf '$BASE/web' && mv '$BASE/.staging/web' '$BASE/web' && chown -R root:root '$BASE/web' && rmdir '$BASE/.staging'"
   step "upgrade: staged replacement — migrations" bash -c "rm -rf '$BASE/migrations' && cp -r '$PKGDIR/migrations' '$BASE/migrations'"
@@ -416,16 +436,19 @@ if [[ "$DO_UPGRADE" == "1" ]]; then
       a="${pair%%:*}"; dest="${pair#*:}"
       tar -xzf "$BK/$a.tar.gz" -C "$dest" 2>/dev/null || { echo "[FAIL] rollback: archive $a.tar.gz could not be restored"; RB_OK=0; }
     done
+    rm -rf "$BASE/.staging" 2>/dev/null   # remove incompatible leftovers of the failed replacement
+    step "rollback: nginx configuration valid + reloaded" bash -c "nginx -t && (systemctl reload nginx || systemctl restart nginx)"
     systemctl daemon-reload
-    systemctl start "$SVC-helper" "$SVC-panel" "$SVC-web" 2>/dev/null || true
+    systemctl start "$SVC-helper" "$SVC-panel" "$SVC-web"
     RBH="not verified"
     if [[ "$RB_OK" == "1" ]]; then
       pst=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "http://127.0.0.1:$API_PORT/api/v1/install/status" 2>/dev/null || true)
       wst=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "http://127.0.0.1:$WEB_PORT/" 2>/dev/null || true)
+      RVER="$(head -1 "$BASE/VERSION" 2>/dev/null || echo unknown)"
       if [[ "$pst" == "200" && "$wst" =~ ^(200|302|307)$ && -S "$RUN/helper.sock" ]]; then
-        RBH="previous version restored and healthy"
+        RBH="previous version $RVER restored and healthy (local checks only: panel:$pst web:$wst helper-socket:present; real supervision + external reachability must be confirmed on the host)"
       else
-        RBH="previous version restored but NOT healthy (panel:$pst web:$wst) — investigate journalctl -u $SVC-panel"
+        RBH="previous version ($RVER) restored but NOT healthy (panel:$pst web:$wst) — investigate journalctl -u $SVC-panel"
         RB_OK=0
       fi
     fi
@@ -651,6 +674,11 @@ Environment=PORT=$WEB_PORT
 Environment=HOST=127.0.0.1
 Environment=GO_API_URL=http://127.0.0.1:$API_PORT
 Environment=NODE_ENV=production
+# Behind nginx: derive the external origin (https://ip:8443 / tunnel http)
+# from the forwarded headers so SvelteKit origin validation, secure-cookie
+# behavior and CSRF checks match what the browser actually used.
+Environment=PROTOCOL_HEADER=x-forwarded-proto
+Environment=HOST_HEADER=host
 Restart=on-failure
 RestartSec=2
 NoNewPrivileges=yes
@@ -726,6 +754,11 @@ NG
 fi
 
 # Claim-token management wrapper (root-only retrieval + recovery).
+# Disclosure protection mirrors the installer summary: token material is
+# printed ONLY to an interactive terminal, ONLY while the installation is
+# pending, and ONLY for an unexpired token. Consumed, expired or stale
+# plaintext tokens are refused (and stale files removed) before anything is
+# disclosed. The wrapper's output is never written to any persistent log.
 cat > /usr/local/bin/drevanta-claim-token <<CTW
 #!/usr/bin/env bash
 # Drevanta claim-token retrieval + authorized recovery (root only).
@@ -737,9 +770,43 @@ set -uo pipefail
 ETC="$ETC"; VAR="$VAR"; BASE="$BASE"; USR="$USR"
 ACCESS_IP="$ACCESS_IP"; MGMT_PORT="$MGMT_PORT"; PRIVATE_MGMT="$PRIVATE_MGMT"
 [[ \$EUID -eq 0 ]] || { echo "root only" >&2; exit 2; }
-[[ -s "\$ETC/claim-token" ]] || { echo "no outstanding claim token (installation already claimed or not initialized)" >&2; exit 1; }
-EXP="unknown issue time"
-[[ -f "\$ETC/claim-token-created" ]] && EXP="\$(date -u -d "\$(cat "\$ETC/claim-token-created") +24 hours" '+%Y-%m-%d %H:%M UTC' 2>/dev/null || echo 'issue time + 24h')"
+# Disclosure gate 1: no token material on non-interactive stdout.
+if [[ ! -t 1 ]]; then
+  echo "[refused] this output is not an authorized interactive terminal; claim-token material is suppressed." >&2
+  echo "Run 'sudo drevanta-claim-token' inside your interactive terminal session." >&2
+  exit 2
+fi
+# Disclosure gate 2: installation state must still be pending.
+state=\$(sudo -u "\$USR" python3 -c "
+import sqlite3
+try: print(sqlite3.connect('$VAR/panel.db').execute('select state from installation limit 1').fetchone()[0])
+except Exception: print('unknown')" 2>/dev/null || echo unknown)
+if [[ "\$state" != "pending" ]]; then
+  echo "No outstanding claim token (installation state: \$state; consumed/stale tokens can no longer be claimed)." >&2
+  if [[ -s "\$ETC/claim-token" ]]; then
+    shred -u "\$ETC/claim-token" 2>/dev/null || rm -f "\$ETC/claim-token"
+    echo "Stale plaintext token file removed." >&2
+  fi
+  exit 1
+fi
+[[ -s "\$ETC/claim-token" ]] || { echo "state is pending but no token file exists — reissue: sudo drevanta-claim-token --regenerate" >&2; exit 1; }
+# Disclosure gate 3: expiry.
+CREATED=""
+[[ -f "\$ETC/claim-token-created" ]] && CREATED="\$(cat "\$ETC/claim-token-created")"
+if [[ -n "\$CREATED" ]]; then
+  EXP_EPOCH=\$(date -u -d "\$CREATED +24 hours" +%s 2>/dev/null || echo 0)
+  NOW_EPOCH=\$(date -u +%s)
+  if [[ "\$EXP_EPOCH" -eq 0 || "\$NOW_EPOCH" -ge "\$EXP_EPOCH" ]]; then
+    echo "The outstanding claim token has EXPIRED (issued \$CREATED, TTL 24h) and can no longer be claimed." >&2
+    echo "Reissue before claiming: sudo drevanta-claim-token --regenerate" >&2
+    exit 1
+  fi
+  EXP="\$(date -u -d "\$CREATED +24 hours" '+%Y-%m-%d %H:%M UTC' 2>/dev/null || echo 'issue time + 24h')"
+else
+  echo "No issue-time record for the outstanding token — refusing disclosure (treat as expired)." >&2
+  echo "Reissue: sudo drevanta-claim-token --regenerate" >&2
+  exit 1
+fi
 case "\${1:-}" in
   --url)
     if [[ "\$PRIVATE_MGMT" == "1" ]]; then echo "private-management mode: no public onboarding URL exists — use the SSH tunnel URL from the installation summary" >&2; exit 1; fi
@@ -764,7 +831,7 @@ case "\${1:-}" in
 esac
 CTW
 chmod 755 /usr/local/bin/drevanta-claim-token
-ok "claim-token retrieval command installed: sudo drevanta-claim-token"
+ok "claim-token retrieval command installed: sudo drevanta-claim-token (interactive-terminal, state and expiry gated)"
 
 # Machine-readable installation report (NO token material).
 python3 - "$SVC" "$INSTANCE" "$VERSION" "$ACCESS_IP" "$MGMT_PORT" "$PRIVATE_MGMT" "$TLS_FINGERPRINT" "$INSTALL_LOG" "$ETC" <<'RPT'

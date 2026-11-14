@@ -67,6 +67,7 @@ PINNED_TAG="v1.0.0-owneraudit.1-dev.2"        # development release (owner-appro
 PINNED_COMMIT="9bdce4da2656466512a2748bcea35d36f9b4129d"     # full commit the pinned dev release must be cut from
 REQ_TAG=""
 REQ_COMMIT=""
+EXPECT_SHA=""
 TMPDIR_ARG=""
 KEEP="0"
 TOKEN_VAR=""
@@ -75,6 +76,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --version) REQ_TAG="$2"; shift 2 ;;
     --require-commit) REQ_COMMIT="$2"; shift 2 ;;
+    --expect-artifact-sha) EXPECT_SHA="$2"; shift 2 ;;
     --tmpdir) TMPDIR_ARG="$2"; shift 2 ;;
     --keep) KEEP="1"; shift ;;
     -h|--help) sed -n '2,45p' "$0" | grep -E '^#'; exit 0 ;;
@@ -98,11 +100,15 @@ fi
 if ! command -v apt-get >/dev/null 2>&1; then
   echo "[FAIL] apt-get not found — supported: Ubuntu 20.04+, Debian 11+ (Debian family)"; exit 1
 fi
-. /etc/os-release 2>/dev/null || { echo "[FAIL] /etc/os-release unreadable — unsupported system"; exit 1; }
-case "${ID:-}" in
-  ubuntu) [[ "${VERSION_ID%%.*}" -ge 20 ]] || { echo "[FAIL] Ubuntu ${VERSION_ID} < 20.04 is not supported"; exit 1; } ;;
-  debian) [[ "${VERSION_ID%%.*}" -ge 11 ]] || { echo "[FAIL] Debian ${VERSION_ID} < 11 is not supported"; exit 1; } ;;
-  *) echo "[FAIL] unsupported distribution '${ID:-unknown}' — supported: Ubuntu 20.04+, Debian 11+"; exit 1 ;;
+# Parse os-release in a SUBSHELL (sourcing it would clobber shell variables
+# such as VERSION with the distribution's values).
+OS_LINE="$(. /etc/os-release 2>/dev/null && printf '%s|%s' "${ID:-}" "${VERSION_ID:-}")" \
+  || { echo "[FAIL] /etc/os-release unreadable — unsupported system"; exit 1; }
+OS_ID="${OS_LINE%%|*}"; OS_VER="${OS_LINE#*|}"
+case "$OS_ID" in
+  ubuntu) [[ "${OS_VER%%.*}" -ge 20 ]] || { echo "[FAIL] Ubuntu ${OS_VER} < 20.04 is not supported"; exit 1; } ;;
+  debian) [[ "${OS_VER%%.*}" -ge 11 ]] || { echo "[FAIL] Debian ${OS_VER} < 11 is not supported"; exit 1; } ;;
+  *) echo "[FAIL] unsupported distribution '${OS_ID:-unknown}' — supported: Ubuntu 20.04+, Debian 11+"; exit 1 ;;
 esac
 echo "[OK]   platform: ${PRETTY_NAME:-unknown} ($ARCH)"
 for c in curl tar sha256sum python3; do
@@ -222,6 +228,12 @@ print(str(m['artifacts'][sys.argv[2]]).lower())" "$WORK/MANIFEST.json" "$ART_NAM
 MANIFEST_COMMIT="$(python3 -c "
 import json,sys
 print(json.load(open(sys.argv[1]))['commit'])" "$WORK/MANIFEST.json")"
+MANIFEST_ARTIFACT="$(python3 -c "
+import json,sys
+print(json.load(open(sys.argv[1]))['artifact'])" "$WORK/MANIFEST.json" 2>/dev/null || true)"
+MANIFEST_VERSION="$(python3 -c "
+import json,sys
+print(json.load(open(sys.argv[1]))['version'])" "$WORK/MANIFEST.json")"
 # Bind the pinned development release (and any explicit --require-commit) to
 # the exact expected full commit.
 if [[ "$TAG" == "$PINNED_TAG" && "$MANIFEST_COMMIT" != "$PINNED_COMMIT" ]]; then
@@ -229,6 +241,15 @@ if [[ "$TAG" == "$PINNED_TAG" && "$MANIFEST_COMMIT" != "$PINNED_COMMIT" ]]; then
 fi
 if [[ -n "$REQ_COMMIT" && "$MANIFEST_COMMIT" != "$REQ_COMMIT" ]]; then
   echo "[FAIL] requested commit mismatch: manifest $MANIFEST_COMMIT != expected $REQ_COMMIT — refusing to install"; exit 1
+fi
+if [[ -n "$EXPECT_SHA" && "${EXPECT_SHA,,}" != "$MANIFEST_SHA" ]]; then
+  echo "[FAIL] artifact digest mismatch: manifest $MANIFEST_SHA != independently communicated $EXPECT_SHA — refusing to install"; exit 1
+fi
+if [[ -z "$MANIFEST_ARTIFACT" || "$MANIFEST_ARTIFACT" != "$ART_NAME" ]]; then
+  echo "[FAIL] manifest artifact identity mismatch: manifest declares '${MANIFEST_ARTIFACT:-none}' but the release asset is '$ART_NAME' — refusing to install"; exit 1
+fi
+if [[ "$MANIFEST_VERSION" != *"+$MANIFEST_COMMIT" ]]; then
+  echo "[FAIL] manifest version '$MANIFEST_VERSION' does not carry the release commit $MANIFEST_COMMIT — refusing to install"; exit 1
 fi
 echo "[OK]   trusted manifest validated (product, channel, tag, commit, version, artifact identity)"
 [[ "$TAG" == "$PINNED_TAG" ]] && echo "[OK]   pinned release bound to commit $PINNED_COMMIT"
@@ -314,10 +335,13 @@ if missing:
     print("\n".join(missing[:5])); sys.exit(1)
 PY
 echo "[OK]   internal SHA256SUMS verified with complete file coverage"
+ART_VERSION="$(head -1 "$PKG_DIR/VERSION")"
+[[ "$ART_VERSION" == "$MANIFEST_VERSION" ]] \
+  || { echo "[FAIL] artifact VERSION '$ART_VERSION' disagrees with the manifest version '$MANIFEST_VERSION' — refusing to install"; exit 1; }
+echo "[OK]   release identity agreement: tag=$TAG commit=$MANIFEST_COMMIT version=$MANIFEST_VERSION artifact=$ART_NAME"
 ART_SAVED="1"   # --keep may now preserve the workspace (credentials already removed)
 
 # 9. Provenance + credential scrub + engine execution (child process) ---------
-ART_VERSION="$(head -1 "$PKG_DIR/VERSION")"
 echo "--------------------------------------------------------"
 echo "[INFO] Installed version : $ART_VERSION"
 echo "[INFO] Release tag       : $TAG (pinned default)"

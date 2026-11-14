@@ -57,6 +57,20 @@ printf '#!/usr/bin/env bash\nexit 0\n' > "$STUB/nginx"
 printf '#!/usr/bin/env bash\nexit 0\n' > "$STUB/apt-get"
 printf '#!/usr/bin/env bash\nexit 1\n' > "$STUB/ss"   # no listeners: ports free
 printf '#!/usr/bin/env bash\n[[ "$1" == status ]] && echo "Status: inactive"\nexit 0\n' > "$STUB/ufw"
+cat > "$STUB/ss" <<'SSEOF'
+#!/usr/bin/env bash
+if [[ -e /tmp/drevanta-simulate-owned-ports ]]; then
+  for p in 80 8080 3100 8443; do
+    echo "LISTEN 0 128 127.0.0.1:$p 0.0.0.0:* users:((\"node\",pid=4242,fd=20))"
+  done
+  exit 0
+fi
+if [[ -e /tmp/drevanta-simulate-foreign-port ]]; then
+  echo 'LISTEN 0 128 0.0.0.0:3100 0.0.0.0:* users:(("someapp",pid=99,fd=5))'
+  exit 0
+fi
+exit 1
+SSEOF
 cat > "$STUB/useradd" <<'EOF'
 #!/usr/bin/env bash
 U="${@: -1}"
@@ -157,7 +171,7 @@ mk_manifest() { # mk_manifest <sha> <commit> [product] [tag]
 import json, sys
 sha, commit = sys.argv[1], sys.argv[2]
 m = {"product":"Drevanta","channel":"development-prerelease","tag":"vTEST",
-     "commit":commit,"version":"1.0.0-TEST+testcommit","generated_at":"2026-01-01T00:00:00Z",
+     "commit":commit,"version":"1.0.0-TEST+" + commit,"generated_at":"2026-01-01T00:00:00Z",
      "artifact":"drevanta-install-1.0.0-owneraudit.1-TEST.tar.gz",
      "artifacts":{"drevanta-install-1.0.0-owneraudit.1-TEST.tar.gz":sha},
      "verification":"bootstrap verifies the artifact against this manifest AND the artifact-internal SHA256SUMS"}
@@ -171,7 +185,7 @@ mk_artifact() { # mk_artifact <dir> <engine-script-content> [unsafe|uncovered]
   local p="$d/drevanta-install-1.0.0-owneraudit.1-TEST"
   local variant="${3:-ok}"
   mkdir -p "$p/bin" "$p/infra/etc"
-  printf '1.0.0-TEST+testcommit\nbuilt test\n' > "$p/VERSION"
+  printf '1.0.0-TEST+1111111111111111111111111111111111111111\nbuilt test\n' > "$p/VERSION"
   printf '%s' "$2" > "$p/install.sh"; chmod 755 "$p/install.sh"
   printf 'stub-helper\n' > "$p/bin/helper"
   printf '{}\n' > "$p/infra/etc/helper-policy.json"
@@ -215,6 +229,28 @@ start_mock 18502 "$ART" "$GOOD_MANIFEST" deny
 start_mock 18503 "$ART" "$BAD_SCHEMA_MANIFEST" ok
 start_mock 18504 "$UNSAFE_ART" "$(mk_manifest "$UNSAFE_SHA" "1111111111111111111111111111111111111111")" ok
 start_mock 18505 "$UNCOVERED_ART" "$(mk_manifest "$UNCOVERED_SHA" "1111111111111111111111111111111111111111")" ok
+# 18507: manifest version does not carry the release commit (stale metadata)
+mk_manifest_variant() { # mk_manifest_variant <port-file> <python-key-expr> ...
+  python3 - "$ART_SHA" "1111111111111111111111111111111111111111" "$1" "$2" <<'PY'
+import json, sys
+sha, commit, path, variant = sys.argv[1:5]
+m = {"product":"Drevanta","channel":"development-prerelease","tag":"vTEST","commit":commit,
+     "version":"1.0.0-TEST+" + commit,"generated_at":"2026-01-01T00:00:00Z",
+     "artifact":"drevanta-install-1.0.0-owneraudit.1-TEST.tar.gz",
+     "artifacts":{"drevanta-install-1.0.0-owneraudit.1-TEST.tar.gz":sha},
+     "verification":"bootstrap verifies the artifact against this manifest AND the artifact-internal SHA256SUMS"}
+if variant == "stale-version":
+    m["version"] = "1.0.0-owneraudit.1+335c67dc485dc04a0fd36a08d3c5e82561d98fd0"
+if variant == "wrong-artifact":
+    m["artifact"] = "drevanta-install-1.0.0-owneraudit.1-OTHERCOMMIT.tar.gz"
+open(path, "w").write(json.dumps(m))
+PY
+}
+mk_manifest_variant "$T1/vmm.json" stale-version
+start_mock 18507 "$ART" "$(cat "$T1/vmm.json")" ok
+mk_manifest_variant "$T1/aid.json" wrong-artifact
+start_mock 18508 "$ART" "$(cat "$T1/aid.json")" ok
+sleep 0.5
 sleep 1
 
 run_boot 18499 "$T1/w1" -- --help > "$T1/out1" 2>&1; r=$?
@@ -252,6 +288,17 @@ has "T1 neg: coverage reported" "$T1/out7" "coverage INCOMPLETE"
 # Corrupted artifact (truncated): use the corrupt tarball via a mock
 start_mock 18506 "$CORRUPT" "$(mk_manifest "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" "1111111111111111111111111111111111111111")" ok
 sleep 0.5
+run_boot 18507 "$T1/w9" > "$T1/out9" 2>&1; r=$?
+[[ "$r" != "0" ]] && ok "T1 neg: stale version metadata refuses (exit $r)" || bad "T1 neg: version metadata NOT enforced"
+has "T1 neg: version-commit mismatch reported" "$T1/out9" "does not carry the release commit"
+run_boot 18508 "$T1/w10" > "$T1/out10" 2>&1; r=$?
+[[ "$r" != "0" ]] && ok "T1 neg: manifest artifact identity mismatch refuses (exit $r)" || bad "T1 neg: artifact identity NOT enforced"
+has "T1 neg: artifact identity mismatch reported" "$T1/out10" "artifact identity mismatch"
+run_boot 18499 "$T1/w11" --expect-artifact-sha 0000000000000000000000000000000000000000000000000000000000000000 > "$T1/out11" 2>&1; r=$?
+[[ "$r" != "0" ]] && ok "T1: --expect-artifact-sha mismatch refuses (exit $r)" || bad "T1: expect-sha NOT enforced"
+has "T1: independently communicated digest mismatch reported" "$T1/out11" "independently communicated"
+run_boot 18499 "$T1/w12" --expect-artifact-sha "$ART_SHA" > "$T1/out12" 2>&1; r=$?
+[[ "$r" == "0" ]] && ok "T1: --expect-artifact-sha match installs" || bad "T1: expect-sha match failed (exit $r)"
 run_boot 18506 "$T1/w8" > "$T1/out8" 2>&1; r=$?
 [[ "$r" != "0" ]] && ok "T1 neg: corrupted artifact fails (exit $r)" || bad "T1 neg: corruption NOT detected"
 has "T1 neg: corruption reported" "$T1/out8" "MISMATCH|corrupted|listing failed"
@@ -295,8 +342,27 @@ r acc1 --instance acc1 --access-ip 203.0.113.7
 ri acc1i --instance acc4 --access-ip 203.0.113.7
 # existing-install protection
 r acc1b --instance acc1 --access-ip 203.0.113.7
-# upgrade (management port change 8443 -> 9443)
+# upgrade with Drevanta-owned listeners present (must be legitimate)
+touch /tmp/drevanta-simulate-owned-ports
 r acc1c --instance acc1 --upgrade --access-ip 203.0.113.7 --mgmt-port 9443
+rm -f /tmp/drevanta-simulate-owned-ports
+# unrelated port conflict (must be refused, nothing modified)
+touch /tmp/drevanta-simulate-foreign-port
+r acc10 --instance acc10 --access-ip 203.0.113.7
+rm -f /tmp/drevanta-simulate-foreign-port
+# claim-token CLI disclosure gates
+/usr/local/bin/drevanta-claim-token > "$T2/wrap1" 2>&1; echo $? > "$T2/wrap1.rc"   # non-TTY -> refused (acc2 pending)
+python3 - <<'PYEOF2'
+import sqlite3
+db = sqlite3.connect('/var/lib/drevanta-acc2/panel.db')
+db.execute("update installation set state='claimed'")
+db.commit()
+PYEOF2
+/usr/local/bin/drevanta-claim-token > "$T2/wrap2" 2>&1; echo $? > "$T2/wrap2.rc"   # claimed -> refused + stale file removed
+# adapter-node forwarded-protocol environment present in the generated unit
+grep -q "PROTOCOL_HEADER" /etc/systemd/system/drevanta-acc1-web.service && echo present > "$T2/protohdr" || echo missing > "$T2/protohdr"
+# installed VERSION record must be the artifact version (os-release clobber guard)
+head -1 /opt/drevanta-acc1/VERSION > "$T2/basever" 2>/dev/null || echo missing > "$T2/basever"
 # public listener withdrawal
 r acc1d --instance acc1 --upgrade --access-ip 203.0.113.7 --private-mgmt
 # lock contention
@@ -386,7 +452,8 @@ SEOF
 
   # --- verified rollback ---
   r=$(cat "$T2/acc1e.rc"); [[ "$r" != "0" ]] && ok "T2: forced upgrade failure exits non-zero (exit $r)" || bad "T2: forced failure not reported"
-  has "T2: rollback verified healthy" "$T2/acc1e.log" "rollback verified: previous version restored and healthy"
+  has "T2: rollback verified healthy (true previous version named)" "$T2/acc1e.log" "rollback verified: previous version 1\.0\.0-owneraudit\.1\+[0-9a-f]{40} restored"
+  has "T2: rollback health evidence + simulation disclosure" "$T2/acc1e.log" "local checks only: panel:200 web:200"
   r=$(cat "$T2/acc1f.rc"); [[ "$r" != "0" ]] && ok "T2: rollback-failure path exits non-zero (exit $r)" || bad "T2: rollback-failure exit"
   has "T2: rollback INCOMPLETE reported honestly" "$T2/acc1f.log" "rollback INCOMPLETE"
 

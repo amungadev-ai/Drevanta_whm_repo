@@ -16,7 +16,9 @@ go vet ./...
 echo "== gate: tests =="
 go test ./... -count=1
 
+rm -f drevanta-install-*.tar.gz drevanta-install-*.tar.gz.sha256   # never leave stale artifacts for a later cut to pick up
 COMMIT=$(git rev-parse --short HEAD)
+COMMIT_FULL=$(git rev-parse HEAD)
 VERSION="1.0.0-owneraudit.1"
 OUT="drevanta-install-${VERSION}-${COMMIT}"
 echo "== assembling $OUT =="
