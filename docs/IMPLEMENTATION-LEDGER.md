@@ -208,3 +208,18 @@ interrupted-operation recovery (DispatchGuard reauthorization demonstrated as a
 security property), failed-upgrade rollback, reboot convergence (6 services),
 firewall + SSH safety rollback. Release reconciliation produced for all 404 scope
 rows (release-reconciliation.csv).
+
+## G31 wave (2026-11-14, DEC-016/021/022 rulings)
+
+Mail lifecycle completed and client-verified on the VPS (SSHA512 dovecot-order
+digests with round-trip test — plaintext never at rest; generated passwords
+returned once; suspension revokes auth while preserving mail; alias forwarding
+delivered end-to-end; cross-tenant maildir isolation; IMAP LOGIN verified).
+DEC-016 infrastructure services implemented + drilled: Redis/Valkey
+(verb-driven install, isolated port, PING PONG), authoritative DNS zones
+(nsd-checkzone ok), OCI containers (hardened lifecycle via verb). WEB-07
+scoped terminal sessions (sandboxed, audited, interpreter allowlist).
+Commercial core: DEC-022 validated configuration + tax math; sandbox payment
+adapter (idempotency, webhook HMAC + replay). Remaining engineering is
+explicitly owned by engineering (BLK-006b/009); owner input only for the
+second clean-VPS DR environment (BLK-010).

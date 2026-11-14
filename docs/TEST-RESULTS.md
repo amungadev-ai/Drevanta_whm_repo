@@ -78,3 +78,12 @@ VPS targets per graph G20+. CI adds `-race`.
 | G50 failed-upgrade rollback | VPS drill | D8 | **PASS** | this wave |
 | G50 reboot convergence (6 services) | VPS drill | D9 | **PASS** | this wave |
 | G50 firewall + SSH safety rollback | VPS drill | D10 | **PASS** | this wave |
+
+| DEC-016 Redis/Valkey provisioning (verb-driven apt + config + isolated port) | unit + VPS drill | infra_verbs_test.go; VPS: Redis 8.0.5 install via verb, PING→PONG | **PASS** | 534e87b |
+| DEC-016 authoritative DNS zones (RFC1035 synthesis + nsd-checkzone) | unit + VPS drill | infra_verbs_test.go; VPS: zone written via verb, nsd-checkzone OK | **PASS** | 534e87b |
+| DEC-016 OCI containers (pull/run/stop/remove, hardened flags) | unit + VPS drill | infra_verbs_test.go; VPS: pull/stop/remove via verb; hardened run verified (read-only, cap-drop=all) | **PASS (run polish noted)** | 534e87b |
+| WEB-07 scoped terminal session (sandboxed, audited, interpreter allowlist) | unit + VPS drill | exec_commercial_test.go; VPS: sandboxed exec exit 0, rm rejected + journaled | **PASS** | 5534ecd |
+| Mail lifecycle: SSHA512 password change (dovecot order verified), suspension/resume auth cycle, alias forwarding E2E, cross-tenant isolation | unit + VPS client drill | mail_toolchain_verbs_test.go; VPS: doveadm pw -t VERIFIED, suspended auth rejected, forwarded mail delivered, per-domain namespaces | **PASS** | 534e87b |
+| IMAP LOGIN with hashed passdb (real client auth) | VPS client drill | VPS: imaplib LOGIN OK against {SSHA512} passdb | **PASS (LOGIN)** | this wave |
+| Sandbox payment gateway (charge/idempotency/decline, webhook HMAC+replay) | unit (fixture server) | payments_test.go | **PASS** | 514ad00 |
+| Commercial config validation + tax math (exclusive/inclusive) | unit | exec_commercial_test.go | **PASS** | 2fcba09 |

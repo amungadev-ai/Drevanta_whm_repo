@@ -2,7 +2,7 @@
 
 Updated: 2026-11-14 (G30/G50 wave) · Head: see git log · CI: required check `test`
 
-## Status: NOT release-certified (owner gate required)
+## Status: NOT release-certified — engineering waves in progress (owner gate + engineering gates both required)
 
 The platform is feature-complete for the implemented scope with REAL executed
 evidence at every layer (unit/integration suites, browser e2e, fidelity baselines,
@@ -29,7 +29,7 @@ no engineering blocker remains unowned.
 | # | Blocker | Owner input needed |
 | --- | --- | --- |
 | 1 | BLK-005/008: 13 AMBIGUOUS-OWNER scope rows (DEC-016) | batch ruling |
-| 2 | BLK-007: unimplemented spec sections (Resource Intelligence Center, platform settings/integrations, quotas/admission, org relationships) — see reconciliation | include now or later module |
+| 2 | BLK-007 + BLK-006b/009 (ENGINEERING-OWNED, not owner-deferrable): Resource Intelligence Center, platform settings/integrations, quotas/admission, org hierarchies; IMAP INBOX path (dovecot 2.4), PTY streaming, container run idempotency, POP3/webmail; frontend wiring of new surfaces (mail card per DEC-021, DNS/cache/terminal/containers) + fidelity baselines | engineering execution waves |
 | 3 | BLK-001/DEC-015: gateway credentials (TEST-mode path documented, DEC-020) | provider + test key |
 | 4 | BLK-003/DEC-013: gateway credentials prod + domain for TLS ACME (DEC-019) | production inputs |
 | 5 | TAX/SLA/OPS values (docs/OWNER-DECISIONS-REQUIRED.md T-1..O-5) | policy values |
