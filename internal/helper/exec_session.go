@@ -26,13 +26,43 @@ type ExecOpenArgs struct {
 
 // ExecSession is one live PTY session.
 type ExecSession struct {
-	mu       sync.Mutex
 	cmd      *exec.Cmd
 	stdin    interface{ Write([]byte) (int, error) }
-	stdout   *strings.Builder
+	stdout   *syncBuffer
 	expires  time.Time
 	binding  string
 	shellCmd string
+}
+
+// syncBuffer is a goroutine-safe accumulator with a persistent read cursor:
+// output produced between client polls is never lost (the exec.Cmd copy
+// goroutine and verb handlers both touch it).
+type syncBuffer struct {
+	mu     sync.Mutex
+	b      strings.Builder
+	cursor int
+}
+
+func (s *syncBuffer) Write(p []byte) (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.b.Write(p)
+}
+
+// ReadNew returns output accumulated since the previous ReadNew call.
+func (s *syncBuffer) ReadNew() string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	all := s.b.String()
+	if s.cursor >= len(all) {
+		return ""
+	}
+	chunk := all[s.cursor:]
+	if len(chunk) > 64*1024 {
+		chunk = chunk[len(chunk)-64*1024:]
+	}
+	s.cursor = len(all)
+	return chunk
 }
 
 var (
@@ -67,7 +97,7 @@ func ExecOpenHandler() VerbHandler {
 			return nil, err
 		}
 		// `script` allocates a real PTY; the helper pipes stdin/stdout.
-		runArgs := []string{"--quiet", "--wait",
+		runArgs := []string{"--quiet", "--wait", "--pipe",
 			"-p", "CPUQuota=50%", "-p", "MemoryMax=512M", "-p", "TasksMax=64",
 			"--uid=nobody", "-p", "WorkingDirectory=" + root,
 			"-p", "PrivateNetwork=yes"}
@@ -80,7 +110,7 @@ func ExecOpenHandler() VerbHandler {
 		if err != nil {
 			return nil, fmt.Errorf("session stdin failed")
 		}
-		out := &strings.Builder{}
+		out := &syncBuffer{}
 		cmd.Stdout = out
 		cmd.Stderr = out
 		if err := cmd.Start(); err != nil {
@@ -123,8 +153,6 @@ func ExecWriteHandler() VerbHandler {
 		if !ok {
 			return nil, fmt.Errorf("session not found or expired")
 		}
-		s.mu.Lock()
-		defer s.mu.Unlock()
 		if time.Now().After(s.expires) {
 			_ = s.cmd.Process.Kill()
 			execSessionsMu.Lock()
@@ -135,24 +163,12 @@ func ExecWriteHandler() VerbHandler {
 		if _, err := s.stdin.Write([]byte(a.Input)); err != nil {
 			return nil, fmt.Errorf("session write failed")
 		}
-		time.Sleep(120 * time.Millisecond) // small read window
-		before := s.stdout.Len()
+		time.Sleep(300 * time.Millisecond) // small read window
 		return json.Marshal(map[string]any{
 			"session": a.Session, "state": "streaming",
-			"output_chunk": chunkOf(s.stdout.String(), before),
+			"output_chunk": s.stdout.ReadNew(),
 		})
 	}
-}
-
-func chunkOf(all string, before int) string {
-	if before >= len(all) {
-		return ""
-	}
-	chunk := all[before:]
-	if len(chunk) > 64*1024 {
-		chunk = chunk[len(chunk)-64*1024:]
-	}
-	return chunk
 }
 
 // ExecCloseHandler revokes a session immediately (owner of the scope).

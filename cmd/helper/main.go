@@ -155,6 +155,9 @@ func run(socket, policyPath, dbPath, migDir, installID string, panelUID int, soc
 		return combined.String(), nil
 	})
 	registry.Register("exec.session", helper.ExecSessionHandler())
+	registry.Register("exec.open", helper.ExecOpenHandler())
+	registry.Register("exec.write", helper.ExecWriteHandler())
+	registry.Register("exec.close", helper.ExecCloseHandler())
 	registry.Register("cache.apply", helper.CacheApplyHandler())
 	registry.Register("dns.apply", helper.DNSApplyHandler())
 	registry.Register("container.apply", helper.ContainerApplyHandler())

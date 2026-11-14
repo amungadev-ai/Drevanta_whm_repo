@@ -87,3 +87,9 @@ VPS targets per graph G20+. CI adds `-race`.
 | IMAP LOGIN with hashed passdb (real client auth) | VPS client drill | VPS: imaplib LOGIN OK against {SSHA512} passdb | **PASS (LOGIN)** | this wave |
 | Sandbox payment gateway (charge/idempotency/decline, webhook HMAC+replay) | unit (fixture server) | payments_test.go | **PASS** | 514ad00 |
 | Commercial config validation + tax math (exclusive/inclusive) | unit | exec_commercial_test.go | **PASS** | 2fcba09 |
+
+| Mail: IMAP INBOX full session (SELECT 4 msgs, FETCH body, STORE flags, CREATE Archive, LIST) + POP3 retrieval + tenant isolation | VPS client drill | G32: inbox path = %h/Maildir via mail_inbox_path=%{home}/Maildir (2.4 setting); per-domain userdb homes | **PASS** | W2 |
+| Mail: dovecot 2.4 config findings (mail_inbox_path vs obsolete inbox_path; %{home} variable order; passwd-file extended lines user:hash:uid:gid::home) | VPS drill | G32 activation config | **PASS** | W2 |
+| Redis per-instance AUTH (requirepass generated; NOAUTH without, PONG with) | unit + VPS drill | infra_verbs_test.go TestCacheApplyGeneratedAuth; VPS redis-cli | **PASS** | W2 |
+| Container run idempotency (running->already-active / recovered-existing; hardened flags) | unit + VPS drill | infra_verbs_test.go; VPS: run#1 running, run#2 recovered, podman ps Up | **PASS** | W2 |
+| Interactive PTY session (exec.open/write/close): real PTY echo+output+prompt streamed, revocation enforced, TTL, input never journaled | unit + VPS drill | exec_commercial_test.go TestExecSessionOpenWriteCloseLifecycle; VPS stream chunk | **PASS** | W2 |

@@ -343,9 +343,19 @@ func ContainerApplyHandler() VerbHandler {
 				"--read-only", "--cap-drop=all", "--security-opt", "no-new-privileges",
 				"--memory", "512m", "--cpus", "1.0", "--pull", "never", a.Image}
 			if a.Cmd != "" {
-				argv = append(argv, a.Cmd)
+				// Split the command into words: the OCI runtime needs the
+				// binary and its arguments as SEPARATE argv elements.
+				argv = append(argv, strings.Fields(a.Cmd)...)
 			}
 			if _, err := containerRunner(ctx, argv...); err != nil {
+				// Leftover storage from an interrupted create: recover by
+				// starting the existing container instead of failing.
+				if strings.Contains(err.Error(), "already in use") {
+					if _, serr := containerRunner(ctx, "start", a.Name); serr != nil {
+						return nil, fmt.Errorf("container run failed: %w", err)
+					}
+					return json.Marshal(map[string]string{"name": a.Name, "state": "running (recovered existing)"})
+				}
 				return nil, fmt.Errorf("container run failed: %w", err)
 			}
 			return json.Marshal(map[string]string{"name": a.Name, "state": "running", "image": a.Image})

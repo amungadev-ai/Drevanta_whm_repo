@@ -70,7 +70,7 @@ func ExecSessionHandler() VerbHandler {
 		}
 		argv := []string{a.Command}
 		argv = append(argv, a.Args...)
-		runArgs := []string{"--quiet", "--wait",
+		runArgs := []string{"--quiet", "--wait", "--pipe",
 			"-p", "CPUQuota=50%", "-p", "MemoryMax=512M", "-p", "TasksMax=64",
 			"--uid=nobody", "-p", "WorkingDirectory=" + root}
 		if !a.AllowNet {
