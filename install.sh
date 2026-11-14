@@ -63,8 +63,8 @@ REPO="amungadev-ai/Drevanta_whm_repo"
 # API base override: verified self-hosted mirrors (offline/air-gapped Method C
 # scenarios) and verification harnesses. Default is GitHub. HTTPS-only.
 API="${DREVANTA_API_BASE:-https://api.github.com/repos/${REPO}}"
-PINNED_TAG="v1.0.0-owneraudit.1-dev.4"        # development release (owner-approved dev artifact)
-PINNED_COMMIT="6c6b92ee17f68a85446c1ac9639d3c1980f09e61"     # full commit the pinned dev release must be cut from
+PINNED_TAG="v1.0.0-owneraudit.1-dev.5"        # development release (owner-approved dev artifact)
+PINNED_COMMIT="d2e3ae2ca4f6ed0eb634d658fcfa2aacee4ebb68"     # full commit the pinned dev release must be cut from
 REQ_TAG=""
 REQ_COMMIT=""
 EXPECT_SHA=""
