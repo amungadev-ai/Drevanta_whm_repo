@@ -16,27 +16,27 @@ func execFixture(t *testing.T) string {
 	base := t.TempDir()
 	root := filepath.Join(base, "site")
 	os.MkdirAll(root, 0o750)
-	os.WriteFile(filepath.Join(base, "site-bindings.json"), []byte(`["`+root+`"]`), 0o600)
+	os.WriteFile(filepath.Join(base, "site-bindings.json"), []byte(`{"site":"`+root+`"}`), 0o600)
 	LoadFileBindings(filepath.Join(base, "site-bindings.json"))
 	return root
 }
 
 func TestExecSessionAuditedSandboxed(t *testing.T) {
-	root := execFixture(t)
+	const siteBinding = "site"
 	h := ExecSessionHandler()
 	// Unknown interpreter rejects.
-	raw, _ := json.Marshal(ExecSessionArgs{Binding: root, Command: "rm"})
+	raw, _ := json.Marshal(ExecSessionArgs{Binding: siteBinding, Command: "rm"})
 	if _, err := h(context.Background(), raw); err == nil {
 		t.Fatal("rm must not be an allowlisted interpreter")
 	}
 	// Shell metacharacter arguments reject.
-	raw, _ = json.Marshal(ExecSessionArgs{Binding: root, Command: "sh", Args: []string{"-c", "evil\nnext"}})
+	raw, _ = json.Marshal(ExecSessionArgs{Binding: siteBinding, Command: "sh", Args: []string{"-c", "evil\nnext"}})
 	if _, err := h(context.Background(), raw); err == nil {
 		t.Fatal("newline in args must reject")
 	}
 	// Without isolation (CI) the session refuses — same fail-closed contract
 	// as builds. The real sandbox path is verified in the VPS drill.
-	raw, _ = json.Marshal(ExecSessionArgs{Binding: root, Command: "sh", Args: []string{"-c", "echo hi"}})
+	raw, _ = json.Marshal(ExecSessionArgs{Binding: siteBinding, Command: "sh", Args: []string{"-c", "echo hi"}})
 	if _, err := h(context.Background(), raw); err == nil {
 		t.Log("isolation available in this environment (unexpected in CI)")
 	} else if !strings.Contains(err.Error(), "isolation probe failed") {
