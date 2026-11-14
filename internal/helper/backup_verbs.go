@@ -60,19 +60,45 @@ type BackupManifest struct {
 	VerifiedAt  string `json:"verified_at,omitempty"`
 }
 
-// loadBackupKey resolves a key_ref to master key bytes. Only env refs are
-// accepted; the value never crosses into logs or manifests.
+// loadBackupKey resolves a key_ref to master key bytes. Accepted forms:
+// "env:NAME" (the privileged unit's environment) and "file:/abs/path" (a
+// root-owned 0600 key file managed by the secret workflow). The value never
+// crosses into logs or manifests.
 func loadBackupKey(keyRef string) ([]byte, error) {
-	if !strings.HasPrefix(keyRef, "env:") {
-		return nil, fmt.Errorf("key_ref must be env:NAME")
+	var v string
+	switch {
+	case strings.HasPrefix(keyRef, "env:"):
+		name := strings.TrimPrefix(keyRef, "env:")
+		if name == "" || strings.ContainsAny(name, " \t\n;") {
+			return nil, fmt.Errorf("invalid env key name")
+		}
+		val, ok := os.LookupEnv(name)
+		if !ok {
+			return nil, fmt.Errorf("backup key unavailable")
+		}
+		v = val
+	case strings.HasPrefix(keyRef, "file:"):
+		p := strings.TrimPrefix(keyRef, "file:")
+		if !filepath.IsAbs(p) || strings.Contains(p, "..") || strings.ContainsAny(p, "\x00") {
+			return nil, fmt.Errorf("invalid key file ref")
+		}
+		st, err := os.Stat(p)
+		if err != nil {
+			return nil, fmt.Errorf("backup key unavailable")
+		}
+		if st.Mode().Perm() != 0o600 {
+			return nil, fmt.Errorf("key file must be 0600")
+		}
+		b, err := os.ReadFile(p)
+		if err != nil {
+			return nil, fmt.Errorf("backup key unavailable")
+		}
+		v = strings.TrimRight(string(b), "\n\r")
+	default:
+		return nil, fmt.Errorf("key_ref must be env:NAME or file:/abs/path")
 	}
-	name := strings.TrimPrefix(keyRef, "env:")
-	if name == "" || strings.ContainsAny(name, " \t\n;") {
-		return nil, fmt.Errorf("invalid env key name")
-	}
-	v, ok := os.LookupEnv(name)
-	if !ok || len(v) < 32 {
-		return nil, fmt.Errorf("backup key unavailable or too short")
+	if len(v) < 32 {
+		return nil, fmt.Errorf("backup key too short")
 	}
 	sum := sha256.Sum256([]byte("drevanta-backup-master:" + v))
 	return sum[:], nil

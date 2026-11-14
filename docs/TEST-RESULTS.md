@@ -68,3 +68,13 @@ VPS targets per graph G20+. CI adds `-race`.
 | G40-F1 VPS deployment-integration (new panel binary + full-persona web build deployed to the disposable VPS; helper-managed vhost verified again) | deployed-environment verification | tools/deploy/vps_run.py + nginx-guard.sh | **PASS** — services active; unauthenticated /api/v1/workspaces AND the new /api/v1/scopes/{id}/tickets answer 401 through the vhost (BFF session gate); bad-credential login 401; guard: no direct Go routing, no token exposure | this wave |
 | G40-F2 build execution worker (real git fetch, deterministic digest, claim CAS, safe failures) | integration (real git file:// repos + failure paths) | internal/jobs/buildrunner_test.go | **PASS (3 suites)** | this wave |
 | G40-F2 host-inspect observation derivation (whitelisted facts; negatives) | unit/integration | internal/jobs/observe_test.go | **PASS (3 suites)** | this wave |
+| G30 TLS lifecycle (real issuance/renewal/recovery, ACME fail-closed) | unit + VPS drill | internal/helper/tls_verbs_test.go; DEPLOY-DRILL-G30-G50.md D1 | **PASS** | this wave |
+| G50 encrypted backups (create/verify/restore/push/pull, tamper+traversal refusals, real rsync) | unit + VPS drill | internal/helper/backup_verbs_test.go; D5 | **PASS** | this wave |
+| G30 mail provisioning + real E2E delivery (DKIM, maildir) | unit + VPS drill | internal/helper/mail_toolchain_verbs_test.go; D2 | **PASS** | this wave |
+| G30 toolchain ensure (real apt install php8.5) | unit + VPS drill | internal/helper/mail_toolchain_verbs_test.go; D3 | **PASS** | this wave |
+| G30 isolated build execution (sandbox probe, fail-closed, deterministic digests) | unit + VPS drill | internal/helper/build_verbs_test.go; D4 | **PASS** | this wave |
+| G30 service reload/restart/revert on live nginx | VPS drill | D6 | **PASS** | this wave |
+| G50 interrupted-operation recovery (lease expiry + DispatchGuard reauth) | VPS drill | D7 | **PASS** | this wave |
+| G50 failed-upgrade rollback | VPS drill | D8 | **PASS** | this wave |
+| G50 reboot convergence (6 services) | VPS drill | D9 | **PASS** | this wave |
+| G50 firewall + SSH safety rollback | VPS drill | D10 | **PASS** | this wave |

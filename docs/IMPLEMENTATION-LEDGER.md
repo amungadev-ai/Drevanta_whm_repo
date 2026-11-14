@@ -196,3 +196,15 @@ Ledger rows for all 72 requirements (`spec/specification/registers/requirements.
 capabilities are tracked in `docs/traceability.csv` (machine-readable mirror) and updated in the
 same commit as the code they bind. The authoritative normative rows remain in `spec/`; this ledger
 never narrows them, only records implementation state and evidence pointers.
+
+## G30/G50 wave (2026-11-14)
+
+All ten host-operation and disaster-recovery drills executed on the disposable VPS
+with REAL evidence (DEPLOY-DRILL-G30-G50.md): TLS lifecycle, mail provisioning +
+end-to-end delivery, toolchain provisioning (real apt), ISOLATED build execution
+(fail-closed sandbox, deterministic digests), full encrypted backup/DR chain incl.
+sqlite WAL recovery into a clean nspawn environment, service reload/restart/revert,
+interrupted-operation recovery (DispatchGuard reauthorization demonstrated as a
+security property), failed-upgrade rollback, reboot convergence (6 services),
+firewall + SSH safety rollback. Release reconciliation produced for all 404 scope
+rows (release-reconciliation.csv).

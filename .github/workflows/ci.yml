@@ -26,3 +26,5 @@ jobs:
         run: go build ./...
       - name: Test
         run: go test ./... -count=1 -race
+      - name: Release reconciliation gate (404 scope rows statused; no fake passes)
+        run: python3 scripts/release_reconcile.py | tee /tmp/reconcile.json && test -s spec/registers/release-reconciliation.csv
