@@ -128,7 +128,7 @@ if [[ "$DRY_RUN" == "1" ]]; then
 fi
 
 echo "== 4. Publish to $DIST_REPO (release $TAG, channel $CHANNEL) =="
-PRERELEASE="false"; [[ "$CHANNEL" == "dev" ]] && PRERELEASE="true"
+PRERELEASE="false"  # dedicated repo: /releases/latest must resolve; dev status lives in title/body/banner
 if [[ "$CHANNEL" == "dev" ]]; then
   NOTES="DEVELOPMENT PRERELEASE for the owner-led acceptance test — explicitly NOT a production release.
 Commit: $TARGET_COMMIT
@@ -145,11 +145,17 @@ import json,sys
 print(json.dumps({'tag_name':sys.argv[1],'target_commitish':'main','name':'Drevanta %s (%s)'%(sys.argv[1],sys.argv[2]),
  'body':open(sys.argv[3]).read(),'prerelease':sys.argv[4]=='true','draft':False}))" "$TAG" "$CHANNEL" "$WORK/notes.md" "$PRERELEASE")"
 DIST_REL="$WORK/dist-rel.json"
-curl -fsS --header @"$DIST_HDR" -o "$DIST_REL" -X POST "$API/repos/$DIST_REPO/releases" -d "$REL_BODY" \
-  || { echo "[FAIL] dist release creation failed (is DIST_TOKEN authorized for push?)"; exit 1; }
+REL_RC=0
+curl -fsS --header @"$DIST_HDR" -o "$DIST_REL" -X POST "$API/repos/$DIST_REPO/releases" -d "$REL_BODY" || REL_RC=1
+if [[ "$REL_RC" != "0" ]]; then
+  # 422 = the release/tag already exists (previous partial run) — reuse it.
+  curl -fsS --header @"$DIST_HDR" -o "$DIST_REL" "$API/repos/$DIST_REPO/releases/tags/$TAG" \
+    || { echo "[FAIL] dist release creation failed and no existing release found"; exit 1; }
+  echo "[INFO] reusing existing distribution release for $TAG"
+fi
 DIST_REL_ID="$(python3 -c "import json;print(json.load(open('$DIST_REL'))['id'])")"
 upload() { curl -fsS --header @"$DIST_HDR" -H 'Content-Type: application/octet-stream' --data-binary @"$1" \
-  "$API/repos/$DIST_REPO/releases/$DIST_REL_ID/assets?name=$2" >/dev/null && echo "[OK] published asset: $2" \
+  "https://uploads.github.com/repos/$DIST_REPO/releases/$DIST_REL_ID/assets?name=$2" >/dev/null && echo "[OK] published asset: $2" \
   || { echo "[FAIL] asset upload failed: $2"; exit 1; }; }
 for f in bootstrap.sh bootstrap.sh.sha256 SHA256SUMS SHA256SUMS.sig MANIFEST.json "$ART_NAME" "$ART_NAME.sha256"; do
   upload "$STAGE/$f" "$f"
@@ -164,7 +170,7 @@ cat > "$CRED" <<CRED
 echo "username=x-access-token"
 echo "password=\$DIST_TOKEN"
 CRED
-chmod 600 "$CRED"; export DIST_TOKEN
+chmod 700 "$CRED"; export DIST_TOKEN
 DIST_CLONE="$WORK/dist"; git clone -q "https://github.com/$DIST_REPO.git" "$DIST_CLONE"
 cp docs/INSTALL-CLIENT.md "$DIST_CLONE/docs/INSTALL-CLIENT.md" 2>/dev/null || { mkdir -p "$DIST_CLONE/docs"; cp docs/INSTALL-CLIENT.md "$DIST_CLONE/docs/"; }
 cp docs/VERIFICATION.md "$DIST_CLONE/docs/VERIFICATION.md"
