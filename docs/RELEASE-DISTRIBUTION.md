@@ -27,12 +27,18 @@ logged or embedded in URLs.
 
 ## Verification chain (what each consumer checks)
 
-1. **Bootstrap installer (Method A)** — resolves the tag, downloads
-   `MANIFEST.json` and the artifact from the release, verifies the artifact
-   SHA-256 against the manifest, extracts, verifies the artifact-internal
-   `SHA256SUMS` (every file), then hands over to the engine. Missing,
-   corrupted or mismatched artifacts are rejected with a non-zero exit and
-   nothing is installed.
+1. **Bootstrap installer (Method A)** — resolves the exact release,
+   downloads `MANIFEST.json` (mandatory: a release without a readable
+   manifest is refused — no fallback verification path exists), validates
+   its schema (product, channel, tag, 40-hex commit, version, artifact
+   identity; the pinned dev release must match its expected full commit),
+   downloads the artifact, requires an **exact SHA-256 match**, validates
+   archive-entry safety (`tar -tvz`: absolute paths, traversal, link
+   targets escaping the extraction root, special entries), verifies the
+   internal `SHA256SUMS` **with complete file coverage**, then hands over
+   to the engine as a child process after unsetting the GitHub token.
+   Missing, malformed, mismatched, untrusted or corrupted artifacts are
+   rejected with a non-zero exit and nothing is installed.
 2. **Method B/C** — `sha256sum -c <package>.tar.gz.sha256` before extraction;
    the engine's artifact-internal checks still apply on install.
 3. **Release provenance** — the summary prints the installed version

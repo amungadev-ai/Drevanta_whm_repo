@@ -78,11 +78,18 @@ Status, honestly separated:
 
 ## Private-management mode
 
-`--private-mgmt` (or rerunning the engine with `--upgrade --private-mgmt`)
-removes the public listener entirely: the management interface is reachable
-only through SSH tunnels, approved private networks or VPN. The completion
-summary then shows tunnel URLs only. Reversing: rerun with `--upgrade`
-without the flag — the public vhost and certificate are recreated.
+`--private-mgmt` (fresh install) removes the public listener entirely: the
+management interface is reachable only through SSH tunnels, approved private
+networks or VPN. The completion summary and the `drevanta-claim-token` CLI
+then show NO public URLs (tunnel only). Management-mode changes, port
+changes and access-address changes are genuinely implemented through the
+upgrade workflow: `sudo ./install.sh --upgrade --private-mgmt` withdraws
+the public listener (vhost removed), `--upgrade` (without the flag)
+re-creates it, `--upgrade --mgmt-port 9443` re-renders the vhost on the new
+port, and a certificate whose SAN no longer matches the access address is
+reissued automatically. Each re-render runs `nginx -t` and reloads; the
+loopback tunnel vhost stays available throughout, so access is never lost
+during the transition.
 
 ## Access-address transitions
 

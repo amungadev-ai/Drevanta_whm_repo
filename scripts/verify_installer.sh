@@ -268,7 +268,9 @@ if unshare -rm true 2>/dev/null; then
   T2="$WORK/t2"; mkdir -p "$T2"
   PKG2="$WORK/pkg"; mkdir -p "$PKG2"
   tar --no-same-owner -xzf "$REPO_DIR"/drevanta-install-*.tar.gz -C "$PKG2"
-  PKGDIR2="$(echo "$PKG2"/drevanta-install-*)"
+  set -- "$PKG2"/drevanta-install-*
+  [[ $# == 1 && -d "$1" ]] || { echo "SUITE ERROR: expected exactly one extracted package, got $#"; exit 3; }
+  PKGDIR2="$1"
   # All T2 scenarios run inside ONE namespace session so the fake root keeps
   # state between runs. Instances are isolated paths (/etc/drevanta-accN).
   cat > "$T2/session.sh" <<SEOF

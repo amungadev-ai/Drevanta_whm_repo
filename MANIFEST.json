@@ -1,13 +1,13 @@
 {
   "product": "Drevanta",
   "channel": "development-prerelease",
-  "tag": "v1.0.0-owneraudit.1-dev.2",
-  "commit": "1a5377dcf3127a2e8d975150ad88fb71f257cdc6",
-  "version": "1.0.0-owneraudit.1+1a5377dcf3127a2e8d975150ad88fb71f257cdc6",
-  "generated_at": "2026-11-14T08:12:45Z",
-  "artifact": "drevanta-install-1.0.0-owneraudit.1-1a5377d.tar.gz",
+  "tag": "v1.0.0-owneraudit.1-dev.3",
+  "commit": "9bdce4da2656466512a2748bcea35d36f9b4129d",
+  "version": "1.0.0-owneraudit.1+335c67dc485dc04a0fd36a08d3c5e82561d98fd0",
+  "generated_at": "2026-11-14T09:05:19Z",
+  "artifact": "drevanta-install-1.0.0-owneraudit.1-335c67d.tar.gz",
   "artifacts": {
-    "drevanta-install-1.0.0-owneraudit.1-1a5377d.tar.gz": "fe790ee7ae7dfd9868a6d7c8421163adc2225f4b024bd65b95a592ffaa45510b"
+    "drevanta-install-1.0.0-owneraudit.1-335c67d.tar.gz": "d5d0f30e613691e992ab94c5569f519c4e021d40d637af0d1bc4a0d38207499d"
   },
   "verification": "bootstrap verifies the artifact against this manifest AND the artifact-internal SHA256SUMS"
 }

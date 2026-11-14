@@ -15,22 +15,34 @@ What the engine does, in order:
    is refused (`refusing to modify`); fresh install and upgrade are explicit,
    separate paths. A claimed installation is never reset and never receives a
    new owner claim token.
-2. **Backup** — `/var/lib/drevanta[-<inst>]` and `/etc/drevanta[-<inst>]`
-   are archived to
-   `/var/backups/drevanta/upgrade-<UTC-timestamp>/data-etc.tar.gz` (0600).
+2. **Backup (after services are stopped — consistent SQLite state)** —
+   `/var/backups/drevanta/upgrade-<UTC-timestamp>/` (0700) receives: data +
+   configuration (`data-etc.tar.gz`), **binaries (`bin.tar.gz`)**, **frontend
+   bundle (`web.tar.gz`)**, **migrations (`migrations.tar.gz`)** and
+   **systemd/nginx state + VERSION (`system-nginx.tar.gz`)** — all 0600.
+   The rollback restores every archive to its correct target (bin/web/
+   migrations into the installation directory) and re-runs health checks;
+   rollback success is reported only when the previous version is actually
+   restored and healthy — otherwise `rollback INCOMPLETE` is printed and
+   the exit stays non-zero.
 3. **Replace** — services stopped; binaries, console bundle, migrations and
    policy templates replaced.
 4. **Migrate & start** — services restarted; the panel applies forward-only
    migrations at startup.
-5. **Health gates** — control plane (`/api/v1/install/status`) and console
-   health are polled; on any failed gate the previous version is **restored
-   from the backup and restarted** automatically, and the upgrade exits
-   non-zero with the failing steps listed.
+5. **Health gates** — control plane (`/api/v1/install/status`), console,
+   unit activation (`systemctl is-active`) and the helper socket are
+   polled; on any failed gate the previous version is **restored from the
+   backups and restarted** automatically, post-rollback health is verified,
+   and the upgrade exits non-zero with the failing steps listed.
 
 Idempotent and retry-safe: a failed upgrade leaves either the new version
 healthy or the previous version running — never an undefined state.
-Compatibility: the same artifact supports the coexisting `--instance`
-mechanism for blue/green-style parallel testing before an in-place upgrade.
+Compatibility: the installed and target versions must share the same major
+version; a major-version change is refused with a pointer to the documented
+migration path. An exclusive installation lock (`/var/lock/<svc>-install.lock`)
+prevents concurrent installs/upgrades. Customized policy files
+(`/etc/drevanta[-<inst>]/*.json*`) are preserved — never overwritten — by
+upgrades.
 
 ## Backups
 

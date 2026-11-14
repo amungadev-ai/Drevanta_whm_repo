@@ -9,7 +9,7 @@ installer implementation, not one per method.
 
 | Method | Use when | Entry point | Status |
 | --- | --- | --- | --- |
-| **A — Direct GitHub installation** | Standard customer journey (primary) | `install.sh` at the repository root, executed in one command | Implemented; verified in isolated harness (see `scripts/verify_installer.sh`, 46 checks) |
+| **A — Direct GitHub installation** | Standard customer journey (primary) | `install.sh` at the repository root, executed in one command | Implemented; verified in isolated harness (see `scripts/verify_installer.sh`, 82 checks incl. negative tests) |
 | **B — Downloadable installation package** | No direct GitHub retrieval desired | release artifact `drevanta-install-*.tar.gz` + `sha256sum -c` + `./install.sh` | Implemented; verified on a prior fresh Ubuntu 26.04 host and in the harness |
 | **C — Offline installation** | Air-gapped/restricted host | same artifact, engine `--offline` skips network stages | Implemented; dependency auto-install skipped, preinstalled deps required |
 | **D — Developer installation** | Building from source | build the artifact with `scripts/build_install_package.sh`, install it (Method B flow) | Implemented; used for every release |
@@ -53,12 +53,21 @@ immediately after use. Export `DREVANTA_GH_TOKEN` beforehand (unattended
 runs require this), or paste it at the hidden prompt.
 
 What the bootstrap does, in order: platform validation → release resolution
-(`--version <tag>`, default: the pinned development release) → release
-manifest retrieval → artifact download → **SHA-256 verification against the
-trusted release MANIFEST.json AND the artifact's internal SHA256SUMS**
-(mismatched or corrupted artifacts are deleted; nothing is installed) →
-extraction into a private temporary directory → execution of the shared
-engine → cleanup. The customer never compiles from source.
+(`--version <tag>`, default: the pinned development release, bound to its
+exact full commit) → manifest retrieval **from the exact selected release's
+asset collection** → manifest validation (schema, product, channel, tag,
+commit, version, artifact identity — **mandatory, there is no fallback
+verification path**) → artifact download → **exact SHA-256 match against the
+trusted manifest** → archive-safety validation (`tar -tvz`: absolute paths,
+path traversal, link targets escaping the extraction root and special
+entries are rejected) → extraction into a private 0700 mktemp workspace →
+internal `SHA256SUMS` verification **with complete file coverage** →
+credential scrub from the environment → the shared engine runs as a child
+process (the bootstrap's cleanup always fires) → workspace removal
+(`--keep` preserves the artifact but never credentials). The customer never
+compiles from source. Retrieval is HTTPS-only; the token lives in a 0600
+header file deleted on success, failure and interruption, and is unset
+before the engine (and everything it starts) inherits the environment.
 
 For the stable channel (after owner approval), the same command form will
 point at the official stable release reference; explicit version selection
@@ -73,9 +82,11 @@ sudo ./install.sh                 # fresh install, management HTTPS on :8443
 sudo ./install.sh --offline      # air-gapped host (deps must be preinstalled)
 ```
 
-Package integrity: `<package>.tar.gz.sha256` beside the package, internal
-`SHA256SUMS` for every file, and the release `MANIFEST.json` (trusted
-manifest generated at release time). Self-hosted mirrors can substitute the
+Package integrity (Method B/C): verify the sidecar
+(`sha256sum -c <package>.tar.gz.sha256`) before extraction; the engine then
+self-verifies its own tree at startup (internal `SHA256SUMS` **including
+complete file coverage**) as a mandatory gate — the same gate the bootstrap
+enforces for Method A. Self-hosted mirrors can substitute the
 API base with `DREVANTA_API_BASE` for verified mirror scenarios.
 
 ## Method D — developer installation
@@ -127,7 +138,9 @@ explicitly NOT claimed and must be confirmed from the browser).
 
 ## First-run onboarding (performed by the owner)
 
-The completion summary prints the primary onboarding URL:
+The completion summary prints the primary onboarding URL — **only to an
+authorized interactive terminal; any non-interactive run suppresses token
+material automatically** (`sudo drevanta-claim-token --url` retrieves it):
 
 ```
 https://<server-ip>:8443/#<single-use-claim-token>

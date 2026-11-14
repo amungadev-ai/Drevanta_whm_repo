@@ -1,6 +1,6 @@
 # Drevanta Owner Acceptance Testing (Manual Audit Checklist)
 
-Build 1.0.0-owneraudit.1 @ commit 2a125c9 (branch feat/g40-frontend-migration).
+Build 1.0.0-owneraudit.1 @ release v1.0.0-owneraudit.1-dev.3, commit 9bdce4da2656466512a2748bcea35d36f9b4129d (branch feat/g40-frontend-migration; corrected review package @ commit 7401a99).
 Access: docs/OWNER-ACCESS.md (SSH tunnel, loopback-only). Statuses are the honest
 implementation state at handover: **OPERATIONAL-VERIFIED** (implemented + VPS-verified),
 **OPERATIONAL** (implemented, awaiting your verification), **PARTIAL**, **UNIMPLEMENTED**,

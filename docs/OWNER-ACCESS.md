@@ -53,18 +53,23 @@ reachability (it can only verify local serving).
 
 ## 3. One-click onboarding (claim-token auto-population)
 
-The completion summary prints the confidential onboarding URL:
+The completion summary prints the confidential onboarding URL to your
+interactive terminal (non-interactive runs suppress it automatically;
+`sudo drevanta-claim-token --url` retrieves it):
 
 ```
 https://95.211.164.33:8443/#<single-use-claim-token>
 ```
 
 Ctrl+Click it (or tunnel + `http://localhost:8080/#<token>`). Behavior,
-implemented and verified: the approved onboarding interface reads the token
-from the URL fragment, validates the format, auto-populates the existing
-claim-token field, and immediately removes the token from the address bar.
-The token is never stored (no web storage), never auto-submitted, never sent
-to the backend until the owner explicitly continues. Manual entry remains
+implemented (fragment reading/validation/population, immediate
+`history.replaceState` cleanup, no storage, no auto-submit, explicit owner
+submission, manual-entry fallback) and logic-verified against the built
+bundle in the isolated harness; the complete browser run — including the
+authenticated session flow over the tunnel — is executed by YOU as part of
+this acceptance test and must not be treated as pre-verified. The token is
+never stored (no web storage), never auto-submitted, never sent to the
+backend until the owner explicitly continues. Manual entry remains
 available (the field accepts `clm_…` tokens or a full link).
 
 ## 4. Onboarding steps (owner-controlled)
