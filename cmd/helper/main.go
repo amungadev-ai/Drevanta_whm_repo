@@ -154,6 +154,8 @@ func run(socket, policyPath, dbPath, migDir, installID string, panelUID int, soc
 		}
 		return combined.String(), nil
 	})
+	_ = helper.LoadDeployScratchBindings(filepath.Join(bindingsDir, "build-bindings.json"))
+	registry.Register("deploy.apply", helper.DeployApplyHandler())
 	registry.Register("exec.session", helper.ExecSessionHandler())
 	registry.Register("exec.open", helper.ExecOpenHandler())
 	registry.Register("exec.write", helper.ExecWriteHandler())

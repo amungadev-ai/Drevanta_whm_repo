@@ -17,6 +17,8 @@ package helper
 // Concurrency is capped by a semaphore; timeouts kill the whole scope.
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -261,12 +263,67 @@ func BuildExecuteHandler() VerbHandler {
 			return nil
 		})
 		sum := sha256.Sum256([]byte(a.BuildID))
+		// Artifact production: pack the built tree into a versioned tarball
+		// with a sha256 sidecar under the scratch root (deploy.apply
+		// consumes this exact artifact).
+		artDir := filepath.Join(a.ScratchRoot, "artifacts")
+		if err := os.MkdirAll(artDir, 0o750); err != nil {
+			return nil, fmt.Errorf("artifact dir failed")
+		}
+		artPath := filepath.Join(artDir, a.BuildID+".tar.gz")
+		if err := writeTarGz(artPath, wt); err != nil {
+			return nil, fmt.Errorf("artifact packing failed")
+		}
 		return json.Marshal(map[string]any{
 			"build_id": a.BuildID, "state": "succeeded",
 			"artifact_digest": "sha256:" + digest,
+			"artifact_path":   artPath,
 			"artifact_size":   size,
 			"log_ref":         "build-" + hex.EncodeToString(sum[:4]), // redacted shape only
 			"isolated":        true,
 		})
 	}
+}
+
+// writeTarGz packs a directory tree into a gzipped tar (relative names).
+func writeTarGz(dest, src string) error {
+	out, err := os.Create(dest)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	gz := gzip.NewWriter(out)
+	defer gz.Close()
+	tw := tar.NewWriter(gz)
+	defer tw.Close()
+	return filepath.Walk(src, func(p string, fi os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(src, p)
+		if err != nil {
+			return err
+		}
+		if rel == "." {
+			return nil
+		}
+		hdr, err := tar.FileInfoHeader(fi, "")
+		if err != nil {
+			return err
+		}
+		hdr.Name = rel
+		if err := tw.WriteHeader(hdr); err != nil {
+			return err
+		}
+		if fi.Mode().IsRegular() {
+			f, err := os.Open(p)
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+			_, err = io.Copy(tw, f)
+			return err
+		}
+		return nil
+	})
 }
